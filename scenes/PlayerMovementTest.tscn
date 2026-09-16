@@ -5,8 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://cvu4g1q7u08cn" path="res://art/characters/manny.glb" id="3_arms"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
-radius = 0.35
-height = 1.8
+height = 3.9279785
 
 [sub_resource type="SphereShape3D" id="SphereShape_probe"]
 radius = 0.35
@@ -27,7 +26,7 @@ size = Vector3(40, 0.2, 40)
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1166585754]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1833943505]
-transform = Transform3D(-1, 8.742278e-08, -1.0425061e-15, 0, 1.1924881e-08, 1, 8.742278e-08, 1, -1.1924881e-08, 0, 0, 0)
+transform = Transform3D(-1, 8.742278e-08, -1.0425061e-15, 0, 1.1924881e-08, 1, 8.742278e-08, 1, -1.1924881e-08, 0, 1.3551311, 0)
 shadow_enabled = true
 shadow_bias = 0.0
 
@@ -35,7 +34,7 @@ shadow_bias = 0.0
 script = ExtResource("1_player")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=1089854119]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.051631212, 1.9052796, -0.00052952766)
 shape = SubResource("CapsuleShape_player")
 
 [node name="GroundProbe" type="ShapeCast3D" parent="Player" unique_id=1366928150]
@@ -49,11 +48,10 @@ target_position = Vector3(0, -0.2, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="FirstPersonCamera" type="Camera3D" parent="Player/Head" unique_id=1631382468]
-transform = Transform3D(-0.9990419, 0, -0.043762427, 0, 1, 0, 0.043762427, 0, -0.9990419, 0, 2, 0.2)
+transform = Transform3D(-0.99904203, 4.6036305e-10, -0.04376243, -0.0023720246, 0.99853, 0.05415035, 0.043698106, 0.054202266, -0.99757344, 0, 1.9999999, 0.2)
 current = true
-fov = 91.7
+fov = 92.8
 near = 10.0
-far = 2000.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Player" unique_id=1312267907]
 
@@ -70,6 +68,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 shape = SubResource("BoxShape_floor")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=1448104210]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08874316, 0)
 material_override = SubResource("StandardMaterial_floor")
 mesh = SubResource("BoxMesh_floor")
