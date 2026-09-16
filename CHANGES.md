@@ -1,32 +1,25 @@
-# Fuzzy bone matching + real diagnostics
+# HUD update — apply on top of the combat update
 
-Extract over your project root (replaces 2 files). The build itself is fine now — these are
-the two runtime issues from your latest log.
+Extract over your project root again. This is a second, separate patch — if you haven't
+applied `wraith_run_combat_update.zip` yet, apply that one first, then this one on top.
 
-## 1. "could not find a Skeleton3D with a 'mixamorig:RightHand' bone" — fixed
-Godot's glTF importer sanitizes bone names on import — this is documented engine behavior, and
-it does NOT necessarily keep "mixamorig:RightHand" as the literal bone name after import (exactly
-how it mangles it isn't something I can verify without running the importer myself, which I
-don't have access to here). `WeaponAttachment.cs` now searches for any bone whose name *contains*
-"righthand" (case-insensitive) instead of requiring an exact match, so it survives whatever the
-real sanitized name turns out to be. If it still can't find one, the error now prints every
-actual bone name on the skeleton, so we'd see the real name directly instead of guessing again.
+## New: PlayerHud.cs
+A `Hud` CanvasLayer node added as a child of Player, built entirely in code (same style as
+LanMenu). Only the owning peer's Player instance builds any UI — a remote observer's copy of
+this node checks `IsMultiplayerAuthority()` and does nothing, so you won't see other players'
+HUDs.
 
-## 2. "Animation clip 'combat_jump_loop' ... was not found" — instrumented, not yet fixed
-This one I genuinely can't diagnose further without seeing real output — I pulled
-"combat_jump_loop" directly from your file's raw data and it's an exact match to what's in
-there, so something in Godot's own import is renaming it (or another clip) in a way I can't
-predict blind. Rather than guess a third name, `PlayerAnimationController.cs` now prints every
-animation name actually present in the library the moment this lookup fails. Run it again and
-send me that line — it'll say "Animations actually present: locomotion_..., combat_..., ..." —
-and I'll fix the dictionary entry from real data instead of another guess.
+Shows:
+- A `+` crosshair, dead center.
+- A health bar + "NN / MM HP" label, bottom-left.
+- Weapon name + ammo ("12 / 30"), "RELOADING…", or "MELEE" for the Karambit, bottom-right.
+- A centered "You died — respawning in N..." message while dead.
 
-I also changed the transition-wiring loop to only connect states that actually loaded, so a
-missing clip no longer cascades into a wall of unrelated `_can_connect`/`No such node` errors
-downstream — you should see far fewer error lines even before this is fully resolved.
+## Touched again: WeaponSwitcher.cs / Health.cs
+Only additive — four new public read-only properties (`WeaponName`, `CurrentAmmo`,
+`MagazineSize`, `IsReloading` on WeaponSwitcher; `RespawnTimeRemaining` on Health) so the HUD
+can read state without touching how either script's internals work. No combat logic changed.
 
-## Not related to your code
-"NO GRAB" (X11 mouse capture) is very likely a harmless Linux/X11 warning from switching window
-focus while two instances are open, not something to fix in script — worth ignoring unless
-input is actually broken. If it is, dropping the X11 vs Wayland/mouse-mode detail from the log
-would help track it down as a separate issue.
+## Still not there
+No damage numbers/hit markers, no kill feed, no minimap. This is deliberately just enough to
+see HP and ammo change in real time while you test the two-instance combat loop.
