@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bcjttjhknfcqw"
+path="res://.godot/imported/TargetHit-003.wav-ea83dabf3abd3157149b017f9ba4b384.sample"
+
+[deps]
+
+source_file="res://audio/Clips/Target Hit/TargetHit-003.wav"
+dest_files=["res://.godot/imported/TargetHit-003.wav-ea83dabf3abd3157149b017f9ba4b384.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

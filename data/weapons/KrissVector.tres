@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+WeaponName = "Kriss Vector"
+BodyDamage = 24.0
+HeadshotDamage = 60.0
+FireRateRPM = 1100.0
+MagazineSize = 25
+ReloadTime = 2.0
+RecoilVertical = 1.0
+RecoilHorizontal = 0.6
+RecoilRecoveryMs = 80.0
+WeaponClass = "SMG"

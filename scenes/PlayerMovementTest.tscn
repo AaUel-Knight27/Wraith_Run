@@ -1,0 +1,79 @@
+[gd_scene format=3 uid="uid://b3p1edfkfgoig"]
+
+[ext_resource type="Script" uid="uid://pikamp6vhtto" path="res://scripts/player/PlayerMovement.cs" id="1_player"]
+[ext_resource type="Script" uid="uid://nqxihnrb77iw" path="res://scripts/player/PlayerAnimationController.cs" id="2_animation"]
+[ext_resource type="PackedScene" uid="uid://8ice2iun26gc" path="res://art/characters/Armature/Model/Armature_arms.fbx" id="3_arms"]
+[ext_resource type="Script" uid="uid://cqb0f2qba4y6w" path="res://scripts/player/FirstPersonArms.cs" id="4_arms"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="SphereShape3D" id="SphereShape_probe"]
+radius = 0.35
+
+[sub_resource type="BoxShape3D" id="BoxShape_floor"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial_floor"]
+albedo_color = Color(0.08, 0.11, 0.16, 1)
+metallic = 0.2
+roughness = 0.75
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(40, 0.2, 40)
+
+[node name="PlayerMovementTest" type="Node3D" unique_id=224180014]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1166585754]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1833943505]
+transform = Transform3D(-1, 8.742278e-08, -1.0425061e-15, 0, 1.1924881e-08, 1, 8.742278e-08, 1, -1.1924881e-08, 0, 0, 0)
+shadow_enabled = true
+shadow_bias = 0.0
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=2029457343]
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=1089854119]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape_player")
+
+[node name="GroundProbe" type="ShapeCast3D" parent="Player" unique_id=1366928150]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+shape = SubResource("SphereShape_probe")
+target_position = Vector3(0, -0.2, 0)
+
+[node name="Head" type="Node3D" parent="Player" unique_id=759020528]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="FirstPersonCamera" type="Camera3D" parent="Player/Head" unique_id=1631382468]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, -0.09)
+current = true
+
+[node name="Armature_Arms" parent="Player/Head/FirstPersonCamera" unique_id=1710313489 instance=ExtResource("3_arms")]
+transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, -0.011, -1.67, 0.09)
+script = ExtResource("4_arms")
+
+[node name="Armature_Body" type="MeshInstance3D" parent="Player" unique_id=170914297]
+
+[node name="Armature_Legs" type="MeshInstance3D" parent="Player" unique_id=2117488143]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Player" unique_id=1312267907]
+
+[node name="AnimationTree" type="AnimationTree" parent="Player" unique_id=2142222891]
+anim_player = NodePath("../AnimationPlayer")
+
+[node name="AnimationController" type="Node" parent="Player" unique_id=1230906331]
+script = ExtResource("2_animation")
+
+[node name="Floor" type="StaticBody3D" parent="." unique_id=877254511]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=1654409495]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+shape = SubResource("BoxShape_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=1448104210]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+material_override = SubResource("StandardMaterial_floor")
+mesh = SubResource("BoxMesh_floor")

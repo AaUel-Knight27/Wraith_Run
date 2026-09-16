@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bqnww8l0i08ng"
+path="res://.godot/imported/Grenade Launcher_Reload.wav-4f2d57ce0ff7b7cff1ae020a3fb6d059.sample"
+
+[deps]
+
+source_file="res://audio/Clips/Weapons/Grenade Launcher/Reload/Grenade Launcher_Reload.wav"
+dest_files=["res://.godot/imported/Grenade Launcher_Reload.wav-4f2d57ce0ff7b7cff1ae020a3fb6d059.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+WeaponName = "AK-47"
+BodyDamage = 34.0
+HeadshotDamage = 85.0
+FireRateRPM = 600.0
+MagazineSize = 30
+ReloadTime = 2.3
+RecoilVertical = 3.5
+RecoilHorizontal = 2.0
+RecoilRecoveryMs = 180.0
+WeaponClass = "AssaultRifle"
+ModelScenePath = "res://art/weapons/AssaultRifle/AK47.fbx"

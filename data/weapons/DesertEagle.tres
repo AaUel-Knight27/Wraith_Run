@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+WeaponName = "Desert Eagle"
+BodyDamage = 45.0
+HeadshotDamage = 105.0
+FireRateRPM = 180.0
+MagazineSize = 7
+ReloadTime = 2.0
+RecoilVertical = 5.0
+RecoilHorizontal = 3.0
+RecoilRecoveryMs = 350.0
+WeaponClass = "Sidearm"

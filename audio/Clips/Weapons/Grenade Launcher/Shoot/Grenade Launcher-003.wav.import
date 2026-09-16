@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bth3bbmmvkhut"
+path="res://.godot/imported/Grenade Launcher-003.wav-a947d67d944512093967c296d096e1e0.sample"
+
+[deps]
+
+source_file="res://audio/Clips/Weapons/Grenade Launcher/Shoot/Grenade Launcher-003.wav"
+dest_files=["res://.godot/imported/Grenade Launcher-003.wav-a947d67d944512093967c296d096e1e0.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

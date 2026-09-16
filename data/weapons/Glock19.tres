@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+WeaponName = "Glock 19"
+BodyDamage = 28.0
+HeadshotDamage = 70.0
+FireRateRPM = 300.0
+MagazineSize = 15
+ReloadTime = 1.5
+RecoilVertical = 1.5
+RecoilHorizontal = 1.0
+RecoilRecoveryMs = 150.0
+WeaponClass = "Sidearm"
+ModelScenePath = "res://art/weapons/Pistols/GLOCK19.fbx"
