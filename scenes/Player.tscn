@@ -32,6 +32,7 @@ shape = SubResource("2")
 script = ExtResource("8")
 
 [node name="Armature" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.14)
 
 [node name="WeaponAttachment" type="Node3D" parent="Armature"]
 script = ExtResource("5")

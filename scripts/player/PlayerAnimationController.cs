@@ -64,7 +64,7 @@ public partial class PlayerAnimationController : Node
 
 		var machine = new AnimationNodeStateMachine();
 		var addedStates = new HashSet<PlayerMovement.MovementState>();
-		StringName[]? availableClipsForError = null;
+		Godot.Collections.Array<StringName>? availableClipsForError = null;
 		foreach (var (state, clipName) in StateClips)
 		{
 			if (!library.HasAnimation(clipName))
