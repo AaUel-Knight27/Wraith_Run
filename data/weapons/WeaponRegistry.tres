@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponRegistry" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponRegistry.cs" id="1_registry"]
+[ext_resource type="Script" path="res://scripts/data/WeaponData.cs" id="2_data"]
+[ext_resource type="Resource" path="res://data/weapons/AK47.tres" id="3_ak47"]
+[ext_resource type="Resource" path="res://data/weapons/M4.tres" id="4_m4"]
+[ext_resource type="Resource" path="res://data/weapons/P90.tres" id="5_p90"]
+[ext_resource type="Resource" path="res://data/weapons/KrissVector.tres" id="6_kriss"]
+[ext_resource type="Resource" path="res://data/weapons/Glock19.tres" id="7_glock"]
+[ext_resource type="Resource" path="res://data/weapons/DesertEagle.tres" id="8_deagle"]
+[ext_resource type="Resource" path="res://data/weapons/Shotgun.tres" id="9_shotgun"]
+[ext_resource type="Resource" path="res://data/weapons/Karambit.tres" id="10_karambit"]
+[ext_resource type="Resource" path="res://data/weapons/Bazooka.tres" id="11_bazooka"]
+
+[resource]
+script = ExtResource("1_registry")
+Weapons = Array[ExtResource("2_data")]([ExtResource("3_ak47"), ExtResource("4_m4"), ExtResource("5_p90"), ExtResource("6_kriss"), ExtResource("7_glock"), ExtResource("8_deagle"), ExtResource("9_shotgun"), ExtResource("10_karambit"), ExtResource("11_bazooka")])

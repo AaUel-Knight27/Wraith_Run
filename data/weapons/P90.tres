@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+WeaponName = "P90"
+BodyDamage = 22.0
+HeadshotDamage = 55.0
+FireRateRPM = 900.0
+MagazineSize = 50
+ReloadTime = 2.2
+RecoilVertical = 1.2
+RecoilHorizontal = 0.8
+RecoilRecoveryMs = 90.0
+WeaponClass = "SMG"

@@ -1,0 +1,135 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponRegistry.cs" id="1_registry"]
+[ext_resource type="Script" path="res://scripts/data/WeaponData.cs" id="2_weapon"]
+
+[sub_resource type="Resource" id="WeaponData_ak47"]
+script = ExtResource("2_weapon")
+WeaponName = "AK-47"
+WeaponClass = "Assault Rifle"
+BodyDamage = 30.0
+HeadshotDamage = 90.0
+FireRateRPM = 600.0
+MagazineSize = 30
+ReloadTime = 2.3
+RecoilVertical = 3.5
+RecoilHorizontal = 2.0
+RecoilRecoveryMs = 180.0
+ModelScenePath = "res://art/weapons/AssaultRifle/AK47.fbx"
+
+[sub_resource type="Resource" id="WeaponData_m4"]
+script = ExtResource("2_weapon")
+WeaponName = "M4"
+WeaponClass = "Assault Rifle"
+BodyDamage = 30.0
+HeadshotDamage = 75.0
+FireRateRPM = 800.0
+MagazineSize = 30
+ReloadTime = 2.0
+RecoilVertical = 2.0
+RecoilHorizontal = 1.0
+RecoilRecoveryMs = 120.0
+ModelScenePath = "res://art/weapons/AssaultRifle/M4.fbx"
+
+[sub_resource type="Resource" id="WeaponData_p90"]
+script = ExtResource("2_weapon")
+WeaponName = "P90"
+WeaponClass = "SMG"
+BodyDamage = 22.0
+HeadshotDamage = 55.0
+FireRateRPM = 900.0
+MagazineSize = 50
+ReloadTime = 2.2
+RecoilVertical = 1.2
+RecoilHorizontal = 0.8
+RecoilRecoveryMs = 90.0
+ModelScenePath = "res://art/weapons/SMGs/p90_-_stargate.glb"
+
+[sub_resource type="Resource" id="WeaponData_krissvector"]
+script = ExtResource("2_weapon")
+WeaponName = "Kriss Vector"
+WeaponClass = "SMG"
+BodyDamage = 24.0
+HeadshotDamage = 60.0
+FireRateRPM = 1100.0
+MagazineSize = 25
+ReloadTime = 2.0
+RecoilVertical = 1.0
+RecoilHorizontal = 0.6
+RecoilRecoveryMs = 80.0
+ModelScenePath = "res://art/weapons/SMGs/KRISS VECTOR.fbx"
+
+[sub_resource type="Resource" id="WeaponData_glock19"]
+script = ExtResource("2_weapon")
+WeaponName = "Glock 19"
+WeaponClass = "Pistol"
+BodyDamage = 28.0
+HeadshotDamage = 70.0
+FireRateRPM = 300.0
+MagazineSize = 15
+ReloadTime = 1.5
+RecoilVertical = 1.5
+RecoilHorizontal = 1.0
+RecoilRecoveryMs = 150.0
+ModelScenePath = "res://art/weapons/Pistols/GLOCK19.fbx"
+
+[sub_resource type="Resource" id="WeaponData_deserteagle"]
+script = ExtResource("2_weapon")
+WeaponName = "Desert Eagle"
+WeaponClass = "Pistol"
+BodyDamage = 45.0
+HeadshotDamage = 999.0
+FireRateRPM = 180.0
+MagazineSize = 7
+ReloadTime = 2.0
+RecoilVertical = 5.0
+RecoilHorizontal = 3.0
+RecoilRecoveryMs = 350.0
+ModelScenePath = "res://art/weapons/Pistols/desert_eagle.fbx"
+
+[sub_resource type="Resource" id="WeaponData_shotgun"]
+script = ExtResource("2_weapon")
+WeaponName = "Shotgun"
+WeaponClass = "Shotgun"
+BodyDamage = 70.0
+HeadshotDamage = 175.0
+FireRateRPM = 60.0
+MagazineSize = 6
+ReloadTime = 0.5
+RecoilVertical = 6.0
+RecoilHorizontal = 2.5
+RecoilRecoveryMs = 400.0
+ModelScenePath = "res://art/weapons/Shotgun/shootgun mossberg.fbx"
+
+[sub_resource type="Resource" id="WeaponData_karambit"]
+script = ExtResource("2_weapon")
+WeaponName = "Karambit"
+WeaponClass = "Melee"
+BodyDamage = 100.0
+HeadshotDamage = 100.0
+FireRateRPM = 120.0
+MagazineSize = 0
+ReloadTime = 0.0
+RecoilVertical = 0.0
+RecoilHorizontal = 0.0
+RecoilRecoveryMs = 0.0
+ModelScenePath = "res://art/weapons/Melee/Karambit.FBX"
+
+[sub_resource type="Resource" id="WeaponData_bazooka"]
+script = ExtResource("2_weapon")
+WeaponName = "Bazooka"
+WeaponClass = "Launcher"
+BodyDamage = 20.0
+HeadshotDamage = 20.0
+FireRateRPM = 40.0
+MagazineSize = 1
+ReloadTime = 3.0
+RecoilVertical = 8.0
+RecoilHorizontal = 0.0
+RecoilRecoveryMs = 1000.0
+ModelScenePath = "res://art/weapons/RPG/RPG.fbx"
+
+[resource]
+script = ExtResource("1_registry")
+Weapons = [SubResource("WeaponData_ak47"), SubResource("WeaponData_m4"), SubResource("WeaponData_p90"), SubResource("WeaponData_krissvector"), SubResource("WeaponData_glock19"), SubResource("WeaponData_deserteagle"), SubResource("WeaponData_shotgun"), SubResource("WeaponData_karambit"), SubResource("WeaponData_bazooka")]
+ActiveWeaponName = "AK-47"

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/WeaponData.cs" id="1"]
+
+[resource]
+script = ExtResource("1")
+WeaponName = "Shotgun"
+BodyDamage = 70.0
+HeadshotDamage = 0.0
+FireRateRPM = 60.0
+MagazineSize = 6
+ReloadTime = 0.5
+RecoilVertical = 6.0
+RecoilHorizontal = 2.5
+RecoilRecoveryMs = 400.0
+WeaponClass = "Shotgun"
+ModelScenePath = "res://art/weapons/Shotgun/shootgun mossberg.fbx"
