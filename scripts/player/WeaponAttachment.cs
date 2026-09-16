@@ -6,7 +6,11 @@ using Godot;
 public partial class WeaponAttachment : Node3D
 {
 	private const string RegistryPath = "res://scripts/data/WeaponRegistry.tres";
-	private const string HandBoneName = "mixamorig:RightHand";
+	// Godot's glTF importer sanitizes bone names on import (documented engine behavior - it does
+	// not preserve "mixamorig:RightHand" verbatim, and exactly how it mangles it isn't something
+	// I can verify without running the importer myself). Matching by substring instead of exact
+	// string survives whatever the actual sanitized form turns out to be.
+	private const string HandBoneNameFragment = "righthand";
 	private AudioStreamPlayer3D? _fireAudio;
 	private AudioStreamPlayer3D? _reloadAudio;
 
@@ -36,31 +40,34 @@ public partial class WeaponAttachment : Node3D
 		}
 
 		// There's one shared "Manny" body mesh now (no separate remote/local view-model split),
-        // skinned to the "Armature" Skeleton3D that manny.glb imports as its scene root. Search
-        // by type rather than a hardcoded node name - a hardcoded name is exactly what broke
-        // weapon attachment twice already on this project.
-        var skeleton = (GetParent() as Skeleton3D) ?? FindSkeleton3D(GetParent());
-        if (skeleton == null || skeleton.FindBone(HandBoneName) < 0)
-        {
-			GD.PushError($"Weapon attachment could not find a Skeleton3D with a '{HandBoneName}' bone.");
-            return;
-        }
+		// skinned to the "Armature" Skeleton3D that manny.glb imports as its scene root. Search
+		// by type rather than a hardcoded node name - a hardcoded name is exactly what broke
+		// weapon attachment twice already on this project.
+		var skeleton = (GetParent() as Skeleton3D) ?? FindSkeleton3D(GetParent());
+		int handBoneIndex = skeleton == null ? -1 : FindBoneContaining(skeleton, HandBoneNameFragment);
+		if (skeleton == null || handBoneIndex < 0)
+		{
+			string available = skeleton == null ? "(no Skeleton3D found)" : DumpBoneNames(skeleton);
+			GD.PushError($"Weapon attachment could not find a bone containing '{HandBoneNameFragment}'. Actual bones: {available}");
+			return;
+		}
+		string handBoneName = skeleton!.GetBoneName(handBoneIndex);
 
-        var attachment = new BoneAttachment3D { Name = "WeaponBoneAttachment", BoneName = HandBoneName };
-        skeleton.AddChild(attachment);
+		var attachment = new BoneAttachment3D { Name = "WeaponBoneAttachment", BoneName = handBoneName };
+		skeleton.AddChild(attachment);
 
-        var weaponInstance = ResourceLoader.Load<PackedScene>(weapon.ModelScenePath)?.Instantiate<Node3D>();
-        if (weaponInstance == null)
-        {
-            GD.PushError($"Weapon attachment could not load {weapon.ModelScenePath}.");
-            attachment.QueueFree();
-            return;
-        }
+		var weaponInstance = ResourceLoader.Load<PackedScene>(weapon.ModelScenePath)?.Instantiate<Node3D>();
+		if (weaponInstance == null)
+		{
+			GD.PushError($"Weapon attachment could not load {weapon.ModelScenePath}.");
+			attachment.QueueFree();
+			return;
+		}
 
-        weaponInstance.Name = "EquippedWeapon";
-		// mixamorig:RightHand has no purpose-built grip offset the way the old rig's
-		// Right_Hand_Attach bone did. Zero is a starting point, not a verified value - expect to
-		// nudge Position/Rotation here once you can actually see the grip in-editor.
+		weaponInstance.Name = "EquippedWeapon";
+		// The old rig's Right_Hand_Attach bone had a purpose-built grip offset; the actual hand
+		// bone here doesn't. Zero is a starting point, not a verified value - expect to nudge
+		// Position/Rotation here once you can actually see the grip in-editor.
 		weaponInstance.Position = Vector3.Zero;
 		weaponInstance.Rotation = Vector3.Zero;
 		attachment.AddChild(weaponInstance);
@@ -79,6 +86,21 @@ public partial class WeaponAttachment : Node3D
 			if (found != null) return found;
 		}
 		return null;
+	}
+
+	private static int FindBoneContaining(Skeleton3D skeleton, string fragmentLower)
+	{
+		for (int i = 0; i < skeleton.GetBoneCount(); i++)
+			if (skeleton.GetBoneName(i).ToLowerInvariant().Contains(fragmentLower))
+				return i;
+		return -1;
+	}
+
+	private static string DumpBoneNames(Skeleton3D skeleton)
+	{
+		var names = new string[skeleton.GetBoneCount()];
+		for (int i = 0; i < names.Length; i++) names[i] = skeleton.GetBoneName(i);
+		return string.Join(", ", names);
 	}
 
 	private void AddAudioPlayers(Node attachment, string weaponName)
