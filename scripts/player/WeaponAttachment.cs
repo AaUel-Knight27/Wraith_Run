@@ -70,12 +70,28 @@ public partial class WeaponAttachment : Node3D
 		// Position/Rotation here once you can actually see the grip in-editor.
 		weaponInstance.Position = Vector3.Zero;
 		weaponInstance.Rotation = Vector3.Zero;
+		// manny.glb's skeleton is authored in Mixamo centimetres and brought back to metres by a
+		// 0.01 scale on the glTF root node. Everything parented under a bone inherits that 0.01,
+		// so a weapon model authored in metres renders at 1/100 size - i.e. invisible. Undo the
+		// skeleton's scale on the weapon instead of hardcoding 100, so this keeps working if the
+		// character is ever re-exported at a different unit scale.
+		weaponInstance.Scale = InverseScaleOf(skeleton!);
 		attachment.AddChild(weaponInstance);
 		AddAudioPlayers(attachment, weapon.WeaponName);
 	}
 
 	public void PlayFire() => _fireAudio?.Play();
 	public void PlayReload() => _reloadAudio?.Play();
+
+	/// <summary>Reciprocal of a node's global scale, so a child can cancel it out. Falls back to
+	/// no correction if the scale is degenerate rather than dividing by zero.</summary>
+	private static Vector3 InverseScaleOf(Node3D node)
+	{
+		Vector3 scale = node.GlobalTransform.Basis.Scale;
+		if (Mathf.IsZeroApprox(scale.X) || Mathf.IsZeroApprox(scale.Y) || Mathf.IsZeroApprox(scale.Z))
+			return Vector3.One;
+		return new Vector3(1.0f / scale.X, 1.0f / scale.Y, 1.0f / scale.Z);
+	}
 
 	private static Skeleton3D? FindSkeleton3D(Node root)
 	{

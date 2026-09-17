@@ -26,10 +26,39 @@ public partial class PlayerMovement : CharacterBody3D
     private const float SlideFriction = 10.0f;
     private const float LandingCooldownSeconds = 0.15f;
 
+    // Optional first-person feelers (the TODO these replace). All tuned to read as subtle rather
+    // than disorienting - they are meant to sell the movement, not to distract from the shootout.
+    private const float HeadBobTransitionSeconds = 0.15f;
+    private const float HeadBobFrequencyWalk = 2.1f;
+    private const float HeadBobFrequencySprint = 2.8f;
+    private const float HeadBobAmplitudeWalk = 0.045f;
+    private const float HeadBobAmplitudeSprint = 0.028f;
+    private const float CameraShakeDecayPerSecond = 6.0f;
+    private const float LandingShakeStrength = 0.08f;
+    private const float SlideStopShakeStrength = 0.12f;
+
     [Export] public float MouseSensitivity { get; set; } = 0.0025f;
     [Export] public float CameraPitchLimitDegrees { get; set; } = 85.0f;
 
+    // FOV is exported rather than const so it can be tuned in the inspector while the game runs.
+    // These are VERTICAL degrees: the camera is set to KEEP_HEIGHT, which is both Godot's default
+    // and the axis Unity's Camera.fieldOfView used, so the values carried over from the Unity
+    // build mean the same thing here. Horizontal FOV is derived from the window aspect, so a
+    // non-16:9 window will stretch these - that is a window problem, not a camera problem.
+    [Export] public float BaseFov { get; set; } = 75.0f;
+    [Export] public float SprintFov { get; set; } = 90.0f;
+    [Export] public float AimFov { get; set; } = 55.0f;
+    [Export] public float FovTransitionSeconds { get; set; } = 0.15f;
+
     public MovementState State { get; private set; } = MovementState.Fall;
+    /// <summary>
+    /// Aiming down sights. Deliberately NOT a MovementState: it used to be one, and that is what
+    /// broke ADS. As a state it was mutually exclusive with Crouch/Walk/Jump, so holding aim while
+    /// crouched silently stood the capsule back up, holding it while walking froze the locomotion
+    /// animation, and holding it in the air did nothing at all because the airborne branch never
+    /// assigned it. FOV now reads this flag, which is evaluated every frame regardless of state.
+    /// </summary>
+    public bool IsAiming { get; private set; }
     // These are intentionally replicated by MultiplayerSynchronizer.  Movement remains client-authoritative.
     [Export] public string ReplicatedMovementState { get; set; } = MovementState.Idle.ToString();
     [Export] public bool ReplicatedAimState { get; set; }
@@ -44,7 +73,18 @@ public partial class PlayerMovement : CharacterBody3D
     private Vector3 _slideVelocity;
     private float _pitch;
     private float _landingCooldown;
-    private bool _wasGrounded;
+    // Starts true: the player spawns on the floor, so the first grounded frame is not a "landing".
+    // A real landing is a transition from airborne to grounded, which only happens after _wasGrounded
+    // has been set false by a frame where the player was in the air.
+    private bool _wasGrounded = true;
+    private float _bobPhase;
+    private float _bobAmplitude;
+    private Vector3 _headOffset;
+    private Vector3 _shakeOffset;
+    // Eye height before bob/shake are layered on. Kept as a field so _head.Position is written
+    // exactly once per frame; it used to be assigned twice, with the second write reading back the
+    // first one's Y and dropping the base X/Z entirely.
+    private float _headBaseHeight;
 
     public override void _Ready()
     {
@@ -55,6 +95,8 @@ public partial class PlayerMovement : CharacterBody3D
         _animationController = GetNode<PlayerAnimationController>("AnimationController");
         _health = GetNodeOrNull<Health>("Health");
         _capsule = (CapsuleShape3D)_collisionShape.Shape;
+        _headBaseHeight = _head.Position.Y;
+        _camera.Fov = BaseFov;
         ((SphereShape3D)_groundProbe.Shape).Radius = _capsule.Radius;
         // FirstPersonArms used to own this; with a single always-visible body mesh there is no
         // separate view-model to toggle, but each client must still only activate its own camera.
@@ -98,8 +140,15 @@ public partial class PlayerMovement : CharacterBody3D
         Vector3 moveDirection = (Transform.Basis * new Vector3(moveInput.X, 0.0f, moveInput.Y)).Normalized();
         bool crouchHeld = Input.IsActionPressed("crouch");
 
+        // Decay the shake first, before any new shake is set this frame. Decaying after the assignment
+        // would zero a fresh shake in the same frame it was created and the shake would never show.
+        UpdateCameraShake(delta);
+
         if (grounded && !_wasGrounded)
-            _landingCooldown = LandingCooldownSeconds;
+            {
+                _landingCooldown = LandingCooldownSeconds;
+                _shakeOffset = new Vector3(0.0f, LandingShakeStrength, 0.0f);
+            }
 
         UpdateVerticalVelocity(delta, grounded);
 
@@ -111,15 +160,66 @@ public partial class PlayerMovement : CharacterBody3D
             UpdateAirMovement(delta, moveDirection);
 
         UpdateColliderAndHead(delta, State is MovementState.Crouch or MovementState.CrouchWalk or MovementState.Slide);
-        float targetFov = State == MovementState.Aim ? 55.0f : 75.0f;
-        _camera.Fov = Mathf.MoveToward(_camera.Fov, targetFov, 20.0f * delta / 0.15f);
+        UpdateHeadBob(delta);
+        // Sprinting and sliding cancel ADS; every other state - including crouch and airborne -
+        // allows it, which is the whole point of pulling this out of the state machine.
+        IsAiming = Input.IsActionPressed("aim")
+            && State is not MovementState.Sprint and not MovementState.Slide;
+        UpdateFov(delta);
+        _head.Position = new Vector3(_headOffset.X, _headBaseHeight + _headOffset.Y, _headOffset.Z)
+            + _shakeOffset;
         MoveAndSlide();
         _wasGrounded = IsOnFloor() || _groundProbe.IsColliding();
         ReplicatedMovementState = State.ToString();
-        ReplicatedAimState = State == MovementState.Aim;
+        ReplicatedAimState = IsAiming;
         _animationController.SetMovementState(State);
+    }
 
-        // TODO: Add optional head bob, camera shake, and sprint FOV effects separately.
+    private void UpdateFov(float delta)
+    {
+        float targetFov = IsAiming ? AimFov
+            : State == MovementState.Sprint ? SprintFov
+            : BaseFov;
+        // Step is expressed as "full zoom range per FovTransitionSeconds" so the timing stays the
+        // same if the FOV values are retuned. The old hardcoded 20 deg/0.15 s silently changed the
+        // transition duration whenever the numbers moved.
+        float range = Mathf.Max(Mathf.Abs(BaseFov - AimFov), Mathf.Abs(SprintFov - BaseFov));
+        float step = range * delta / Mathf.Max(FovTransitionSeconds, 0.001f);
+        _camera.Fov = Mathf.MoveToward(_camera.Fov, targetFov, step);
+    }
+
+    private void UpdateHeadBob(float delta)
+    {
+        bool moving = State is MovementState.Walk or MovementState.Sprint;
+        float targetAmplitude = moving
+            ? (State == MovementState.Sprint ? HeadBobAmplitudeSprint : HeadBobAmplitudeWalk)
+            : 0.0f;
+        // Fixed step in amplitude-per-second. The earlier version used targetAmplitude * delta /
+        // HeadBobTransitionSeconds as the step, which collapses to zero when the target is zero -
+        // so MoveToward returned the current value and the bob never faded out after you stopped.
+        float step = delta / HeadBobTransitionSeconds;
+        _bobAmplitude = Mathf.MoveToward(_bobAmplitude, targetAmplitude, step);
+        if (_bobAmplitude <= 0.0001f)
+        {
+            _headOffset = Vector3.Zero;
+            return;
+        }
+        float frequency = State == MovementState.Sprint ? HeadBobFrequencySprint : HeadBobFrequencyWalk;
+        _bobPhase += delta * frequency;
+        float wave = Mathf.Sin(_bobPhase);
+        float bobY = _bobAmplitude * wave;
+        float bobZ = _bobAmplitude * 0.5f * Mathf.Cos(_bobPhase * 0.5f);
+        _headOffset = new Vector3(0.0f, bobY, bobZ);
+    }
+
+    private void UpdateCameraShake(float delta)
+    {
+        if (_shakeOffset.LengthSquared() <= 0.000001f) return;
+        // Exponential decay, not MoveToward: with a fixed per-second rate the shake survives
+        // regardless of frame rate, whereas a MoveToward step of rate*delta exceeds the shake
+        // magnitude at normal framerates and killed it in the same frame it was created.
+        float factor = Mathf.Exp(-CameraShakeDecayPerSecond * delta);
+        _shakeOffset *= factor;
     }
 
     private void UpdateVerticalVelocity(float delta, bool grounded)
@@ -158,14 +258,18 @@ public partial class PlayerMovement : CharacterBody3D
         bool hasMovement = moveInput.LengthSquared() > 0.001f;
         bool forwardish = moveInput.Y < -0.1f;
         bool sprinting = !crouchHeld && forwardish && Input.IsActionPressed("sprint");
-        bool aiming = Input.IsActionPressed("aim") && !sprinting;
         float targetSpeed = crouchHeld ? CrouchSpeed : sprinting ? SprintSpeed : WalkSpeed;
         ApplyHorizontalVelocity(moveDirection * targetSpeed, delta, 1.0f);
 
-        SetState(aiming ? MovementState.Aim : crouchHeld
+        // MovementState.Aim survives only as an ANIMATION state, and only when it has no real
+        // locomotion to overwrite: standing still, upright, on the ground. Crouching or walking
+        // while aiming now keeps the crouch/walk clip (and the crouched capsule) and lets the FOV
+        // change alone sell the ADS.
+        SetState(crouchHeld
             ? (hasMovement ? MovementState.CrouchWalk : MovementState.Crouch)
             : sprinting && hasMovement ? MovementState.Sprint
             : hasMovement ? MovementState.Walk
+            : Input.IsActionPressed("aim") ? MovementState.Aim
             : MovementState.Idle);
     }
 
@@ -201,7 +305,11 @@ public partial class PlayerMovement : CharacterBody3D
         Velocity = new Vector3(_slideVelocity.X, Velocity.Y, _slideVelocity.Z);
 
         if (speed < CrouchSpeed)
-            SetState(crouchHeld ? MovementState.Crouch : MovementState.Idle);
+            {
+                if (State == MovementState.Slide)
+                    _shakeOffset = new Vector3(SlideStopShakeStrength, 0.0f, 0.0f);
+                SetState(crouchHeld ? MovementState.Crouch : MovementState.Idle);
+            }
     }
 
     private void ApplyHorizontalVelocity(Vector3 targetVelocity, float delta, float accelerationMultiplier)
@@ -217,9 +325,10 @@ public partial class PlayerMovement : CharacterBody3D
         float targetHeight = crouching ? CrouchedCapsuleHeight : StandingCapsuleHeight;
         _capsule.Height = Mathf.MoveToward(_capsule.Height, targetHeight, (StandingCapsuleHeight - CrouchedCapsuleHeight) * delta / HeightTransitionSeconds);
         _collisionShape.Position = new Vector3(0.0f, _capsule.Height * 0.5f, 0.0f);
-        _head.Position = new Vector3(0.0f, _capsule.Height - 0.2f, 0.0f);
+        _headBaseHeight = _capsule.Height - 0.2f;
     }
 
+    
     private void SetState(MovementState state)
     {
         if (State == state) return;
