@@ -22,11 +22,11 @@ config/icon="res://icon.svg"
 [autoload]
 
 LanSession="*res://scripts/network/LanSession.cs"
+KillFeed="*res://scripts/autoloads/KillFeed.cs"
 
 [display]
 
-window/size/viewport_width=648
-window/size/viewport_height=321
+window/size/viewport_width=670
 window/size/initial_screen=2
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"

@@ -1,18 +1,37 @@
+
 using Godot;
+using System.Collections.Generic;
 
 /// <summary>
-/// Minimal local-only HUD: crosshair, HP bar, ammo counter, and a death/respawn message.
-/// Built entirely in code (same convention as LanMenu). Only the owning peer's Player instance
-/// ever builds this UI - a remote observer's copy of this node does nothing.
+/// Minimal local-only HUD: crosshair, HP bar, ammo counter, score, kill feed, and a death/respawn
+/// message. Built entirely in code (same convention as LanMenu). Only the owning peer's Player
+/// instance ever builds this UI - a remote observer's copy of this node does nothing.
+///
+/// The kill feed listens to the KillFeed autoload rather than to nearby players, so every confirmed
+/// kill in the match shows up here, not just this player's own.
 /// </summary>
 public partial class PlayerHud : CanvasLayer
 {
+    /// <summary>SDLC good-first-task threshold: the health bar turns red below 30% HP.</summary>
+    private const float LowHealthFraction = 0.3f;
+    private const int MaxFeedLines = 5;
+
+    private static readonly Color HealthyBarColor = new(0.25f, 0.75f, 0.30f);
+    private static readonly Color LowHealthBarColor = new(0.85f, 0.20f, 0.20f);
+
     private Health? _health;
     private WeaponSwitcher? _weapon;
+    private PlayerScore? _score;
+    private KillFeed? _killFeed;
     private Label _healthLabel = null!;
     private ProgressBar _healthBar = null!;
+    private StyleBoxFlat _healthFill = null!;
     private Label _ammoLabel = null!;
     private Label _deathLabel = null!;
+    private Label _scoreLabel = null!;
+    private VBoxContainer _killFeedList = null!;
+    private readonly List<(Label Line, ulong ExpiryMsec)> _feedLines = new();
+    private bool _lowHealthApplied;
 
     public override void _Ready()
     {
@@ -25,7 +44,17 @@ public partial class PlayerHud : CanvasLayer
 
         _health = player.GetNodeOrNull<Health>("Health");
         _weapon = player.GetNodeOrNull<WeaponSwitcher>("WeaponSwitcher");
+        _score = player.GetNodeOrNull<PlayerScore>("Score");
+        _killFeed = KillFeed.From(this);
+        if (_killFeed != null) _killFeed.KillAnnounced += OnKillAnnounced;
+        if (_score != null) _score.MultiKillAwarded += OnMultiKillAwarded;
         Build();
+    }
+
+    public override void _ExitTree()
+    {
+        if (_killFeed != null && IsInstanceValid(_killFeed)) _killFeed.KillAnnounced -= OnKillAnnounced;
+        if (_score != null && IsInstanceValid(_score)) _score.MultiKillAwarded -= OnMultiKillAwarded;
     }
 
     private void Build()
@@ -53,6 +82,8 @@ public partial class PlayerHud : CanvasLayer
             MinValue = 0, MaxValue = _health?.MaxHealth ?? 100.0,
             ShowPercentage = false, CustomMinimumSize = new Vector2(200, 18),
         };
+        _healthFill = new StyleBoxFlat { BgColor = HealthyBarColor };
+        _healthBar.AddThemeStyleboxOverride("fill", _healthFill);
         healthBox.AddChild(_healthBar);
         _healthLabel = new Label();
         healthBox.AddChild(_healthLabel);
@@ -72,6 +103,58 @@ public partial class PlayerHud : CanvasLayer
         _deathLabel = new Label { Visible = false, HorizontalAlignment = HorizontalAlignment.Center };
         _deathLabel.AddThemeFontSizeOverride("font_size", 28);
         deathCenter.AddChild(_deathLabel);
+
+        var scoreBox = new VBoxContainer { CustomMinimumSize = new Vector2(180, 0) };
+        scoreBox.SetAnchorsPreset(Control.LayoutPreset.TopRight);
+        scoreBox.Position = new Vector2(-204, 24);
+        root.AddChild(scoreBox);
+        _scoreLabel = new Label { HorizontalAlignment = HorizontalAlignment.Right };
+        _scoreLabel.AddThemeFontSizeOverride("font_size", 20);
+        scoreBox.AddChild(_scoreLabel);
+
+        // Kill feed sits above the health box, bottom-left, and never takes mouse input.
+        _killFeedList = new VBoxContainer { CustomMinimumSize = new Vector2(420, 0) };
+        _killFeedList.AddThemeConstantOverride("separation", 2);
+        _killFeedList.SetAnchorsPreset(Control.LayoutPreset.BottomLeft);
+        _killFeedList.Position = new Vector2(24, -170);
+        _killFeedList.MouseFilter = Control.MouseFilterEnum.Ignore;
+        root.AddChild(_killFeedList);
+    }
+
+    /// <summary>Feed line for any kill in the match, on every peer, in identical wording.</summary>
+    private void OnKillAnnounced(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
+        int totalPoints, long assistPeerId, int assistPoints)
+    {
+        string line = KillFeed.DescribeKill(killerPeerId, victimPeerId, styleFlags, totalPoints);
+        if (assistPeerId >= 0) line += $"  (assist Player {assistPeerId} +{assistPoints})";
+        AddFeedLine(line);
+    }
+
+    /// <summary>Owner-only line: the multi-kill bonus is decided on the killer's device, so only the
+    /// killer sees this extra confirmation.</summary>
+    private void OnMultiKillAwarded(int bonusPoints) => AddFeedLine($"MULTI-KILL  +{bonusPoints}");
+
+    private void AddFeedLine(string text)
+    {
+        var line = new Label { Text = text };
+        line.AddThemeFontSizeOverride("font_size", 15);
+        _killFeedList.AddChild(line);
+        _feedLines.Add((line, Time.GetTicksMsec() + (ulong)(KillFeed.MessageLifetimeSeconds * 1000.0f)));
+        while (_feedLines.Count > MaxFeedLines) RemoveFeedLine(0);
+    }
+
+    private void RemoveFeedLine(int index)
+    {
+        Label line = _feedLines[index].Line;
+        if (IsInstanceValid(line)) line.QueueFree();
+        _feedLines.RemoveAt(index);
+    }
+
+    private void ExpireFeedLines()
+    {
+        ulong now = Time.GetTicksMsec();
+        for (int i = _feedLines.Count - 1; i >= 0; i--)
+            if (now >= _feedLines[i].ExpiryMsec) RemoveFeedLine(i);
     }
 
     public override void _Process(double delta)
@@ -81,10 +164,16 @@ public partial class PlayerHud : CanvasLayer
             _healthBar.MaxValue = _health.MaxHealth;
             _healthBar.Value = _health.CurrentHealth;
             _healthLabel.Text = $"{Mathf.CeilToInt(_health.CurrentHealth)} / {Mathf.CeilToInt(_health.MaxHealth)} HP";
+            ApplyLowHealthColour(_health.MaxHealth > 0.0f && _health.CurrentHealth / _health.MaxHealth < LowHealthFraction);
             _deathLabel.Visible = _health.IsDead;
             if (_health.IsDead)
                 _deathLabel.Text = $"You died - respawning in {Mathf.CeilToInt(_health.RespawnTimeRemaining)}...";
         }
+
+        if (_score != null)
+            _scoreLabel.Text = $"SCORE {_score.TotalPoints}\nK {_score.Kills} / D {_score.Deaths}";
+
+        ExpireFeedLines();
 
         if (_weapon != null)
         {
@@ -94,5 +183,15 @@ public partial class PlayerHud : CanvasLayer
                     ? $"{_weapon.WeaponName}\nRELOADING…"
                     : $"{_weapon.WeaponName}\n{_weapon.CurrentAmmo} / {_weapon.MagazineSize}";
         }
+    }
+
+    /// <summary>SDLC good-first-task: the bar reads green normally and red below 30% HP. The override
+    /// is only re-applied when the state flips, so the HUD is not rewriting theme data every frame.</summary>
+    private void ApplyLowHealthColour(bool low)
+    {
+        if (low == _lowHealthApplied) return;
+        _lowHealthApplied = low;
+        _healthFill.BgColor = low ? LowHealthBarColor : HealthyBarColor;
+        _healthBar.AddThemeStyleboxOverride("fill", _healthFill);
     }
 }

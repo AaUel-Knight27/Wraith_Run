@@ -13,6 +13,9 @@ public partial class PlayerNetworkSynchronizer : Node
         config.AddProperty(new NodePath(".:ReplicatedMovementState"));
         config.AddProperty(new NodePath(".:ReplicatedAimState"));
         config.AddProperty(new NodePath("Health:CurrentHealth"));
+        // Scores are awarded by the owning device only (see PlayerScore), then replicated out so
+        // every peer can display the same total.
+        config.AddProperty(new NodePath("Score:TotalPoints"));
         synchronizer.ReplicationConfig = config;
     }
 }

@@ -134,6 +134,10 @@ public partial class PlayerAnimationController : Node
 	{
 		_isDead = false;
 		_currentState = null;
+		// PlayDeath drove the death clip through the AnimationPlayer directly, with the tree
+		// switched off. Re-enabling the tree does not cancel that playback - the AnimationPlayer
+		// keeps holding the corpse pose and fights the tree for the same bones. Stop it first.
+		_animationPlayer.Stop();
 		_animationTree.Active = true;
 		SetMovementState(PlayerMovement.MovementState.Idle);
 	}

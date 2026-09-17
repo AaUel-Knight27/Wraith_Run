@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/PlayerMovement.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/player/PlayerAnimationController.cs" id="2"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/network/PlayerNetworkSynchronizer.cs" id="7"]
 [ext_resource type="Script" path="res://scripts/player/Health.cs" id="8"]
 [ext_resource type="Script" path="res://scripts/player/PlayerHud.cs" id="9"]
+[ext_resource type="Script" path="res://scripts/player/RotationWindowTracker.cs" id="10"]
+[ext_resource type="Script" path="res://scripts/player/PlayerScore.cs" id="11"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.35
@@ -31,8 +33,14 @@ shape = SubResource("2")
 [node name="Health" type="Node" parent="."]
 script = ExtResource("8")
 
+[node name="Score" type="Node" parent="."]
+script = ExtResource("11")
+
+[node name="RotationWindow" type="Node" parent="."]
+script = ExtResource("10")
+
 [node name="Armature" parent="." instance=ExtResource("3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.14)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
 [node name="WeaponAttachment" type="Node3D" parent="Armature"]
 script = ExtResource("5")
@@ -41,7 +49,10 @@ script = ExtResource("5")
 position = Vector3(0, 1.6, 0)
 
 [node name="FirstPersonCamera" type="Camera3D" parent="Head"]
-position = Vector3(0, 0.06, -0.09)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, -0.15)
+keep_aspect = 1
+fov = 75.0
+near = 0.05
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
