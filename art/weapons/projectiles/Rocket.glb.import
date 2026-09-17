@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bav5ouffj4jfc"
-path="res://.godot/imported/Bullet.fbx-1c3461333fe093965f8f179bf068a9a4.scn"
+uid="uid://27og0xwbmqap"
+path="res://.godot/imported/Rocket.glb-9ddd6a476e04a544362056856f6b5a2c.scn"
 
 [deps]
 
-source_file="res://art/weapons/projectiles/Bullet.fbx"
-dest_files=["res://.godot/imported/Bullet.fbx-1c3461333fe093965f8f179bf068a9a4.scn"]
+source_file="res://art/weapons/projectiles/Rocket.glb"
+dest_files=["res://.godot/imported/Rocket.glb-9ddd6a476e04a544362056856f6b5a2c.scn"]
 
 [params]
 
@@ -32,7 +32,7 @@ meshes/force_disable_compression=false
 skins/use_named_skins=true
 animation/import=true
 animation/fps=30
-animation/trimming=true
+animation/trimming=false
 animation/remove_immutable_tracks=true
 animation/import_rest_as_RESET=false
 import_script/path=""
@@ -40,7 +40,6 @@ materials/extract=0
 materials/extract_format=0
 materials/extract_path=""
 _subresources={}
-fbx/importer=0
-fbx/allow_geometry_helper_nodes=false
-fbx/embedded_image_handling=1
-fbx/naming_version=2
+gltf/naming_version=2
+gltf/embedded_image_handling=1
+gltf/texture_map_mode=1
