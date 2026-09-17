@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://uq6way337jnu"
-path="res://.godot/imported/Laser.fbx-8746c6ba961758048febc449f815eb38.scn"
+uid="uid://bah0tq2ms1dmc"
+path="res://.godot/imported/Laser.glb-1ffc7150b32d14e98cdc4d9db423f288.scn"
 
 [deps]
 
-source_file="res://art/weapons/projectiles/Laser.fbx"
-dest_files=["res://.godot/imported/Laser.fbx-8746c6ba961758048febc449f815eb38.scn"]
+source_file="res://art/weapons/projectiles/Laser.glb"
+dest_files=["res://.godot/imported/Laser.glb-1ffc7150b32d14e98cdc4d9db423f288.scn"]
 
 [params]
 
@@ -32,7 +32,7 @@ meshes/force_disable_compression=false
 skins/use_named_skins=true
 animation/import=true
 animation/fps=30
-animation/trimming=true
+animation/trimming=false
 animation/remove_immutable_tracks=true
 animation/import_rest_as_RESET=false
 import_script/path=""
@@ -40,7 +40,6 @@ materials/extract=0
 materials/extract_format=0
 materials/extract_path=""
 _subresources={}
-fbx/importer=0
-fbx/allow_geometry_helper_nodes=false
-fbx/embedded_image_handling=1
-fbx/naming_version=2
+gltf/naming_version=2
+gltf/embedded_image_handling=1
+gltf/texture_map_mode=1
