@@ -10,7 +10,37 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="weapon animation and sound fix &amp; godot loop animation fix">
+      <change afterPath="$PROJECT_DIR$/FIXES_animation_audio_grip.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GRIP_TUNING.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Melee/Impact/flesh_hit.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Melee/Impact/flesh_hit.mp3.import" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Melee/Swing/melee_swing.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Melee/Swing/melee_swing.mp3.import" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Reload/pistol_reload.wav" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Reload/pistol_reload.wav.import" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/pistol_shoot.wav" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/pistol_shoot.wav.import" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav.import" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Reload/ak_47_assault_rifle_being_unloaded_and_reloaded.wav" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Reload/ak_47_assault_rifle_being_unloaded_and_reloaded.wav.import" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/AK_fire.wav" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/AK_fire.wav.import" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Reload/shotgun_reload_shell.wav" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Reload/shotgun_reload_shell.wav.import" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/shotgun_fire.wav" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/shotgun_fire.wav.import" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/debug/WeaponGripTuner.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/debug/WeaponGripTuner.cs.uid" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/SOUND_SLOTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/audio/SOUND_SLOTS.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/Player.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/Player.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerAnimationController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerAnimationController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -47,23 +77,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.019214249291193" />
-      <entry key="MS500" value="1.643938488108548" />
-      <entry key="S2" value="3.3254578916250557" />
-      <entry key="S5" value="7.2905826917239684" />
-      <entry key="S10" value="11.944866634646763" />
-      <entry key="S30" value="18.149461607031693" />
-      <entry key="S60" value="20.488323829148747" />
-      <entry key="M2" value="23.15529181144401" />
-      <entry key="M5" value="31.167407752736082" />
-      <entry key="M10" value="42.83881175271971" />
-      <entry key="M15" value="51.45266339867571" />
-      <entry key="M30" value="67.10812412082797" />
-      <entry key="H1" value="92.44101821164224" />
-      <entry key="H2" value="139.9970683769099" />
-      <entry key="H4" value="195.84056569018918" />
-      <entry key="D1" value="279.1381029244603" />
-      <entry key="W1" value="298.57720312729646" />
+      <entry key="MS100" value="1.0000133306540195" />
+      <entry key="MS500" value="1.158634804256329" />
+      <entry key="S2" value="2.7156761528202695" />
+      <entry key="S5" value="4.6163458041121235" />
+      <entry key="S10" value="5.93069850935682" />
+      <entry key="S30" value="7.209660626092105" />
+      <entry key="S60" value="7.960712370406324" />
+      <entry key="M2" value="10.001504984978709" />
+      <entry key="M5" value="14.316934824710701" />
+      <entry key="M10" value="17.080171187317116" />
+      <entry key="M15" value="18.241355917927574" />
+      <entry key="M30" value="19.810160025004446" />
+      <entry key="H1" value="22.563521438841974" />
+      <entry key="H2" value="30.186423323030738" />
+      <entry key="H4" value="60.6302633769776" />
+      <entry key="D1" value="240.97978601887294" />
+      <entry key="W1" value="324.9769001219474" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -85,23 +115,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.8568411643833396" />
-      <entry key="MS500" value="1.588034011590029" />
-      <entry key="S2" value="3.3000075657485235" />
-      <entry key="S5" value="7.2711560895163085" />
-      <entry key="S10" value="11.929784961394484" />
-      <entry key="S30" value="18.14205438544573" />
-      <entry key="S60" value="20.48416932250349" />
-      <entry key="M2" value="23.152938845100845" />
-      <entry key="M5" value="31.166097663071355" />
-      <entry key="M10" value="42.837846305669956" />
-      <entry key="M15" value="51.45185702682819" />
-      <entry key="M30" value="67.10756752421757" />
-      <entry key="H1" value="92.4406100312316" />
-      <entry key="H2" value="139.99673767087313" />
-      <entry key="H4" value="195.84032415411437" />
-      <entry key="D1" value="279.13804338326037" />
-      <entry key="W1" value="298.57719397232205" />
+      <entry key="MS100" value="0.8236027868511933" />
+      <entry key="MS500" value="1.1168639963509626" />
+      <entry key="S2" value="2.696779509729837" />
+      <entry key="S5" value="4.605123411218413" />
+      <entry key="S10" value="5.923882375858489" />
+      <entry key="S30" value="7.20699577484355" />
+      <entry key="S60" value="7.959085647913962" />
+      <entry key="M2" value="10.000065513718763" />
+      <entry key="M5" value="14.31578839848024" />
+      <entry key="M10" value="17.079411725728562" />
+      <entry key="M15" value="18.240797248156213" />
+      <entry key="M30" value="19.80984872469453" />
+      <entry key="H1" value="22.56334819966686" />
+      <entry key="H2" value="30.18631757394579" />
+      <entry key="H4" value="60.63017279542496" />
+      <entry key="D1" value="240.97973230510203" />
+      <entry key="W1" value="324.9768898374169" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -220,7 +250,9 @@
     <MESSAGE value="fixing visualization throuth the models by chaning the model into glb from fbx" />
     <MESSAGE value="import files" />
     <MESSAGE value="fixing some details on the game and using the same way to fix the bug" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixing some details on the game and using the same way to fix the bug" />
+    <MESSAGE value="working on simple map and making the game more stable and functationable" />
+    <MESSAGE value="weapon animation and sound fix &amp; godot loop animation fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="weapon animation and sound fix &amp; godot loop animation fix" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

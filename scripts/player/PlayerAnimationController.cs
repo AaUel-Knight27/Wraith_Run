@@ -89,6 +89,7 @@ public partial class PlayerAnimationController : Node
 		var library = new AnimationLibrary();
 		foreach (string scenePath in ClipSourceScenes)
 			ImportClipsFrom(scenePath, library, skeletonPath);
+		ForceLocomotionClipsToLoop(library);
 		_animationPlayer.AddAnimationLibrary("", library);
 
 		var machine = BuildLocomotionMachine(library);
@@ -101,6 +102,29 @@ public partial class PlayerAnimationController : Node
 		_hasFireLayer || _hasReloadLayer
 			? $"parameters/{LocomotionNodeName}/playback"
 			: "parameters/playback";
+
+	/// <summary>
+	/// Every state in StateClips is a POSE HELD for as long as its state is active, not a one-shot -
+	/// Walk/Sprint/Crouch/Aim/etc. are meant to cycle for however long the player keeps moving. Godot's
+	/// glTF importer only turns looping on for a take whose Blender name ends in "_loop"; none of
+	/// these do (measured net Hips translation across a full cycle of each is ~0, confirming they are
+	/// authored as in-place cycles, not one-shot arcs), so every one of them imported as LOOP_NONE.
+	///
+	/// A state machine only calls Travel() when the STATE changes. While the state stays the same -
+	/// which is most of the time you are walking or sprinting - nothing tells the node to restart, so
+	/// a non-looping clip plays its ~0.5-2.1s cycle once and then holds its last frame while the
+	/// character keeps moving. That freeze-then-hold, repeating every time the state is re-entered, is
+	/// the "stepping pace looks glitchy/unstable" symptom. This overrides LoopMode on every clip the
+	/// locomotion state machine references, regardless of what the importer decided.
+	/// </summary>
+	private static void ForceLocomotionClipsToLoop(AnimationLibrary library)
+	{
+		foreach (string clipName in new HashSet<string>(StateClips.Values))
+		{
+			if (!library.HasAnimation(clipName)) continue;
+			library.GetAnimation(clipName).LoopMode = Animation.LoopModeEnum.Linear;
+		}
+	}
 
 	private AnimationNodeStateMachine BuildLocomotionMachine(AnimationLibrary library)
 	{

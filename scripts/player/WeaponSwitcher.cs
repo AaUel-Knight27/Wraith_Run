@@ -269,8 +269,18 @@ public partial class WeaponSwitcher : Node
 		int targetId = targetHealth.GetMultiplayerAuthority();
 		targetHealth.RpcId(targetId, Health.MethodName.ReceiveDamage, damage, (long)attackerId,
 			(int)styles, KillStyleBonus.DefaultBaseKillPoints);
+		// Broadcast, not local-only: this runs on the shooter's device (client-authoritative
+		// hitscan), but a hit landing is something everyone nearby should hear, not just the
+		// person who pulled the trigger.
+		Rpc(MethodName.RpcFleshImpact, impactPoint);
 		PlayHitMarker();
 	}
+
+	/// <summary>The shared "hit a person" sound, broadcast from the shooter's hitscan result to
+	/// every peer including itself.</summary>
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
+		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+	public void RpcFleshImpact(Vector3 worldPosition) => _attachment.PlayFleshImpact(worldPosition);
 
 	/// <summary>Scatters a direction inside a cone. Uniform over the disc rather than over the
 	/// angle, so a shotgun pattern does not clump in the middle.</summary>
