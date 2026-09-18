@@ -85,6 +85,12 @@ public partial class PlayerMovement : CharacterBody3D
     // exactly once per frame; it used to be assigned twice, with the second write reading back the
     // first one's Y and dropping the base X/Z entirely.
     private float _headBaseHeight;
+    // Recoil is a decaying offset layered on top of the mouse-driven pitch, not a change to _pitch
+    // itself. Keeping them separate means the mouse still owns where the player is aiming and the
+    // kick simply rides on top of it, so nothing has to be "given back" when the kick decays.
+    private float _recoilPitchDegrees;
+    private float _recoilYawDegrees;
+    private float _recoilRecoveryPerSecond = 20.0f;
 
     public override void _Ready()
     {
@@ -112,7 +118,8 @@ public partial class PlayerMovement : CharacterBody3D
             RotateY(-mouseMotion.Relative.X * MouseSensitivity);
             _pitch = Mathf.Clamp(_pitch - mouseMotion.Relative.Y * MouseSensitivity,
                 Mathf.DegToRad(-CameraPitchLimitDegrees), Mathf.DegToRad(CameraPitchLimitDegrees));
-            _head.Rotation = new Vector3(_pitch, 0.0f, 0.0f);
+            // The rotation itself is committed in _PhysicsProcess (see UpdateHeadAim) because the
+            // recoil offset has to decay on a fixed step, not only when the mouse happens to move.
         }
 
         if (@event.IsActionPressed("ui_cancel"))
@@ -166,6 +173,7 @@ public partial class PlayerMovement : CharacterBody3D
         IsAiming = Input.IsActionPressed("aim")
             && State is not MovementState.Sprint and not MovementState.Slide;
         UpdateFov(delta);
+        UpdateHeadAim(delta);
         _head.Position = new Vector3(_headOffset.X, _headBaseHeight + _headOffset.Y, _headOffset.Z)
             + _shakeOffset;
         MoveAndSlide();
@@ -173,6 +181,37 @@ public partial class PlayerMovement : CharacterBody3D
         ReplicatedMovementState = State.ToString();
         ReplicatedAimState = IsAiming;
         _animationController.SetMovementState(State);
+    }
+
+    /// <summary>
+    /// Adds a recoil kick. Positive pitch throws the view upward; yaw is signed, so the caller
+    /// should randomise it. recoveryMs is how long the kick takes to wash out.
+    /// </summary>
+    public void AddRecoil(float pitchDegrees, float yawDegrees, float recoveryMs)
+    {
+        _recoilPitchDegrees += pitchDegrees;
+        _recoilYawDegrees += yawDegrees;
+        _recoilRecoveryPerSecond = recoveryMs > 1.0f ? 1000.0f / recoveryMs : 20.0f;
+    }
+
+    /// <summary>
+    /// Commits pitch + recoil to the Head pivot. Recoil lands on Head rather than on the camera
+    /// alone so it moves the real point of aim - the weapon's hitscan ray is cast from the camera,
+    /// which is a child of Head.
+    /// </summary>
+    private void UpdateHeadAim(float delta)
+    {
+        float decay = Mathf.Exp(-_recoilRecoveryPerSecond * delta);
+        _recoilPitchDegrees *= decay;
+        _recoilYawDegrees *= decay;
+        if (Mathf.Abs(_recoilPitchDegrees) < 0.001f) _recoilPitchDegrees = 0.0f;
+        if (Mathf.Abs(_recoilYawDegrees) < 0.001f) _recoilYawDegrees = 0.0f;
+
+        // Clamped again after the kick is added: without this a long burst could throw the camera
+        // past vertical and flip the view.
+        float limit = Mathf.DegToRad(CameraPitchLimitDegrees);
+        float pitch = Mathf.Clamp(_pitch + Mathf.DegToRad(_recoilPitchDegrees), -limit, limit);
+        _head.Rotation = new Vector3(pitch, Mathf.DegToRad(_recoilYawDegrees), 0.0f);
     }
 
     private void UpdateFov(float delta)

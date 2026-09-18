@@ -23,10 +23,11 @@ public partial class Health : Node
 
     /// <summary>
     /// Half-extent of the area respawn points are drawn from. Deliberately matched to the current
-    /// 40x40 test floor in GameWorld.tscn - widen it together with the real map, which is also what
-    /// makes FR-PL-06's 50m minimum actually reachable.
+    /// 60x60 Warzone arena - widen it together with the map. At this size the arena diagonal is
+    /// about 85m, so FR-PL-06's 50m minimum is now reachable for most death positions rather than
+    /// never, which is what the old 40x40 floor could not do.
     /// </summary>
-    [Export] public float SpawnAreaHalfExtent { get; set; } = 18.0f;
+    [Export] public float SpawnAreaHalfExtent { get; set; } = 26.0f;
 
     [Export] public float MaxHealth { get; set; } = 100.0f;
 

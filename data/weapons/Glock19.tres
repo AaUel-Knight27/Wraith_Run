@@ -14,4 +14,4 @@ RecoilVertical = 1.5
 RecoilHorizontal = 1.0
 RecoilRecoveryMs = 150.0
 WeaponClass = "Sidearm"
-ModelScenePath = "res://art/weapons/Pistols/GLOCK19.fbx"
+ModelScenePath = "res://art/weapons/Pistols/Glock 19.glb"

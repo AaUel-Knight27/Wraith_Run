@@ -14,4 +14,4 @@ RecoilVertical = 6.0
 RecoilHorizontal = 2.5
 RecoilRecoveryMs = 400.0
 WeaponClass = "Shotgun"
-ModelScenePath = "res://art/weapons/Shotgun/shootgun mossberg.fbx"
+ModelScenePath = "res://art/weapons/Shotgun/shootgun mossberg.glb"
