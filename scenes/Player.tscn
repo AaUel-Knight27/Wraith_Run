@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/PlayerMovement.cs" id="1"]
 [ext_resource type="Script" path="res://scripts/player/PlayerAnimationController.cs" id="2"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/player/PlayerHud.cs" id="9"]
 [ext_resource type="Script" path="res://scripts/player/RotationWindowTracker.cs" id="10"]
 [ext_resource type="Script" path="res://scripts/player/PlayerScore.cs" id="11"]
+[ext_resource type="Script" path="res://scripts/player/PlayerAudio.cs" id="12"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.35
@@ -17,6 +18,32 @@ height = 1.8
 
 [sub_resource type="SphereShape3D" id="2"]
 radius = 0.35
+
+[sub_resource type="SceneReplicationConfig" id="3"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("Head:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath(".:ReplicatedMovementState")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+properties/4/path = NodePath(".:ReplicatedAimState")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+properties/5/path = NodePath("Health:CurrentHealth")
+properties/5/spawn = true
+properties/5/replication_mode = 2
+properties/6/path = NodePath("WeaponSwitcher:ReplicatedWeaponIndex")
+properties/6/spawn = true
+properties/6/replication_mode = 2
+properties/7/path = NodePath("Score:TotalPoints")
+properties/7/spawn = true
+properties/7/replication_mode = 2
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1")
@@ -63,12 +90,16 @@ anim_player = NodePath("../AnimationPlayer")
 script = ExtResource("2")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("3")
 
 [node name="NetworkSynchronizerSetup" type="Node" parent="."]
 script = ExtResource("7")
 
 [node name="WeaponSwitcher" type="Node" parent="."]
 script = ExtResource("6")
+
+[node name="PlayerAudio" type="Node3D" parent="."]
+script = ExtResource("12")
 
 [node name="Hud" type="CanvasLayer" parent="."]
 script = ExtResource("9")

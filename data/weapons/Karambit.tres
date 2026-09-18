@@ -14,4 +14,4 @@ RecoilVertical = 0.0
 RecoilHorizontal = 0.0
 RecoilRecoveryMs = 0.0
 WeaponClass = "Melee"
-ModelScenePath = "res://art/weapons/Melee/Karambit.FBX"
+ModelScenePath = "res://art/weapons/Melee/Karambit.glb"

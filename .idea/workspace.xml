@@ -10,16 +10,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/art/weapons/projectiles/Bullet.fbx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/weapons/projectiles/Bullet.fbx.import" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/weapons/projectiles/Laser.fbx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/weapons/projectiles/Laser.fbx.import" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/weapons/projectiles/PlasmaBullet.fbx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/weapons/projectiles/PlasmaBullet.fbx.import" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/weapons/projectiles/Rocket.fbx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/weapons/projectiles/Rocket.fbx.import" beforeDir="false" />
-    </list>
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -56,23 +47,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0034961916833125" />
-      <entry key="MS500" value="1.3226406226136358" />
-      <entry key="S2" value="1.7557400602348743" />
-      <entry key="S5" value="2.214302138127845" />
-      <entry key="S10" value="4.183531749866512" />
-      <entry key="S30" value="11.300970922294892" />
-      <entry key="S60" value="15.58160281510309" />
-      <entry key="M2" value="18.529069822226134" />
-      <entry key="M5" value="23.75219567639692" />
-      <entry key="M10" value="33.19730419125399" />
-      <entry key="M15" value="39.99150848319916" />
-      <entry key="M30" value="52.232276849487526" />
-      <entry key="H1" value="75.53671892201336" />
-      <entry key="H2" value="122.00741851007864" />
-      <entry key="H4" value="176.49694482722379" />
-      <entry key="D1" value="257.0323795575931" />
-      <entry key="W1" value="275.7144260363" />
+      <entry key="MS100" value="1.019214249291193" />
+      <entry key="MS500" value="1.643938488108548" />
+      <entry key="S2" value="3.3254578916250557" />
+      <entry key="S5" value="7.2905826917239684" />
+      <entry key="S10" value="11.944866634646763" />
+      <entry key="S30" value="18.149461607031693" />
+      <entry key="S60" value="20.488323829148747" />
+      <entry key="M2" value="23.15529181144401" />
+      <entry key="M5" value="31.167407752736082" />
+      <entry key="M10" value="42.83881175271971" />
+      <entry key="M15" value="51.45266339867571" />
+      <entry key="M30" value="67.10812412082797" />
+      <entry key="H1" value="92.44101821164224" />
+      <entry key="H2" value="139.9970683769099" />
+      <entry key="H4" value="195.84056569018918" />
+      <entry key="D1" value="279.1381029244603" />
+      <entry key="W1" value="298.57720312729646" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -94,23 +85,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.962436980248531" />
-      <entry key="MS500" value="1.308155879231535" />
-      <entry key="S2" value="1.750000691157995" />
-      <entry key="S5" value="2.210809583918975" />
-      <entry key="S10" value="4.178941298882453" />
-      <entry key="S30" value="11.296101599677733" />
-      <entry key="S60" value="15.57819093863889" />
-      <entry key="M2" value="18.52702920672583" />
-      <entry key="M5" value="23.751093315425365" />
-      <entry key="M10" value="33.196466703329776" />
-      <entry key="M15" value="39.990810411454945" />
-      <entry key="M30" value="52.23180089875657" />
-      <entry key="H1" value="75.5363589776988" />
-      <entry key="H2" value="122.0071139215103" />
-      <entry key="H4" value="176.4967178979718" />
-      <entry key="D1" value="257.0323230369527" />
-      <entry key="W1" value="275.7144173365758" />
+      <entry key="MS100" value="0.8568411643833396" />
+      <entry key="MS500" value="1.588034011590029" />
+      <entry key="S2" value="3.3000075657485235" />
+      <entry key="S5" value="7.2711560895163085" />
+      <entry key="S10" value="11.929784961394484" />
+      <entry key="S30" value="18.14205438544573" />
+      <entry key="S60" value="20.48416932250349" />
+      <entry key="M2" value="23.152938845100845" />
+      <entry key="M5" value="31.166097663071355" />
+      <entry key="M10" value="42.837846305669956" />
+      <entry key="M15" value="51.45185702682819" />
+      <entry key="M30" value="67.10756752421757" />
+      <entry key="H1" value="92.4406100312316" />
+      <entry key="H2" value="139.99673767087313" />
+      <entry key="H4" value="195.84032415411437" />
+      <entry key="D1" value="279.13804338326037" />
+      <entry key="W1" value="298.57719397232205" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -228,7 +219,8 @@
     <MESSAGE value="fixing player face toward and the respawn and death animation problem, fixing other bugs" />
     <MESSAGE value="fixing visualization throuth the models by chaning the model into glb from fbx" />
     <MESSAGE value="import files" />
-    <option name="LAST_COMMIT_MESSAGE" value="import files" />
+    <MESSAGE value="fixing some details on the game and using the same way to fix the bug" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixing some details on the game and using the same way to fix the bug" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -2,6 +2,10 @@ using Godot;
 
 public partial class GameWorld : Node3D
 {
+    /// <summary>Marker3D nodes in the map that are placed in this group become spawn points.
+    /// Falls back to a small grid if the map has none, so a bare test scene still works.</summary>
+    private const string SpawnPointGroup = "spawn_point";
+
     [Export] public PackedScene PlayerScene { get; set; } = null!;
     private MultiplayerSpawner _spawner = null!;
     private int _spawnIndex;
@@ -33,9 +37,33 @@ public partial class GameWorld : Node3D
         var player = PlayerScene.Instantiate<CharacterBody3D>();
         player.Name = $"Player_{peerId}";
         player.SetMultiplayerAuthority(peerId);
-        player.Position = new Vector3((_spawnIndex++ % 4) * 2 - 3, 0.1f, (_spawnIndex / 4) * 2);
+        ApplySpawnTransform(player, _spawnIndex++);
         return player;
     }
+    /// <summary>
+    /// Places a freshly spawned player on the map's next spawn marker, facing whichever way the
+    /// marker faces. Spawning everyone on a 2m grid at the origin - the old behaviour - dropped all
+    /// four players inside the central ruin on top of each other.
+    ///
+    /// The index is deliberately the same on every peer for a given player: SpawnFunction runs on
+    /// the server and on each client with the same data, so both sides pick the same marker and the
+    /// synchronizer has nothing to correct on the first frame.
+    /// </summary>
+    private void ApplySpawnTransform(Node3D player, int index)
+    {
+        var points = GetTree().GetNodesInGroup(SpawnPointGroup);
+        if (points.Count == 0)
+        {
+            player.Position = new Vector3((index % 4) * 2 - 3, 0.1f, (index / 4) * 2);
+            GD.PushWarning($"No nodes in the '{SpawnPointGroup}' group; falling back to a grid spawn.");
+            return;
+        }
+
+        if (points[index % points.Count] is not Node3D marker) return;
+        player.GlobalPosition = marker.GlobalPosition;
+        player.Rotation = new Vector3(0.0f, marker.GlobalRotation.Y, 0.0f);
+    }
+
     public override void _ExitTree()
     {
         Multiplayer.PeerConnected -= OnPeerConnected;

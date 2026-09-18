@@ -14,4 +14,4 @@ RecoilVertical = 3.5
 RecoilHorizontal = 2.0
 RecoilRecoveryMs = 180.0
 WeaponClass = "AssaultRifle"
-ModelScenePath = "res://art/weapons/AssaultRifle/AK47.fbx"
+ModelScenePath = "res://art/weapons/AssaultRifle/AK47.glb"
