@@ -17,6 +17,10 @@ public partial class WeaponAttachment : Node3D
 	private const string HandBoneNameFragment = "righthand";
 	private const float MuzzleFlashSeconds = 0.045f;
 
+	// Shared across every weapon rather than a per-weapon WeaponData field: only one recording was
+	// supplied, and "a body got hit" reads the same whether it was a bullet or the Karambit.
+	private const string FleshImpactSound = "res://audio/Clips/Weapons/Melee/Impact/flesh_hit.mp3";
+
 	private AudioStreamPlayer3D? _fireAudio;
 	private AudioStreamPlayer3D? _reloadAudio;
 	private AudioStreamPlayer3D? _emptyAudio;
@@ -24,12 +28,36 @@ public partial class WeaponAttachment : Node3D
 	private MeshInstance3D? _flashMesh;
 	private OmniLight3D? _flashLight;
 	private float _flashRemaining;
+	private Vector3 _gripUnitFix = Vector3.One;
 	private WeaponData? _weapon;
+	private Node3D? _grip;
 	private readonly RandomNumberGenerator _rng = new();
 
 	/// <summary>World-space muzzle point, or null for melee / a weapon with no configured muzzle.
 	/// Impact and tracer effects should originate here rather than at the camera.</summary>
 	public Node3D? Muzzle => _muzzle;
+
+	/// <summary>The pivot the weapon model hangs off - position/rotation/scale here are exactly
+	/// WeaponData's GripPosition/GripRotationDegrees/ModelScale, already converted into the hand
+	/// bone's local frame. WeaponGripTuner writes to this node directly for live preview, then
+	/// reads the equivalent WeaponData-space numbers back out via GripPositionFromNode /
+	/// GripRotationFromNode for the user to paste into the .tres.</summary>
+	public Node3D? CurrentGrip => _grip;
+
+	/// <summary>The weapon currently attached, for anything that needs to read or report its data
+	/// (the HUD, the grip tuner) without duplicating WeaponSwitcher's own bookkeeping.</summary>
+	public WeaponData? CurrentWeapon => _weapon;
+
+	/// <summary>Converts the Grip node's live Position back into WeaponData.GripPosition units -
+	/// undoes the skeleton-scale correction applied when the grip was built, so the value the tuner
+	/// reports is the one that belongs in the .tres, not the scaled one actually on the node.</summary>
+	public Vector3 GripPositionForData =>
+		_grip == null ? Vector3.Zero : DivideComponents(_grip.Position, _gripUnitFix);
+
+	private static Vector3 DivideComponents(Vector3 a, Vector3 b) => new(
+		Mathf.IsZeroApprox(b.X) ? a.X : a.X / b.X,
+		Mathf.IsZeroApprox(b.Y) ? a.Y : a.Y / b.Y,
+		Mathf.IsZeroApprox(b.Z) ? a.Z : a.Z / b.Z);
 
 	public override void _Ready()
 	{
@@ -109,6 +137,8 @@ public partial class WeaponAttachment : Node3D
 		grip.Position = weapon.GripPosition * unitFix;
 		grip.RotationDegrees = weapon.GripRotationDegrees;
 		grip.Scale = unitFix;
+		_grip = grip;
+		_gripUnitFix = unitFix;
 
 		AddModel(grip, weapon);
 		AddMuzzle(grip, weapon);
@@ -147,12 +177,22 @@ public partial class WeaponAttachment : Node3D
 	{
 		if (_weapon == null || _weapon.ImpactSounds.Length == 0) return;
 		var stream = LoadStream(_weapon.ImpactSounds[_rng.RandiRange(0, _weapon.ImpactSounds.Length - 1)]);
-		if (stream == null) return;
+		SpawnOneShotAt(stream, worldPosition, unitSize: 6.0f);
+	}
 
+	/// <summary>Plays the shared "hit a person" sound at the impact point - bullet or blade, any
+	/// weapon. Called from WeaponSwitcher over a broadcast RPC so every peer hears it, not just the
+	/// shooter.</summary>
+	public void PlayFleshImpact(Vector3 worldPosition) =>
+		SpawnOneShotAt(LoadStream(FleshImpactSound), worldPosition, unitSize: 9.0f);
+
+	private void SpawnOneShotAt(AudioStream? stream, Vector3 worldPosition, float unitSize)
+	{
+		if (stream == null) return;
 		var player = new AudioStreamPlayer3D
 		{
 			Stream = stream,
-			UnitSize = 6.0f,
+			UnitSize = unitSize,
 			PitchScale = _rng.RandfRange(0.9f, 1.1f),
 		};
 		// One-shots are added to the current scene root: a node parented under the player would be

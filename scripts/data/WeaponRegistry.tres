@@ -24,10 +24,10 @@ MuzzleDistance = 0.55
 PelletsPerShot = 1
 SpreadDegrees = 0.6
 ShellByShellReload = false
-FireSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-001.wav", "res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-002.wav", "res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-003.wav")
-ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Reload/rifle_reload.wav")
+FireSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Shoot/AK_fire.wav")
+ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Reload/ak_47_assault_rifle_being_unloaded_and_reloaded.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
-EmptySound = ""
+EmptySound = "res://audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav"
 FireAudioUnitSize = 16.0
 
 [sub_resource type="Resource" id="WeaponData_m4"]
@@ -54,7 +54,7 @@ ShellByShellReload = false
 FireSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-001.wav", "res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-002.wav", "res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-003.wav")
 ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Reload/rifle_reload.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
-EmptySound = ""
+EmptySound = "res://audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav"
 FireAudioUnitSize = 16.0
 
 [sub_resource type="Resource" id="WeaponData_p90"]
@@ -81,7 +81,7 @@ ShellByShellReload = false
 FireSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-001.wav", "res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-002.wav", "res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-003.wav")
 ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Reload/rifle_reload.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
-EmptySound = ""
+EmptySound = "res://audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav"
 FireAudioUnitSize = 13.0
 
 [sub_resource type="Resource" id="WeaponData_krissvector"]
@@ -108,7 +108,7 @@ ShellByShellReload = false
 FireSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-001.wav", "res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-002.wav", "res://audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-003.wav")
 ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Rifle/Reload/rifle_reload.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
-EmptySound = ""
+EmptySound = "res://audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav"
 FireAudioUnitSize = 13.0
 
 [sub_resource type="Resource" id="WeaponData_glock19"]
@@ -132,8 +132,8 @@ MuzzleDistance = 0.15
 PelletsPerShot = 1
 SpreadDegrees = 0.4
 ShellByShellReload = false
-FireSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-001.wav", "res://audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-002.wav", "res://audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-003.wav")
-ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Reload/Pistol_Reload.wav")
+FireSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Shoot/pistol_shoot.wav")
+ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Reload/pistol_reload.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
 EmptySound = ""
 FireAudioUnitSize = 10.0
@@ -159,8 +159,8 @@ MuzzleDistance = 0.22
 PelletsPerShot = 1
 SpreadDegrees = 0.5
 ShellByShellReload = false
-FireSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-001.wav", "res://audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-002.wav", "res://audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-003.wav")
-ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Reload/Pistol_Reload.wav")
+FireSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Shoot/pistol_shoot.wav")
+ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Reload/pistol_reload.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
 EmptySound = ""
 FireAudioUnitSize = 14.0
@@ -186,8 +186,8 @@ MuzzleDistance = 0.56
 PelletsPerShot = 8
 SpreadDegrees = 4.5
 ShellByShellReload = true
-FireSounds = PackedStringArray("res://audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-001.wav", "res://audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-002.wav", "res://audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-003.wav")
-ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Shotgun/Reload/Shotgun_reload 1.wav")
+FireSounds = PackedStringArray("res://audio/Clips/Weapons/Shotgun/Shoot/shotgun_fire.wav")
+ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Shotgun/Reload/shotgun_reload_shell.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
 EmptySound = ""
 FireAudioUnitSize = 18.0
@@ -213,7 +213,7 @@ MuzzleDistance = 0.0
 PelletsPerShot = 1
 SpreadDegrees = 0.0
 ShellByShellReload = false
-FireSounds = PackedStringArray()
+FireSounds = PackedStringArray("res://audio/Clips/Weapons/Melee/Swing/melee_swing.mp3")
 ReloadSounds = PackedStringArray()
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
 EmptySound = ""
