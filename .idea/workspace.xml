@@ -11,11 +11,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/CHANGES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FIXES_animation_audio_grip.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FIXES_camera_fov_rig.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FIXES_weapons_audio_map.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GRIP_TUNING.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/SOUND_SLOTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/audio/SOUND_SLOTS.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/project.godot" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/PlayerMovementTest.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/PlayerMovementTest.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -229,7 +229,8 @@
     <MESSAGE value="working on simple map and making the game more stable and functationable" />
     <MESSAGE value="weapon animation and sound fix &amp; godot loop animation fix" />
     <MESSAGE value="camera position and player delay logging system fixed" />
-    <option name="LAST_COMMIT_MESSAGE" value="camera position and player delay logging system fixed" />
+    <MESSAGE value="removing debloated files." />
+    <option name="LAST_COMMIT_MESSAGE" value="removing debloated files." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

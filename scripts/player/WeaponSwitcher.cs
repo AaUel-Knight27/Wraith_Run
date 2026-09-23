@@ -27,7 +27,9 @@ public partial class WeaponSwitcher : Node
 	/// rather than a separate hitbox.</summary>
 	private const float HeadZoneRadius = 0.25f;
 
-	private static readonly string[] Loadout = { "AK-47", "Shotgun", "Glock 19", "Karambit" };
+	// Kriss Vector excluded: no model until its mesh is re-sourced (lost in FBX->GLB conversion).
+	private static readonly string[] Loadout =
+		{ "AK-47", "M4", "P90", "Glock 19", "Desert Eagle", "Shotgun", "Karambit", "Bazooka" };
 
 	private static readonly string[] HitMarkerSounds =
 	{

@@ -135,7 +135,7 @@ ShellByShellReload = false
 FireSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Shoot/pistol_shoot.wav")
 ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Reload/pistol_reload.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
-EmptySound = ""
+EmptySound = "res://audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav"
 FireAudioUnitSize = 10.0
 
 [sub_resource type="Resource" id="WeaponData_deserteagle"]
@@ -162,7 +162,7 @@ ShellByShellReload = false
 FireSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Shoot/pistol_shoot.wav")
 ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Reload/pistol_reload.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
-EmptySound = ""
+EmptySound = "res://audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav"
 FireAudioUnitSize = 14.0
 
 [sub_resource type="Resource" id="WeaponData_shotgun"]
@@ -189,7 +189,7 @@ ShellByShellReload = true
 FireSounds = PackedStringArray("res://audio/Clips/Weapons/Shotgun/Shoot/shotgun_fire.wav")
 ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Shotgun/Reload/shotgun_reload_shell.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
-EmptySound = ""
+EmptySound = "res://audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav"
 FireAudioUnitSize = 18.0
 
 [sub_resource type="Resource" id="WeaponData_karambit"]
@@ -243,7 +243,7 @@ ShellByShellReload = false
 FireSounds = PackedStringArray("res://audio/Clips/Weapons/Grenade Launcher/Shoot/Grenade Launcher-001.wav", "res://audio/Clips/Weapons/Grenade Launcher/Shoot/Grenade Launcher-002.wav", "res://audio/Clips/Weapons/Grenade Launcher/Shoot/Grenade Launcher-003.wav")
 ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Grenade Launcher/Reload/Grenade Launcher_Reload.wav")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Pistol/Impact/Impact-001.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-002.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-003.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-004.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-005.wav", "res://audio/Clips/Weapons/Pistol/Impact/Impact-006.wav")
-EmptySound = ""
+EmptySound = "res://audio/Clips/Weapons/Rifle/Empty/reload_click_rifle.wav"
 FireAudioUnitSize = 26.0
 
 [resource]

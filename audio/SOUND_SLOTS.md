@@ -15,7 +15,7 @@ or point the string at a new path.
 |---|---|---|---|
 | AK-47 | `FireSounds` | `Rifle/Shoot/AK_fire.wav` | your upload |
 | AK-47 | `ReloadSounds` | `Rifle/Reload/ak_47_assault_rifle_being_unloaded_and_reloaded.wav` | your upload |
-| AK-47, M4, P90, Kriss Vector | `EmptySound` | `Rifle/Empty/reload_click_rifle.wav` | your upload, shared |
+| AK-47, M4, P90, Kriss Vector, Glock 19, Desert Eagle, Shotgun, Bazooka | `EmptySound` | `Rifle/Empty/reload_click_rifle.wav` | your upload, shared - only click on hand, used everywhere a dry-fire click is needed. Karambit has none: melee has infinite "ammo" and never hits the dry-fire branch. |
 | M4, P90, Kriss Vector | `FireSounds` / `ReloadSounds` | `Rifle/Shoot/Rifle_Shoot-00#.wav` / `Rifle/Reload/rifle_reload.wav` | original placeholder - no dedicated file was uploaded for these three |
 | Glock 19, Desert Eagle | `FireSounds` | `Pistol/Shoot/pistol_shoot.wav` | your upload, shared |
 | Glock 19, Desert Eagle | `ReloadSounds` | `Pistol/Reload/pistol_reload.wav` | your upload, shared |

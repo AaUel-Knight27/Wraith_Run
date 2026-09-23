@@ -50,7 +50,7 @@ transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0, 0)
 transform = Transform3D(1.6666665, 0, 0, 0, 1.6666665, 0, 0, 0, 1.6666665, 0, 2.6666665, 0)
 
 [node name="FirstPersonCamera" type="Camera3D" parent="Player/Armature/Head" unique_id=1631382468]
-transform = Transform3D(0.99999994, 0, 0, 0, 0.9945219, 0.10452846, 0, -0.104528464, 0.99452186, 0.077, 0.95, -0.09)
+transform = Transform3D(0.99999994, 0, 0, 0, 0.9531907, -0.30236986, 0, 0.3023699, 0.9531906, 0.077, 0.95, -0.09)
 current = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Player" unique_id=1312267907]
