@@ -11,11 +11,61 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/audio/SOUND_SLOTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/audio/SOUND_SLOTS.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_rebase_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_rebase__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/AssaultRifle/AK47.glb" beforeDir="false" afterPath="$PROJECT_DIR$/art/weapons/AssaultRifle/AK47.glb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/SMGs/KRISS VECTOR.mtl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate.glb" beforeDir="false" afterPath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate.glb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate.glb.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate.glb.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_0.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_0.png.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_1.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_1.png.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_2.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_2.png.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_3.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_3.png.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_4.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_4.png.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_5.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/weapons/SMGs/p90_-_stargate_5.png.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-001.wav" beforeDir="false" afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-001.wav" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-001.wav.import" beforeDir="false" afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-001.wav.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-001.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-002.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-002.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-002.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-003.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-003.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Pistol/Shoot/Pistol_Shoot-003.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Reload/rifle_reload.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Reload/rifle_reload.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Reload/rifle_reload.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-001.wav" beforeDir="false" afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-001.wav" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-001.wav.import" beforeDir="false" afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-001.wav.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-001.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-002.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-002.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-002.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-003.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-003.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Rifle/Shoot/Rifle_Shoot-003.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Reload/Shotgun_reload 1.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Reload/Shotgun_reload 1.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Reload/Shotgun_reload 1.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Reload/shotgun_reload_shell.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Reload/shotgun_reload_shell.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-001.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-001.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-001.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-002.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-002.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-002.wav.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-003.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-003.wav.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Shotgun/Shoot/Shotgun_Shoot-003.wav.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/project.godot" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/PlayerMovementTest.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/PlayerMovementTest.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponData.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponRegistry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponRegistry.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/debug/WeaponGripTuner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/debug/WeaponGripTuner.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/network/GameWorld.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/GameWorld.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/network/LanMenu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/LanMenu.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,6 +94,7 @@
 }</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$USER_HOME$/.jetbrains/acp.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/debug/WeaponGripTuner.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/PlayerMovement.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
@@ -119,27 +170,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "cidr.known.project.marker": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/aauel/Downloads/cline-2.0.4.zip",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/aauel/Downloads/cline-2.0.4.zip&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="GDScript Start and Debug.Player GDScript">
     <configuration name="Debug GDScript (Running session)" type="GDSCRIPT_DEBUG_RUN_CONFIGURATION" factoryName="GdScriptRunFactory">
       <option name="json" value="{&#10;  // Launch: &quot;Launch a new instance of the game&quot;,&#10;  // Attach: &quot;Attach to an already running game, which was started from the Godot Editor&quot;&#10;  &quot;request&quot; : &quot;Attach&quot;,&#10;  &quot;debugServer&quot; : 6006, // port should match the Debug Adapter port in the Godot Editor project settings.&#10;  &quot;scene&quot; : &quot;main&quot;, // main, current, res://path/to/file.tscn&#10;  &#10;  // &quot;playArgs&quot; : [ &quot;--editor&quot; ], // debugging a tool script&#10;  // &quot;playArgs&quot;: [&quot;--debug-collisions&quot;,&quot;--debug-navigation&quot;], // different options&#10;  &#10;  // one click deploy and debug via Godot Editor:&#10;  // &quot;platform&quot;: &quot;Android&quot;, // including Android, iOS, Web and W4 consoles&#10;  // &quot;device&quot;: &quot;0&quot;, // index of the device of a &quot;platform&quot; type&#10;}" />
@@ -230,7 +281,8 @@
     <MESSAGE value="weapon animation and sound fix &amp; godot loop animation fix" />
     <MESSAGE value="camera position and player delay logging system fixed" />
     <MESSAGE value="removing debloated files." />
-    <option name="LAST_COMMIT_MESSAGE" value="removing debloated files." />
+    <MESSAGE value="adding key to the gameplay so I can check every weapons systems." />
+    <option name="LAST_COMMIT_MESSAGE" value="adding key to the gameplay so I can check every weapons systems." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

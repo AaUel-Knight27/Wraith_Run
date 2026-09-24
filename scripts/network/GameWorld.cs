@@ -60,7 +60,10 @@ public partial class GameWorld : Node3D
         }
 
         if (points[index % points.Count] is not Node3D marker) return;
-        player.GlobalPosition = marker.GlobalPosition;
+        // Local Position, not GlobalPosition: this node is not in the tree yet (the spawner adds it
+        // after SpawnPlayer returns), so a global set logs "!is_inside_tree()" every spawn. The
+        // Players node sits at the origin with no rotation, so local == global once it is added.
+        player.Position = marker.GlobalPosition;
         player.Rotation = new Vector3(0.0f, marker.GlobalRotation.Y, 0.0f);
     }
 
