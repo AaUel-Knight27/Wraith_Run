@@ -8,9 +8,13 @@ public partial class PlayerMovement : CharacterBody3D
 {
     public enum MovementState { Idle, Walk, Sprint, Crouch, CrouchWalk, Slide, Jump, Fall, Aim }
 
-    public const float WalkSpeed = 4.7f;
-    public const float SprintSpeed = 7.2f;
-    public const float CrouchSpeed = 2.3f;
+    // These three used to be `const`. They are now per-instance so an equipped operator's
+    // CharacterEffectIds.MoveSpeedMult / CrouchWalkSpeedMult can scale them in _Ready() below -
+    // everything that reads WalkSpeed/SprintSpeed/CrouchSpeed elsewhere in this file is
+    // unaffected, since it was already reading through the field/property, not the literal.
+    [Export] public float WalkSpeed { get; set; } = 4.7f;
+    [Export] public float SprintSpeed { get; set; } = 7.2f;
+    [Export] public float CrouchSpeed { get; set; } = 2.3f;
     public const float Gravity = -18.0f;
     public const float JumpVelocity = 6.5727f;
     public const float TerminalFallVelocity = -53.0f;
@@ -69,6 +73,7 @@ public partial class PlayerMovement : CharacterBody3D
     private Camera3D _camera = null!;
     private PlayerAnimationController _animationController = null!;
     private Health? _health;
+    private CharacterLoadout? _loadout;
     private CapsuleShape3D _capsule = null!;
     private Vector3 _slideVelocity;
     private float _pitch;
@@ -100,6 +105,18 @@ public partial class PlayerMovement : CharacterBody3D
         _camera = GetNode<Camera3D>("Head/FirstPersonCamera");
         _animationController = GetNode<PlayerAnimationController>("AnimationController");
         _health = GetNodeOrNull<Health>("Health");
+        _loadout = GetNodeOrNull<CharacterLoadout>("CharacterLoadout");
+
+        // Interaction Drill's "-15% sprint stamina" aside (no stamina meter exists yet, see
+        // CharacterEffectIds.SprintStaminaMult), MoveSpeedMult / CrouchWalkSpeedMult are the two
+        // roster effects a real system already reads. No operator equipped -> both default to
+        // 1.0 -> WalkSpeed/SprintSpeed/CrouchSpeed stay exactly what they are today.
+        float moveSpeedMult = _loadout?.GetModifier(CharacterEffectIds.MoveSpeedMult, 1.0f) ?? 1.0f;
+        float crouchMult = _loadout?.GetModifier(CharacterEffectIds.CrouchWalkSpeedMult, 1.0f) ?? 1.0f;
+        WalkSpeed *= moveSpeedMult;
+        SprintSpeed *= moveSpeedMult;
+        CrouchSpeed *= moveSpeedMult * crouchMult;
+
         _capsule = (CapsuleShape3D)_collisionShape.Shape;
         _headBaseHeight = _head.Position.Y;
         _camera.Fov = BaseFov;

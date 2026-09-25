@@ -50,6 +50,36 @@ public partial class WeaponData : Resource
 	/// place the muzzle flash; 0 disables the flash, which is what melee wants.</summary>
 	[Export] public float MuzzleDistance { get; set; }
 
+	// ---------------------------------------------------------------------------------------
+	// Support (left) hand. The weapon is glued to the right hand, so the left hand has to be glued
+	// to the weapon as well or it drifts off the gun whenever the clip changes (the rifle clips
+	// disagree with each other by up to ~15 cm about where the left hand goes). LeftHandIk pins
+	// it. The two vectors below are ADJUSTMENTS on top of the default hold, which is the pose the
+	// aiming clip already uses for a rifle - so a rifle needs no numbers at all, and a weapon that
+	// needs the hand moved only stores the difference. Tune them live with the animation tuner (F8).
+	// ---------------------------------------------------------------------------------------
+
+	public enum LeftHandModeType { Auto, TwoHanded, OneHanded }
+
+	/// <summary>Auto = two-handed for everything except Pistol and Melee classes. OneHanded leaves
+	/// the left hand to the animation, TwoHanded pins it to the weapon.</summary>
+	[Export] public LeftHandModeType LeftHandMode { get; set; } = LeftHandModeType.Auto;
+
+	/// <summary>Left-hand offset from the default hold, in metres, in the right hand bone's frame
+	/// (the same frame GripPosition uses; +Y runs along the barrel).</summary>
+	[Export] public Vector3 LeftHandPosition { get; set; } = Vector3.Zero;
+
+	/// <summary>Extra rotation of the left hand on top of the default hold, in degrees.</summary>
+	[Export] public Vector3 LeftHandRotationDegrees { get; set; } = Vector3.Zero;
+
+	/// <summary>Resolves Auto to a yes/no.</summary>
+	public bool UsesTwoHands => LeftHandMode switch
+	{
+		LeftHandModeType.TwoHanded => true,
+		LeftHandModeType.OneHanded => false,
+		_ => WeaponClass != "Pistol" && WeaponClass != "Melee",
+	};
+
 	// --- ballistics -------------------------------------------------------------------------
 
 	/// <summary>Rays fired per trigger pull. 1 for everything except the shotgun.</summary>

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="GdExtensionStubs" type="GdScript">
+    <CLASSES />
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/.godot/rider/gdextension" />
+    </SOURCES>
+  </library>
+</component>

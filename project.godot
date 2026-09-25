@@ -26,8 +26,6 @@ KillFeed="*res://scripts/autoloads/KillFeed.cs"
 
 [display]
 
-window/size/viewport_width=1152
-window/size/viewport_height=648
 window/size/initial_screen=2
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
@@ -35,6 +33,10 @@ window/stretch/aspect="expand"
 [dotnet]
 
 project/assembly_name="Wraith Run"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg")
 
 [input]
 

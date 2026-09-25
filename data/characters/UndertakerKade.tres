@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.cs" id="1_char"]
+[ext_resource type="Script" path="res://scripts/data/StatModifier.cs" id="2_mod"]
+
+[sub_resource type="Resource" id="Buff_1"]
+script = ExtResource("2_mod")
+EffectId = "HealChannelTimeMult"
+Value = 0.75
+Note = "Heal channel -25% (2.25 s)"
+
+[sub_resource type="Resource" id="Drawback_1"]
+script = ExtResource("2_mod")
+EffectId = "HealChargeCountDelta"
+Value = -1.0
+Note = "1 fewer charge (75 HP total)"
+
+[sub_resource type="Resource" id="Drawback_2"]
+script = ExtResource("2_mod")
+EffectId = "HealPoolTotalHp"
+Value = 75.0
+Note = "1 fewer charge (75 HP total)"
+
+[resource]
+script = ExtResource("1_char")
+CharacterId = "undertaker_kade"
+DisplayName = "Vesper \"Undertaker\" Kade"
+Class = 3
+SkillName = "Quick Hands"
+Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1")])
+Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1"), SubResource("Drawback_2")])
+MeshScenePath = "res://art/characters/manny.glb"

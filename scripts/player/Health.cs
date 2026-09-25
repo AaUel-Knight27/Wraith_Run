@@ -56,6 +56,7 @@ public partial class Health : Node
     private CharacterBody3D _player = null!;
     private CollisionShape3D? _collision;
     private PlayerAnimationController? _animation;
+    private CharacterLoadout? _loadout;
     private KillFeed? _killFeed;
 
     /// <summary>Damage each attacker has dealt since this player last spawned. Part 6 pays the assist
@@ -70,7 +71,12 @@ public partial class Health : Node
         _player = (CharacterBody3D)GetParent();
         _collision = _player.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
         _animation = _player.GetNodeOrNull<PlayerAnimationController>("AnimationController");
+        _loadout = _player.GetNodeOrNull<CharacterLoadout>("CharacterLoadout");
         _killFeed = KillFeed.From(this);
+
+        // Shiv's "On-foot max HP -10%" drawback and anything like it (CharacterEffectIds.
+        // OnFootMaxHealthMult). No operator equipped -> GetModifier returns 1.0 -> unchanged.
+        MaxHealth *= _loadout?.GetModifier(CharacterEffectIds.OnFootMaxHealthMult, 1.0f) ?? 1.0f;
         CurrentHealth = MaxHealth;
     }
 

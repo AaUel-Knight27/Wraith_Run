@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.cs" id="1_char"]
+[ext_resource type="Script" path="res://scripts/data/StatModifier.cs" id="2_mod"]
+
+[sub_resource type="Resource" id="Buff_1"]
+script = ExtResource("2_mod")
+EffectId = "RepairChargeCountDelta"
+Value = 1.0
+Note = "+1 charge (4 total)"
+
+[sub_resource type="Resource" id="Drawback_1"]
+script = ExtResource("2_mod")
+EffectId = "MoveSpeedMult"
+Value = 0.94
+Note = "-6% move speed"
+
+[resource]
+script = ExtResource("1_char")
+CharacterId = "magpie_stone"
+DisplayName = "Malgrim \"Magpie\" Stone"
+Class = 1
+SkillName = "Scrap Stock"
+Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1")])
+Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1")])
+MeshScenePath = "res://art/characters/manny.glb"

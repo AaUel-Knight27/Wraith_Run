@@ -48,6 +48,7 @@ public partial class WeaponSwitcher : Node
 	private PlayerAnimationController? _animation;
 	private RotationWindowTracker _rotationWindow = null!;
 	private Health? _health;
+	private CharacterLoadout? _loadout;
 	private AudioStreamPlayer? _hitMarker;
 	private readonly RandomNumberGenerator _rng = new();
 
@@ -91,6 +92,7 @@ public partial class WeaponSwitcher : Node
 		_rotationWindow = GetNode<RotationWindowTracker>("../RotationWindow");
 		_health = GetNodeOrNull<Health>("../Health");
 		_animation = GetNodeOrNull<PlayerAnimationController>("../AnimationController");
+		_loadout = GetNodeOrNull<CharacterLoadout>("../CharacterLoadout");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
 
 		if (_player.IsMultiplayerAuthority()) _hitMarker = BuildHitMarker();
@@ -225,10 +227,15 @@ public partial class WeaponSwitcher : Node
 	private void ApplyRecoil()
 	{
 		if (_currentWeapon == null) return;
-		float horizontal = _rng.RandfRange(-_currentWeapon.RecoilHorizontal, _currentWeapon.RecoilHorizontal);
+		// Ironsight's "-12% weapon recoil" (CharacterEffectIds.WeaponRecoilMult). No operator
+		// equipped -> 1.0 -> identical to before this hook existed.
+		float recoilMult = _loadout?.GetModifier(CharacterEffectIds.WeaponRecoilMult, 1.0f) ?? 1.0f;
+		float vertical = _currentWeapon.RecoilVertical * recoilMult;
+		float horizontalRange = _currentWeapon.RecoilHorizontal * recoilMult;
+		float horizontal = _rng.RandfRange(-horizontalRange, horizontalRange);
 		// Aiming down sights cuts the kick roughly in half, which is the usual reason to ADS at all.
 		float multiplier = _movement.IsAiming ? 0.5f : 1.0f;
-		_movement.AddRecoil(_currentWeapon.RecoilVertical * multiplier, horizontal * multiplier,
+		_movement.AddRecoil(vertical * multiplier, horizontal * multiplier,
 			_currentWeapon.RecoilRecoveryMs);
 	}
 

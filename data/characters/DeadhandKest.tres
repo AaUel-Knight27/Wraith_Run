@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.cs" id="1_char"]
+[ext_resource type="Script" path="res://scripts/data/StatModifier.cs" id="2_mod"]
+
+[sub_resource type="Resource" id="Buff_1"]
+script = ExtResource("2_mod")
+EffectId = "ManualDetonationEnabled"
+Value = 1.0
+Note = "Trigger own charges by hand (40 m, line of sight)"
+
+[sub_resource type="Resource" id="Buff_2"]
+script = ExtResource("2_mod")
+EffectId = "ManualDetonationRangeMeters"
+Value = 40.0
+Note = "Trigger own charges by hand (40 m, line of sight)"
+
+[sub_resource type="Resource" id="Drawback_1"]
+script = ExtResource("2_mod")
+EffectId = "ExplosiveChargeCountDelta"
+Value = -1.0
+Note = "1 fewer charge (only 1)"
+
+[resource]
+script = ExtResource("1_char")
+CharacterId = "deadhand_kest"
+DisplayName = "Idris \"Deadhand\" Kest"
+Class = 4
+SkillName = "Command Detonation"
+Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1"), SubResource("Buff_2")])
+Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1")])
+MeshScenePath = "res://art/characters/manny.glb"

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.cs" id="1_char"]
+[ext_resource type="Script" path="res://scripts/data/StatModifier.cs" id="2_mod"]
+
+[sub_resource type="Resource" id="Buff_1"]
+script = ExtResource("2_mod")
+EffectId = "HealInterruptible"
+Value = 0.0
+Note = "Healing isn't interrupted by damage"
+
+[sub_resource type="Resource" id="Drawback_1"]
+script = ExtResource("2_mod")
+EffectId = "HealChannelTimeMult"
+Value = 1.2
+Note = "Channel +20% (3.6 s); no self-use"
+
+[sub_resource type="Resource" id="Drawback_2"]
+script = ExtResource("2_mod")
+EffectId = "HealSelfUseAllowed"
+Value = 0.0
+Note = "Channel +20% (3.6 s); no self-use"
+
+[resource]
+script = ExtResource("1_char")
+CharacterId = "marrow_draug"
+DisplayName = "Silas \"Marrow\" Draug"
+Class = 3
+SkillName = "Steady Hands"
+Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1")])
+Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1"), SubResource("Drawback_2")])
+MeshScenePath = "res://art/characters/manny.glb"

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.cs" id="1_char"]
+[ext_resource type="Script" path="res://scripts/data/StatModifier.cs" id="2_mod"]
+
+[sub_resource type="Resource" id="Buff_1"]
+script = ExtResource("2_mod")
+EffectId = "SeatSwapTimeMult"
+Value = 0.75
+Note = "Seat swap animation -25% (2 -> 1.5 s); enter seats 25% faster"
+
+[sub_resource type="Resource" id="Drawback_1"]
+script = ExtResource("2_mod")
+EffectId = "OnFootMaxHealthMult"
+Value = 0.9
+Note = "On-foot max HP -10%"
+
+[resource]
+script = ExtResource("1_char")
+CharacterId = "shiv_brandt"
+DisplayName = "Jory \"Shiv\" Brandt"
+Class = 0
+SkillName = "Crew Drill"
+Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1")])
+Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1")])
+MeshScenePath = "res://art/characters/manny.glb"

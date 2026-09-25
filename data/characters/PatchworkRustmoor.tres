@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.cs" id="1_char"]
+[ext_resource type="Script" path="res://scripts/data/StatModifier.cs" id="2_mod"]
+
+[sub_resource type="Resource" id="Buff_1"]
+script = ExtResource("2_mod")
+EffectId = "MovingRepairEnabled"
+Value = 1.0
+Note = "Repair a vehicle moving under 8 m/s"
+
+[sub_resource type="Resource" id="Drawback_1"]
+script = ExtResource("2_mod")
+EffectId = "VehicleRepairTimeMult"
+Value = 1.2
+Note = "Repairs 20% slower"
+
+[resource]
+script = ExtResource("1_char")
+CharacterId = "patchwork_rustmoor"
+DisplayName = "Hexa \"Patchwork\" Rustmoor"
+Class = 1
+SkillName = "Rolling Repair"
+Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1")])
+Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1")])
+MeshScenePath = "res://art/characters/manny.glb"

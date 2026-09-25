@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.cs" id="1_char"]
+[ext_resource type="Script" path="res://scripts/data/StatModifier.cs" id="2_mod"]
+
+[sub_resource type="Resource" id="Buff_1"]
+script = ExtResource("2_mod")
+EffectId = "SmokeChargeCount"
+Value = 2.0
+Note = "2 smokes (10 s, 4 m) to cover heals and retreats"
+
+[sub_resource type="Resource" id="Buff_2"]
+script = ExtResource("2_mod")
+EffectId = "SmokeDurationSeconds"
+Value = 10.0
+Note = "2 smokes (10 s, 4 m) to cover heals and retreats"
+
+[sub_resource type="Resource" id="Buff_3"]
+script = ExtResource("2_mod")
+EffectId = "SmokeRadiusMeters"
+Value = 4.0
+Note = "2 smokes (10 s, 4 m) to cover heals and retreats"
+
+[sub_resource type="Resource" id="Drawback_1"]
+script = ExtResource("2_mod")
+EffectId = "HealChargeCountDelta"
+Value = -1.0
+Note = "1 fewer charge; smoke is visible to everyone"
+
+[sub_resource type="Resource" id="Drawback_2"]
+script = ExtResource("2_mod")
+EffectId = "SmokeVisibleToEveryone"
+Value = 1.0
+Note = "1 fewer charge; smoke is visible to everyone"
+
+[resource]
+script = ExtResource("1_char")
+CharacterId = "ashen_corvus"
+DisplayName = "Thane \"Ashen\" Corvus"
+Class = 3
+SkillName = "Cover Smoke"
+Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1"), SubResource("Buff_2"), SubResource("Buff_3")])
+Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1"), SubResource("Drawback_2")])
+MeshScenePath = "res://art/characters/manny.glb"

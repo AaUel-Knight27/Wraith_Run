@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/CharacterData.cs" id="1_char"]
+[ext_resource type="Script" path="res://scripts/data/StatModifier.cs" id="2_mod"]
+
+[sub_resource type="Resource" id="Buff_1"]
+script = ExtResource("2_mod")
+EffectId = "HealWhileMovingEnabled"
+Value = 1.0
+Note = "Heal while walking at half speed"
+
+[sub_resource type="Resource" id="Buff_2"]
+script = ExtResource("2_mod")
+EffectId = "HealWhileMovingSpeedMult"
+Value = 0.5
+Note = "Heal while walking at half speed"
+
+[sub_resource type="Resource" id="Drawback_1"]
+script = ExtResource("2_mod")
+EffectId = "HealPerChargeMult"
+Value = 0.7
+Note = "30% less per charge (70 HP total)"
+
+[sub_resource type="Resource" id="Drawback_2"]
+script = ExtResource("2_mod")
+EffectId = "HealPoolTotalHp"
+Value = 70.0
+Note = "30% less per charge (70 HP total)"
+
+[resource]
+script = ExtResource("1_char")
+CharacterId = "widow_renk"
+DisplayName = "Mara \"Widow\" Renk"
+Class = 3
+SkillName = "Field Surgeon"
+Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1"), SubResource("Buff_2")])
+Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1"), SubResource("Drawback_2")])
+MeshScenePath = "res://art/characters/manny.glb"
