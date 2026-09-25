@@ -337,6 +337,84 @@ public static class MenuStyle
         return button;
     }
 
+    /// <summary>A labelled on/off row - clicking anywhere toggles it. Caller owns the state; this
+    /// just draws the current value and reports the flip, same division of labour as SelectRow.</summary>
+    public static Button ToggleRow(string icon, string text, bool on, Action<bool> onChanged)
+    {
+        var button = NewButton(new Vector2(0, 52), () => onChanged(!on));
+        StyleButton(button, Box(RowFill, Hairline), Box(HoverFill, Border),
+            Box(PressFill, BorderHot), Box(RowFill, Hairline));
+
+        var pad = Padding(14, 0);
+        button.AddChild(pad);
+        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 12);
+        pad.AddChild(row);
+        if (icon != null)
+        {
+            var glyph = Icon(icon, 22);
+            glyph.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+            row.AddChild(glyph);
+        }
+        var label = Text(text, 21, TextMain, SemiBold);
+        label.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        label.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(label);
+
+        const float pillW = 46, pillH = 26, knob = 18;
+        var pill = new Panel
+        {
+            CustomMinimumSize = new Vector2(pillW, pillH),
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        pill.AddThemeStyleboxOverride("panel", Box(on ? Accent : RowFill, on ? BorderHot : Hairline, 1, (int)(pillH / 2)));
+        var dot = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
+        dot.AddThemeStyleboxOverride("panel", Box(TextMain, TextMain, 0, (int)(knob / 2)));
+        dot.Position = on ? new Vector2(pillW - 4 - knob, (pillH - knob) / 2) : new Vector2(4, (pillH - knob) / 2);
+        dot.Size = new Vector2(knob, knob);
+        pill.AddChild(dot);
+        row.AddChild(pill);
+        return button;
+    }
+
+    /// <summary>A labelled slider with a live value readout. `onChanged` fires on every drag tick
+    /// (for the label and for whatever in-memory field the caller is driving); `onCommit` fires
+    /// once when the drag ends, for callers that only want to persist settings at that point
+    /// rather than on every tick.</summary>
+    public static Control SliderRow(string label, float value, float min, float max, float step,
+        string format, Action<float> onChanged, Action onCommit = null)
+    {
+        var box = new VBoxContainer();
+        box.AddThemeConstantOverride("separation", 4);
+
+        var top = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        var name = Text(label, 18, TextDim, Medium);
+        name.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        top.AddChild(name);
+        var valueLabel = Text(string.Format(format, value), 18, TextMain, SemiBold,
+            HorizontalAlignment.Right);
+        top.AddChild(valueLabel);
+        box.AddChild(top);
+
+        var slider = new HSlider
+        {
+            MinValue = min, MaxValue = max, Step = step, Value = value,
+            CustomMinimumSize = new Vector2(0, 20),
+        };
+        slider.AddThemeStyleboxOverride("slider", Box(RowFill, Hairline, 1, 4));
+        slider.AddThemeStyleboxOverride("grabber_area", Box(Accent, BorderHot, 1, 4));
+        slider.AddThemeStyleboxOverride("grabber_area_highlight", Box(Accent, BorderHot, 1, 4));
+        slider.ValueChanged += v =>
+        {
+            valueLabel.Text = string.Format(format, (float)v);
+            onChanged((float)v);
+        };
+        if (onCommit != null) slider.DragEnded += _ => onCommit();
+        box.AddChild(slider);
+        return box;
+    }
+
     /// <summary>One entry in a list (a discovered LAN game): name, detail text, chevron.</summary>
     public static Button Row(string title, string detail, Action onPressed)
     {

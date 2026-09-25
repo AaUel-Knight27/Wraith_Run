@@ -245,6 +245,86 @@ public partial class LanMenu : Control
         StartBrowsing();
     }
 
+    private void ShowSettings(Action reopen)
+    {
+        if (_terminalCleanupDone) return;
+        BeginScreen(reopen);
+        AddHeader("SETTINGS", reopen);
+        AddTopIcons(includeSettings: false, reopen: null);
+
+        SettingsManager settings = SettingsManager.Instance;
+        void Rebuild() { settings.Save(); ShowSettings(reopen); }
+
+        var layout = new HBoxContainer();
+        layout.AddThemeConstantOverride("separation", 20);
+        MenuStyle.Place(layout, 0, 0, 1, 1, 64, 124, -64, -60);
+        _contentRoot.AddChild(layout);
+
+        var left = new VBoxContainer { CustomMinimumSize = new Vector2(360, 0) };
+        left.AddThemeConstantOverride("separation", 14);
+        layout.AddChild(left);
+
+        var look = MenuStyle.Panel("LOOK & AIM", "crosshair", out var lookBody);
+        var invertY = MenuStyle.ToggleRow(null, "Invert Look Y", settings.InvertLookY,
+            v => { settings.InvertLookY = v; Rebuild(); });
+        lookBody.AddChild(invertY);
+        lookBody.AddChild(MenuStyle.SliderRow("Mouse Sensitivity", settings.MouseSensitivity,
+            0.0008f, 0.006f, 0.0001f, "{0:0.0000}",
+            v => settings.MouseSensitivity = v, () => settings.Save()));
+        lookBody.AddChild(MenuStyle.SliderRow("Touch Look Sensitivity", settings.TouchLookSensitivity,
+            0.0012f, 0.008f, 0.0001f, "{0:0.0000}",
+            v => settings.TouchLookSensitivity = v, () => settings.Save()));
+        left.AddChild(look);
+
+        var gameplay = MenuStyle.Panel("GAMEPLAY", "bot", out var gameplayBody);
+        gameplayBody.AddChild(MenuStyle.ToggleRow(null, "Hold to Fire", settings.HoldToFire,
+            v => { settings.HoldToFire = v; Rebuild(); }));
+        gameplayBody.AddChild(MenuStyle.ToggleRow(null, "Hold to ADS", settings.HoldToAds,
+            v => { settings.HoldToAds = v; Rebuild(); }));
+        gameplayBody.AddChild(MenuStyle.ToggleRow(null, "Auto Sprint", settings.AutoSprint,
+            v => { settings.AutoSprint = v; Rebuild(); }));
+        left.AddChild(gameplay);
+
+        var right = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        right.AddThemeConstantOverride("separation", 14);
+        layout.AddChild(right);
+
+        var touch = MenuStyle.Panel("TOUCH / ANDROID LAYOUT", "settings", out var touchBody);
+        touchBody.AddChild(MenuStyle.ToggleRow(null, "Left-Handed Layout", settings.LeftHandedLayout,
+            v => { settings.LeftHandedLayout = v; Rebuild(); }));
+        touchBody.AddChild(MenuStyle.ToggleRow(null, "Floating Joystick", settings.JoystickFloating,
+            v => { settings.JoystickFloating = v; Rebuild(); }));
+        touchBody.AddChild(MenuStyle.SliderRow("Joystick Deadzone", settings.JoystickDeadzone,
+            0.0f, 0.6f, 0.01f, "{0:0%}", v => settings.JoystickDeadzone = v, () => settings.Save()));
+        touchBody.AddChild(MenuStyle.SliderRow("Button Scale", settings.ButtonScale,
+            0.7f, 1.5f, 0.05f, "{0:0.00}x", v => settings.ButtonScale = v, () => settings.Save()));
+        touchBody.AddChild(MenuStyle.SliderRow("Button Opacity", settings.ButtonOpacity,
+            0.3f, 1.0f, 0.05f, "{0:0%}", v => settings.ButtonOpacity = v, () => settings.Save()));
+        right.AddChild(touch);
+
+        var gyro = MenuStyle.Panel("GYROSCOPE LOOK", "circle", out var gyroBody);
+        gyroBody.AddChild(MenuStyle.SelectRow("circle", "Off",
+            settings.Gyroscope == SettingsManager.GyroMode.Off,
+            () => { settings.Gyroscope = SettingsManager.GyroMode.Off; Rebuild(); }));
+        gyroBody.AddChild(MenuStyle.SelectRow("circle", "On",
+            settings.Gyroscope == SettingsManager.GyroMode.On,
+            () => { settings.Gyroscope = SettingsManager.GyroMode.On; Rebuild(); }));
+        gyroBody.AddChild(MenuStyle.SelectRow("circle", "ADS Only",
+            settings.Gyroscope == SettingsManager.GyroMode.AdsOnly,
+            () => { settings.Gyroscope = SettingsManager.GyroMode.AdsOnly; Rebuild(); }));
+        if (settings.Gyroscope != SettingsManager.GyroMode.Off)
+            gyroBody.AddChild(MenuStyle.SliderRow("Gyro Sensitivity", settings.GyroSensitivity,
+                0.2f, 3.0f, 0.1f, "{0:0.0}x", v => settings.GyroSensitivity = v, () => settings.Save()));
+        right.AddChild(gyro);
+
+        var soon = MenuStyle.Panel("AUDIO & VIDEO", "lock", out var soonBody);
+        soonBody.AddChild(MenuStyle.InfoRow("settings", "Audio - not built yet"));
+        soonBody.AddChild(MenuStyle.InfoRow("settings", "Video - not built yet"));
+        right.AddChild(soon);
+
+        invertY.GrabFocus();
+    }
+
     private void ShowSoon(string title, string blurb, Action returnTo)
     {
         if (_terminalCleanupDone) return;
@@ -295,8 +375,7 @@ public partial class LanMenu : Control
         var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 6);
         if (includeSettings && reopen != null)
-            row.AddChild(MenuStyle.IconButton("settings", 24, MenuStyle.TextDim, () =>
-                ShowSoon("SETTINGS", "Audio, video and control settings aren't built yet.", reopen)));
+            row.AddChild(MenuStyle.IconButton("settings", 24, MenuStyle.TextDim, () => ShowSettings(reopen)));
         row.AddChild(MenuStyle.IconButton("power", 24, MenuStyle.TextDim, () => GetTree().Quit()));
         MenuStyle.Place(row, 1, 0, 1, 0, -(64 + 90), 24, -64, 24);
         _contentRoot.AddChild(row);

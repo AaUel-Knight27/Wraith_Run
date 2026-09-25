@@ -8,13 +8,9 @@ public partial class PlayerMovement : CharacterBody3D
 {
     public enum MovementState { Idle, Walk, Sprint, Crouch, CrouchWalk, Slide, Jump, Fall, Aim }
 
-    // These three used to be `const`. They are now per-instance so an equipped operator's
-    // CharacterEffectIds.MoveSpeedMult / CrouchWalkSpeedMult can scale them in _Ready() below -
-    // everything that reads WalkSpeed/SprintSpeed/CrouchSpeed elsewhere in this file is
-    // unaffected, since it was already reading through the field/property, not the literal.
-    [Export] public float WalkSpeed { get; set; } = 4.7f;
-    [Export] public float SprintSpeed { get; set; } = 7.2f;
-    [Export] public float CrouchSpeed { get; set; } = 2.3f;
+    public const float WalkSpeed = 4.7f;
+    public const float SprintSpeed = 7.2f;
+    public const float CrouchSpeed = 2.3f;
     public const float Gravity = -18.0f;
     public const float JumpVelocity = 6.5727f;
     public const float TerminalFallVelocity = -53.0f;
@@ -42,6 +38,7 @@ public partial class PlayerMovement : CharacterBody3D
     private const float SlideStopShakeStrength = 0.12f;
 
     [Export] public float MouseSensitivity { get; set; } = 0.0025f;
+    [Export] public float TouchLookSensitivity { get; set; } = 0.0035f;
     [Export] public float CameraPitchLimitDegrees { get; set; } = 85.0f;
 
     // FOV is exported rather than const so it can be tuned in the inspector while the game runs.
@@ -73,7 +70,6 @@ public partial class PlayerMovement : CharacterBody3D
     private Camera3D _camera = null!;
     private PlayerAnimationController _animationController = null!;
     private Health? _health;
-    private CharacterLoadout? _loadout;
     private CapsuleShape3D _capsule = null!;
     private Vector3 _slideVelocity;
     private float _pitch;
@@ -105,18 +101,6 @@ public partial class PlayerMovement : CharacterBody3D
         _camera = GetNode<Camera3D>("Head/FirstPersonCamera");
         _animationController = GetNode<PlayerAnimationController>("AnimationController");
         _health = GetNodeOrNull<Health>("Health");
-        _loadout = GetNodeOrNull<CharacterLoadout>("CharacterLoadout");
-
-        // Interaction Drill's "-15% sprint stamina" aside (no stamina meter exists yet, see
-        // CharacterEffectIds.SprintStaminaMult), MoveSpeedMult / CrouchWalkSpeedMult are the two
-        // roster effects a real system already reads. No operator equipped -> both default to
-        // 1.0 -> WalkSpeed/SprintSpeed/CrouchSpeed stay exactly what they are today.
-        float moveSpeedMult = _loadout?.GetModifier(CharacterEffectIds.MoveSpeedMult, 1.0f) ?? 1.0f;
-        float crouchMult = _loadout?.GetModifier(CharacterEffectIds.CrouchWalkSpeedMult, 1.0f) ?? 1.0f;
-        WalkSpeed *= moveSpeedMult;
-        SprintSpeed *= moveSpeedMult;
-        CrouchSpeed *= moveSpeedMult * crouchMult;
-
         _capsule = (CapsuleShape3D)_collisionShape.Shape;
         _headBaseHeight = _head.Position.Y;
         _camera.Fov = BaseFov;
@@ -124,7 +108,10 @@ public partial class PlayerMovement : CharacterBody3D
         // FirstPersonArms used to own this; with a single always-visible body mesh there is no
         // separate view-model to toggle, but each client must still only activate its own camera.
         _camera.Current = IsMultiplayerAuthority();
-        if (IsMultiplayerAuthority()) Input.MouseMode = Input.MouseModeEnum.Captured;
+        // Touch devices have no cursor to capture; TouchControls drives look via screen drags
+        // instead (see _UnhandledInput below), so capturing here would just be a no-op on mobile.
+        if (IsMultiplayerAuthority() && !OS.HasFeature("mobile"))
+            Input.MouseMode = Input.MouseModeEnum.Captured;
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -132,11 +119,19 @@ public partial class PlayerMovement : CharacterBody3D
         if (!IsMultiplayerAuthority()) return;
         if (@event is InputEventMouseMotion mouseMotion && Input.MouseMode == Input.MouseModeEnum.Captured)
         {
-            RotateY(-mouseMotion.Relative.X * MouseSensitivity);
-            _pitch = Mathf.Clamp(_pitch - mouseMotion.Relative.Y * MouseSensitivity,
-                Mathf.DegToRad(-CameraPitchLimitDegrees), Mathf.DegToRad(CameraPitchLimitDegrees));
+            float sensitivity = SettingsManager.Instance?.MouseSensitivity ?? MouseSensitivity;
+            ApplyLookDelta(mouseMotion.Relative.X * sensitivity, mouseMotion.Relative.Y * sensitivity * LookInvert());
             // The rotation itself is committed in _PhysicsProcess (see UpdateHeadAim) because the
             // recoil offset has to decay on a fixed step, not only when the mouse happens to move.
+        }
+        // Touch look: TouchControls' joystick and buttons are GUI Controls that claim their own
+        // screen rect, so a drag that starts anywhere else - which is most of the screen - never
+        // reaches them and falls through to here instead. That is the entire "look zone": there
+        // is no separate region to carve out by hand, the buttons already own theirs.
+        else if (@event is InputEventScreenDrag drag)
+        {
+            float sensitivity = SettingsManager.Instance?.TouchLookSensitivity ?? TouchLookSensitivity;
+            ApplyLookDelta(drag.Relative.X * sensitivity, drag.Relative.Y * sensitivity * LookInvert());
         }
 
         if (@event.IsActionPressed("ui_cancel"))
@@ -144,6 +139,25 @@ public partial class PlayerMovement : CharacterBody3D
         else if (@event is InputEventMouseButton && Input.MouseMode == Input.MouseModeEnum.Visible)
             Input.MouseMode = Input.MouseModeEnum.Captured;
     }
+
+    private static float LookInvert() =>
+        SettingsManager.Instance != null && SettingsManager.Instance.InvertLookY ? -1.0f : 1.0f;
+
+    /// <summary>Shared by mouse, touch-drag and gyroscope look so all three sources move the
+    /// camera through the exact same pitch clamp and yaw rotation - see the note on IsAiming
+    /// above for why look and state were split apart once already; the same "one thing owns this"
+    /// reasoning applies here.</summary>
+    private void ApplyLookDelta(float yawDelta, float pitchDelta)
+    {
+        RotateY(-yawDelta);
+        _pitch = Mathf.Clamp(_pitch - pitchDelta,
+            Mathf.DegToRad(-CameraPitchLimitDegrees), Mathf.DegToRad(CameraPitchLimitDegrees));
+    }
+
+    /// <summary>Called once per frame by TouchControls while gyroscope look is enabled. Public and
+    /// separate from _UnhandledInput because gyro is a polled sensor reporting rad/s, not a
+    /// per-event screen delta the way mouse motion and touch drags are.</summary>
+    public void ApplyGyroLookDelta(float yawDelta, float pitchDelta) => ApplyLookDelta(yawDelta, pitchDelta);
 
     public override void _PhysicsProcess(double deltaValue)
     {
@@ -313,7 +327,10 @@ public partial class PlayerMovement : CharacterBody3D
 
         bool hasMovement = moveInput.LengthSquared() > 0.001f;
         bool forwardish = moveInput.Y < -0.1f;
-        bool sprinting = !crouchHeld && forwardish && Input.IsActionPressed("sprint");
+        // Auto Sprint (SettingsManager) mainly exists for touch, where holding a second button
+        // just to run is awkward, but nothing about the check itself is touch-specific.
+        bool autoSprint = SettingsManager.Instance != null && SettingsManager.Instance.AutoSprint;
+        bool sprinting = !crouchHeld && forwardish && (autoSprint || Input.IsActionPressed("sprint"));
         float targetSpeed = crouchHeld ? CrouchSpeed : sprinting ? SprintSpeed : WalkSpeed;
         ApplyHorizontalVelocity(moveDirection * targetSpeed, delta, 1.0f);
 

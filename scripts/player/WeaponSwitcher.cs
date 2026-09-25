@@ -28,7 +28,10 @@ public partial class WeaponSwitcher : Node
 	private const float HeadZoneRadius = 0.25f;
 
 	// Kriss Vector excluded: no model until its mesh is re-sourced (lost in FBX->GLB conversion).
-	private static readonly string[] Loadout =
+	// Internal rather than private: TouchControls' weapon-switch/quick-melee buttons read this
+	// directly (length + Karambit's index) instead of hardcoding numbers that would silently go
+	// stale if this list is ever reordered or extended.
+	internal static readonly string[] Loadout =
 		{ "AK-47", "M4", "P90", "Glock 19", "Desert Eagle", "Shotgun", "Karambit", "Bazooka" };
 
 	private static readonly string[] HitMarkerSounds =
@@ -48,7 +51,6 @@ public partial class WeaponSwitcher : Node
 	private PlayerAnimationController? _animation;
 	private RotationWindowTracker _rotationWindow = null!;
 	private Health? _health;
-	private CharacterLoadout? _loadout;
 	private AudioStreamPlayer? _hitMarker;
 	private readonly RandomNumberGenerator _rng = new();
 
@@ -92,7 +94,6 @@ public partial class WeaponSwitcher : Node
 		_rotationWindow = GetNode<RotationWindowTracker>("../RotationWindow");
 		_health = GetNodeOrNull<Health>("../Health");
 		_animation = GetNodeOrNull<PlayerAnimationController>("../AnimationController");
-		_loadout = GetNodeOrNull<CharacterLoadout>("../CharacterLoadout");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
 
 		if (_player.IsMultiplayerAuthority()) _hitMarker = BuildHitMarker();
@@ -227,15 +228,10 @@ public partial class WeaponSwitcher : Node
 	private void ApplyRecoil()
 	{
 		if (_currentWeapon == null) return;
-		// Ironsight's "-12% weapon recoil" (CharacterEffectIds.WeaponRecoilMult). No operator
-		// equipped -> 1.0 -> identical to before this hook existed.
-		float recoilMult = _loadout?.GetModifier(CharacterEffectIds.WeaponRecoilMult, 1.0f) ?? 1.0f;
-		float vertical = _currentWeapon.RecoilVertical * recoilMult;
-		float horizontalRange = _currentWeapon.RecoilHorizontal * recoilMult;
-		float horizontal = _rng.RandfRange(-horizontalRange, horizontalRange);
+		float horizontal = _rng.RandfRange(-_currentWeapon.RecoilHorizontal, _currentWeapon.RecoilHorizontal);
 		// Aiming down sights cuts the kick roughly in half, which is the usual reason to ADS at all.
 		float multiplier = _movement.IsAiming ? 0.5f : 1.0f;
-		_movement.AddRecoil(vertical * multiplier, horizontal * multiplier,
+		_movement.AddRecoil(_currentWeapon.RecoilVertical * multiplier, horizontal * multiplier,
 			_currentWeapon.RecoilRecoveryMs);
 	}
 

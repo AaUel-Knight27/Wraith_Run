@@ -72,10 +72,15 @@ public partial class PlayerHud : CanvasLayer
         crosshair.AddThemeFontSizeOverride("font_size", 22);
         crosshairCenter.AddChild(crosshair);
 
+        // Touch builds move health/ammo/kill-feed to the TOP edge instead of the bottom. On
+        // desktop the bottom band is just empty screen; on mobile TouchControls owns that whole
+        // strip for the joystick and action buttons, so anything HUD-related has to clear it.
+        bool touch = SettingsManager.Instance != null && SettingsManager.Instance.ShouldShowTouchControls();
+
         var healthBox = new VBoxContainer { CustomMinimumSize = new Vector2(200, 0) };
         healthBox.AddThemeConstantOverride("separation", 4);
-        healthBox.SetAnchorsPreset(Control.LayoutPreset.BottomLeft);
-        healthBox.Position = new Vector2(24, -70);
+        healthBox.SetAnchorsPreset(touch ? Control.LayoutPreset.TopLeft : Control.LayoutPreset.BottomLeft);
+        healthBox.Position = touch ? new Vector2(24, 24) : new Vector2(24, -70);
         root.AddChild(healthBox);
         _healthBar = new ProgressBar
         {
@@ -89,8 +94,8 @@ public partial class PlayerHud : CanvasLayer
         healthBox.AddChild(_healthLabel);
 
         var ammoBox = new VBoxContainer { CustomMinimumSize = new Vector2(160, 0) };
-        ammoBox.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
-        ammoBox.Position = new Vector2(-184, -70);
+        ammoBox.SetAnchorsPreset(touch ? Control.LayoutPreset.TopRight : Control.LayoutPreset.BottomRight);
+        ammoBox.Position = touch ? new Vector2(-184, 76) : new Vector2(-184, -70);
         root.AddChild(ammoBox);
         _ammoLabel = new Label { HorizontalAlignment = HorizontalAlignment.Right };
         _ammoLabel.AddThemeFontSizeOverride("font_size", 20);
@@ -112,11 +117,13 @@ public partial class PlayerHud : CanvasLayer
         _scoreLabel.AddThemeFontSizeOverride("font_size", 20);
         scoreBox.AddChild(_scoreLabel);
 
-        // Kill feed sits above the health box, bottom-left, and never takes mouse input.
-        _killFeedList = new VBoxContainer { CustomMinimumSize = new Vector2(420, 0) };
+        // Kill feed never takes mouse input. On desktop it stacks upward above the health box,
+        // bottom-left; on touch it sits below health/ammo at the top instead, and narrower, since
+        // 420px of feed text would eat well over half the width of a phone in portrait.
+        _killFeedList = new VBoxContainer { CustomMinimumSize = new Vector2(touch ? 260 : 420, 0) };
         _killFeedList.AddThemeConstantOverride("separation", 2);
-        _killFeedList.SetAnchorsPreset(Control.LayoutPreset.BottomLeft);
-        _killFeedList.Position = new Vector2(24, -170);
+        _killFeedList.SetAnchorsPreset(touch ? Control.LayoutPreset.TopLeft : Control.LayoutPreset.BottomLeft);
+        _killFeedList.Position = touch ? new Vector2(24, 74) : new Vector2(24, -170);
         _killFeedList.MouseFilter = Control.MouseFilterEnum.Ignore;
         root.AddChild(_killFeedList);
     }

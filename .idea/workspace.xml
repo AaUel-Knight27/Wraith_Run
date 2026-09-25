@@ -11,8 +11,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/project.godot" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,23 +51,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0037731887849206" />
-      <entry key="MS500" value="1.3298563789038458" />
-      <entry key="S2" value="2.0509165848479594" />
-      <entry key="S5" value="3.157632758430726" />
-      <entry key="S10" value="5.325061857388377" />
-      <entry key="S30" value="13.166026659580838" />
-      <entry key="S60" value="18.44814820257611" />
-      <entry key="M2" value="22.20264842009345" />
-      <entry key="M5" value="24.938451335632354" />
-      <entry key="M10" value="26.06638573021501" />
-      <entry key="M15" value="26.97041888950058" />
-      <entry key="M30" value="30.468823702655694" />
-      <entry key="H1" value="36.73738384962094" />
-      <entry key="H2" value="46.92246050359686" />
-      <entry key="H4" value="76.32168979470603" />
-      <entry key="D1" value="259.8578105988666" />
-      <entry key="W1" value="350.3895168829378" />
+      <entry key="MS100" value="1.001809744683585" />
+      <entry key="MS500" value="1.3057642191312313" />
+      <entry key="S2" value="2.381359300617165" />
+      <entry key="S5" value="3.826625352418565" />
+      <entry key="S10" value="6.596195359225693" />
+      <entry key="S30" value="17.51539572135006" />
+      <entry key="S60" value="27.085974571092358" />
+      <entry key="M2" value="35.1458580458278" />
+      <entry key="M5" value="41.690085210495084" />
+      <entry key="M10" value="44.35580710695232" />
+      <entry key="M15" value="45.79414743919441" />
+      <entry key="M30" value="49.82243802561047" />
+      <entry key="H1" value="56.364443221592964" />
+      <entry key="H2" value="66.69611035959332" />
+      <entry key="H4" value="96.15129104486283" />
+      <entry key="D1" value="279.7699092305133" />
+      <entry key="W1" value="370.3727659539024" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -89,23 +89,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.7561930278080393" />
-      <entry key="MS500" value="1.2708982847707333" />
-      <entry key="S2" value="2.0316648211496444" />
-      <entry key="S5" value="3.145268637923548" />
-      <entry key="S10" value="5.312428345963974" />
-      <entry key="S30" value="13.152866455892811" />
-      <entry key="S60" value="18.438448379824397" />
-      <entry key="M2" value="22.196680012097474" />
-      <entry key="M5" value="24.935736620790905" />
-      <entry key="M10" value="26.064962644496735" />
-      <entry key="M15" value="26.969439112465597" />
-      <entry key="M30" value="30.468277056177566" />
-      <entry key="H1" value="36.73706266858049" />
-      <entry key="H2" value="46.92226742761993" />
-      <entry key="H4" value="76.32155444422452" />
-      <entry key="D1" value="259.8577484120301" />
-      <entry key="W1" value="350.389505179403" />
+      <entry key="MS100" value="0.7490443911666153" />
+      <entry key="MS500" value="1.2424973933506331" />
+      <entry key="S2" value="2.359528411072504" />
+      <entry key="S5" value="3.8136020776592288" />
+      <entry key="S10" value="6.581819920785338" />
+      <entry key="S30" value="17.496594119693636" />
+      <entry key="S60" value="27.07023146776241" />
+      <entry key="M2" value="35.13533103392136" />
+      <entry key="M5" value="41.6850164587296" />
+      <entry key="M10" value="44.35310093183824" />
+      <entry key="M15" value="45.79228759391261" />
+      <entry key="M30" value="49.82143897866457" />
+      <entry key="H1" value="56.36389264494222" />
+      <entry key="H2" value="66.69580172280003" />
+      <entry key="H4" value="96.15109770990544" />
+      <entry key="D1" value="279.76983734308527" />
+      <entry key="W1" value="370.37275286191675" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -217,6 +217,9 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/.." />
+    </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="working on camera set and FPS possition" />
     <MESSAGE value="remove complied items" />
@@ -230,7 +233,8 @@
     <MESSAGE value="removing debloated files." />
     <MESSAGE value="adding key to the gameplay so I can check every weapons systems." />
     <MESSAGE value="fix weapon holding problem&#10;add menu screen&#10;fix sound stabilization and character animation" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix weapon holding problem&#10;add menu screen&#10;fix sound stabilization and character animation" />
+    <MESSAGE value="created game develeoping tools that helps the development process" />
+    <option name="LAST_COMMIT_MESSAGE" value="created game develeoping tools that helps the development process" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
