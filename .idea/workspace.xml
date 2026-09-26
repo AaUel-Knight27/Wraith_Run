@@ -10,10 +10,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/Player.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/Player.tscn" afterDir="false" />
-    </list>
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -35,7 +32,7 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/AaUel-Knight27/Wraith_Run&quot;,
+    &quot;url&quot;: &quot;https://github.com/AaUel-Knight27/Wraith_Run.git&quot;,
     &quot;accountId&quot;: &quot;da6acdb2-8fa5-463d-a10d-a794a0774e71&quot;
   }
 }</component>
@@ -236,7 +233,8 @@
     <MESSAGE value="created game develeoping tools that helps the development process" />
     <MESSAGE value="adding touch screen control system for mobile phones" />
     <MESSAGE value="removeing un neccessary files form project" />
-    <option name="LAST_COMMIT_MESSAGE" value="removeing un neccessary files form project" />
+    <MESSAGE value="fix hud system, add sound system editor" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix hud system, add sound system editor" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

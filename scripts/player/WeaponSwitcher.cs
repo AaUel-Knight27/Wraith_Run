@@ -56,7 +56,6 @@ public partial class WeaponSwitcher : Node
 
 	private WeaponData? _currentWeapon;
 	private int _currentAmmo;
-	private int _currentReserve;
 	private float _cooldownRemaining;
 	private float _reloadRemaining;
 	private int _appliedWeaponIndex = -1;
@@ -82,9 +81,6 @@ public partial class WeaponSwitcher : Node
 	public string WeaponName => _currentWeapon?.WeaponName ?? string.Empty;
 	public int CurrentAmmo => _currentAmmo;
 	public int MagazineSize => _currentWeapon?.MagazineSize ?? 0;
-
-	/// <summary>Rounds left in reserve, beyond what's loaded. Always 0 for a melee weapon.</summary>
-	public int CurrentReserve => _currentReserve;
 	public bool IsReloading => _reloadRemaining > 0.0f;
 	public WeaponData.FireModeType FireMode => _currentWeapon?.FireMode ?? WeaponData.FireModeType.FullAuto;
 
@@ -154,7 +150,6 @@ public partial class WeaponSwitcher : Node
 			_appliedWeaponIndex = index;
 			_currentWeapon = weapon;
 			_currentAmmo = weapon.MagazineSize;
-			_currentReserve = weapon.MaxReserveAmmo;
 			_cooldownRemaining = 0.0f;
 			_reloadRemaining = 0.0f;
 			_animation?.CancelReload();
@@ -176,11 +171,10 @@ public partial class WeaponSwitcher : Node
 		if (!infiniteAmmo && _currentAmmo <= 0)
 		{
 			// Dry fire: a click and a rate limit, so holding the trigger on an empty mag does not
-			// spam. Only auto-reload if a reload is not already running, and only if there's
-			// reserve ammo left to pull from - otherwise this is just "out of ammo".
+			// spam. Only auto-reload if a reload is not already running.
 			_attachment.PlayEmpty();
 			_cooldownRemaining = 0.35f;
-			if (_reloadRemaining <= 0.0f && _currentReserve > 0) StartReload();
+			if (_reloadRemaining <= 0.0f) StartReload();
 			return;
 		}
 
@@ -267,6 +261,7 @@ public partial class WeaponSwitcher : Node
 
 		var targetHealth = body.GetNodeOrNull<Health>("Health");
 		if (targetHealth == null || targetHealth == _health) return;
+		if (IsFriendlyTarget(targetHealth)) return;
 
 		// Head zone first: it decides both the damage (FR-WP-05 uses the weapon's own stat) and the
 		// headshot style bonus.
@@ -285,6 +280,17 @@ public partial class WeaponSwitcher : Node
 		// person who pulled the trigger.
 		Rpc(MethodName.RpcFleshImpact, impactPoint);
 		PlayHitMarker();
+	}
+
+	/// <summary>True when Friendly Fire is off and the hit target is a Team Deathmatch teammate.
+	/// This is a client-side courtesy skip only, so a friendly hit gives no hit-marker feedback -
+	/// Health.ReceiveDamage enforces the same rule again on the victim's own authoritative device,
+	/// which is the check that actually matters.</summary>
+	private bool IsFriendlyTarget(Health targetHealth)
+	{
+		MatchManager? match = MatchManager.Instance;
+		if (match == null || match.FriendlyFire) return false;
+		return match.AreTeammates(_player.GetMultiplayerAuthority(), targetHealth.GetMultiplayerAuthority());
 	}
 
 	/// <summary>The shared "hit a person" sound, broadcast from the shooter's hitscan result to
@@ -349,7 +355,7 @@ public partial class WeaponSwitcher : Node
 	{
 		if (_currentWeapon == null || _reloadRemaining > 0.0f) return;
 		bool infiniteAmmo = _currentWeapon.MagazineSize <= 0;
-		if (infiniteAmmo || _currentAmmo >= _currentWeapon.MagazineSize || _currentReserve <= 0) return;
+		if (infiniteAmmo || _currentAmmo >= _currentWeapon.MagazineSize) return;
 		_reloadRemaining = _currentWeapon.ReloadTime > 0.0f ? _currentWeapon.ReloadTime : 0.1f;
 		Rpc(MethodName.RpcReloadEffects);
 	}
@@ -361,20 +367,14 @@ public partial class WeaponSwitcher : Node
 
 		if (_currentWeapon.ShellByShellReload)
 		{
-			// One shell per cycle, then start the next one if the tube still has room and the
-			// reserve still has a shell to feed it. ReloadTime is the per-shell time for these, so
-			// a full Mossberg tube takes 6 x 0.5 s and can be cut short at any point by firing.
-			if (_currentReserve <= 0) return;
-			_currentAmmo++;
-			_currentReserve--;
-			if (_currentAmmo < _currentWeapon.MagazineSize && _currentReserve > 0) StartReload();
+			// One shell per cycle, then start the next one if the tube still has room. ReloadTime
+			// is the per-shell time for these, so a full Mossberg tube takes 6 x 0.5 s and can be
+			// cut short at any point by pulling the trigger.
+			_currentAmmo = Mathf.Min(_currentAmmo + 1, _currentWeapon.MagazineSize);
+			if (_currentAmmo < _currentWeapon.MagazineSize) StartReload();
 			return;
 		}
-
-		int needed = _currentWeapon.MagazineSize - _currentAmmo;
-		int drawn = Mathf.Min(needed, _currentReserve);
-		_currentAmmo += drawn;
-		_currentReserve -= drawn;
+		_currentAmmo = _currentWeapon.MagazineSize;
 	}
 
 	// -------------------------------------------------------------------------------------------

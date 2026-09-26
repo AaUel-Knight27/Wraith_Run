@@ -17,7 +17,14 @@ public partial class GameWorld : Node3D
         _spawner.SpawnFunction = new Callable(this, nameof(SpawnPlayer));
         Multiplayer.PeerConnected += OnPeerConnected;
         Multiplayer.PeerDisconnected += OnPeerDisconnected;
-        if (Multiplayer.IsServer()) SpawnForPeer(1);
+        if (Multiplayer.IsServer())
+        {
+            // MatchManager's own PeerConnected hook assigns a team to everyone who joins later;
+            // peer 1 (the host) never raises that signal for itself, the same reason SpawnForPeer
+            // below is also called explicitly here instead of waiting for OnPeerConnected.
+            MatchManager.Instance.AssignTeamAndBroadcast(1);
+            SpawnForPeer(1);
+        }
     }
 
     private void OnPeerConnected(long peerId)

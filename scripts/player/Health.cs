@@ -100,6 +100,7 @@ public partial class Health : Node
     public void ReceiveDamage(float amount, long attackerId, int styleFlags, int basePoints)
     {
         if (!IsMultiplayerAuthority() || IsDead || amount <= 0.0f) return;
+        if (IsFriendlyFire(attackerId)) return;
         _damageContribution[attackerId] = GetContribution(attackerId) + amount;
         CurrentHealth -= amount;
         if (!IsDead) return;
@@ -107,6 +108,18 @@ public partial class Health : Node
         _respawnTimer = RespawnDelaySeconds;
         _deathPosition = _player.GlobalPosition;
         AnnounceDeath(attackerId, styleFlags, basePoints);
+    }
+
+    /// <summary>Team Deathmatch, Friendly Fire off, and the attacker is on this player's own team -
+    /// this is the check that actually counts (FR-MP-06: validated on the receiving player's own
+    /// authoritative device). WeaponSwitcher.FireHitscan skips the same case a moment earlier on
+    /// the shooter's side purely so a friendly hit gives no hit-marker feedback; that copy is only
+    /// a courtesy, not a security boundary.</summary>
+    private bool IsFriendlyFire(long attackerId)
+    {
+        MatchManager? match = MatchManager.Instance;
+        if (match == null || match.FriendlyFire) return false;
+        return match.AreTeammates(attackerId, _player.GetMultiplayerAuthority());
     }
 
     /// <summary>

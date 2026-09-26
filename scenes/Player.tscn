@@ -13,6 +13,7 @@
 [ext_resource type="Script" uid="uid://bnk2rfyi00vdx" path="res://scripts/player/PlayerAudio.cs" id="12"]
 [ext_resource type="Script" uid="uid://c364gffy50o2t" path="res://scripts/debug/WeaponGripTuner.cs" id="13"]
 [ext_resource type="Script" uid="uid://cqvvj4h5cvx1x" path="res://scripts/player/TouchControls.cs" id="14"]
+[ext_resource type="Script" path="res://scripts/player/TeamIndicator.cs" id="15"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.35
@@ -67,6 +68,9 @@ script = ExtResource("11")
 
 [node name="RotationWindow" type="Node" parent="." unique_id=940215206]
 script = ExtResource("10")
+
+[node name="TeamIndicator" type="Label3D" parent="."]
+script = ExtResource("15")
 
 [node name="Armature" parent="." unique_id=1013488290 instance=ExtResource("3")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)

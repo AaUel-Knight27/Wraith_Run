@@ -23,6 +23,7 @@ config/icon="res://icon.svg"
 
 LanSession="*res://scripts/network/LanSession.cs"
 KillFeed="*res://scripts/autoloads/KillFeed.cs"
+MatchManager="*res://scripts/autoloads/MatchManager.cs"
 SettingsManager="*res://scripts/autoloads/SettingsManager.cs"
 
 [display]

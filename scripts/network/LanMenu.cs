@@ -154,10 +154,22 @@ public partial class LanMenu : Control
         MenuStyle.Place(layout, 0, 0, 1, 1, 64, 124, -64, -60);
         _contentRoot.AddChild(layout);
 
-        // Left: lobby setup (Host / Connect) plus the mode and map this build actually has.
-        var left = new VBoxContainer { CustomMinimumSize = new Vector2(340, 0) };
+        // Left: lobby setup (Host / Connect), the mode/map this build has, and - host only, Team
+        // Deathmatch only - the match rules a Connect screen has no say over (only the host
+        // decides them; a joining client picks them up automatically from MatchManager's
+        // ReceiveHostConfig the moment it connects). Scrollable, same as the Connect pane's games
+        // list below, since the Match Settings panel can push this column past a phone's
+        // landscape screen height.
+        var leftScroll = new ScrollContainer
+        {
+            CustomMinimumSize = new Vector2(340, 0),
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+        };
+        layout.AddChild(leftScroll);
+        var left = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         left.AddThemeConstantOverride("separation", 14);
-        layout.AddChild(left);
+        leftScroll.AddChild(left);
 
         var lobby = MenuStyle.Panel("LOBBY SETUP", "wifi", out var lobbyBody);
         lobbyBody.AddChild(MenuStyle.SelectRow("user", "Host", _localMode == LocalMode.Host,
@@ -166,13 +178,37 @@ public partial class LanMenu : Control
             () => SetLocalMode(LocalMode.Connect)));
         left.AddChild(lobby);
 
+        MatchManager match = MatchManager.Instance;
         var mode = MenuStyle.Panel("GAME MODE", "users", out var modeBody);
-        modeBody.AddChild(MenuStyle.InfoRow("users", "Deathmatch"));
+        if (_localMode == LocalMode.Host)
+        {
+            modeBody.AddChild(MenuStyle.SelectRow("crosshair", "Deathmatch",
+                match.GameMode == MatchManager.Mode.FreeForAll,
+                () => SetHostGameMode(MatchManager.Mode.FreeForAll)));
+            modeBody.AddChild(MenuStyle.SelectRow("users", "Team Deathmatch",
+                match.GameMode == MatchManager.Mode.TeamDeathmatch,
+                () => SetHostGameMode(MatchManager.Mode.TeamDeathmatch)));
+        }
+        else modeBody.AddChild(MenuStyle.InfoRow("users", "Deathmatch"));
         left.AddChild(mode);
 
         var map = MenuStyle.Panel("MAP", "map", out var mapBody);
         mapBody.AddChild(MenuStyle.InfoRow("map", "Warzone"));
         left.AddChild(map);
+
+        if (_localMode == LocalMode.Host && match.GameMode == MatchManager.Mode.TeamDeathmatch)
+        {
+            var rules = MenuStyle.Panel("MATCH SETTINGS", "crosshair", out var rulesBody);
+            rulesBody.AddChild(MenuStyle.ToggleRow(null, "Friendly Fire", match.FriendlyFire,
+                v => { match.FriendlyFire = v; ShowLocal(); }));
+            rulesBody.AddChild(MenuStyle.ToggleRow(null, "Team Indicators", match.TeamIndicators,
+                v => { match.TeamIndicators = v; ShowLocal(); }));
+            rulesBody.AddChild(MenuStyle.SliderRow("Score Limit", match.ScoreLimit, 10, 100, 5,
+                "{0:0} kills", v => match.ScoreLimit = (int)v));
+            rulesBody.AddChild(MenuStyle.SliderRow("Time Limit", match.TimeLimitMinutes, 3, 20, 1,
+                "{0:0} min", v => match.TimeLimitMinutes = (int)v));
+            left.AddChild(rules);
+        }
 
         // Right: what Host / Connect actually does.
         var right = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -186,6 +222,13 @@ public partial class LanMenu : Control
     {
         if (_localMode == mode) return;
         _localMode = mode;
+        ShowLocal();
+    }
+
+    private void SetHostGameMode(MatchManager.Mode mode)
+    {
+        if (MatchManager.Instance.GameMode == mode) return;
+        MatchManager.Instance.GameMode = mode;
         ShowLocal();
     }
 
@@ -389,6 +432,7 @@ public partial class LanMenu : Control
     {
         if (_leavingMenu) return;
         string gameName = string.IsNullOrWhiteSpace(name) ? DefaultGameName : name.Trim();
+        MatchManager.Instance.PrepareHostMatch();
         var result = GetNode<LanSession>("/root/LanSession").StartHost(gameName);
         if (result != Error.Ok)
         {
@@ -455,6 +499,7 @@ public partial class LanMenu : Control
     private void JoinGame(string host)
     {
         if (_leavingMenu) return;
+        MatchManager.Instance.PrepareClientMatch();
         Error result = GetNode<LanSession>("/root/LanSession").Join(host);
         if (result != Error.Ok)
         {
