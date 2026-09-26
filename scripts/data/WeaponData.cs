@@ -12,6 +12,12 @@ public partial class WeaponData : Resource
 	[Export] public float HeadshotDamage { get; set; }
 	[Export] public float FireRateRPM { get; set; }
 	[Export] public int MagazineSize { get; set; }
+
+	/// <summary>Rounds carried beyond the loaded magazine - what a reload draws from. The Tactical
+	/// HUD's ammo counter reads "MAG / RESERVE" (Master Development Plan Part 7.3), so this is what
+	/// fills the second number. 0 on a melee weapon (MagazineSize is also 0 there, so neither shows).</summary>
+	[Export] public int MaxReserveAmmo { get; set; }
+
 	[Export] public float ReloadTime { get; set; }
 	[Export] public float RecoilVertical { get; set; }
 	[Export] public float RecoilHorizontal { get; set; }

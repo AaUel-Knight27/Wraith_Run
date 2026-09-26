@@ -1,18 +1,18 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene format=3 uid="uid://7a62o7eturl7"]
 
-[ext_resource type="Script" path="res://scripts/player/PlayerMovement.cs" id="1"]
-[ext_resource type="Script" path="res://scripts/player/PlayerAnimationController.cs" id="2"]
-[ext_resource type="PackedScene" path="res://art/characters/manny.glb" id="3"]
-[ext_resource type="Script" path="res://scripts/player/WeaponAttachment.cs" id="5"]
-[ext_resource type="Script" path="res://scripts/player/WeaponSwitcher.cs" id="6"]
-[ext_resource type="Script" path="res://scripts/network/PlayerNetworkSynchronizer.cs" id="7"]
-[ext_resource type="Script" path="res://scripts/player/Health.cs" id="8"]
-[ext_resource type="Script" path="res://scripts/player/PlayerHud.cs" id="9"]
-[ext_resource type="Script" path="res://scripts/player/RotationWindowTracker.cs" id="10"]
-[ext_resource type="Script" path="res://scripts/player/PlayerScore.cs" id="11"]
-[ext_resource type="Script" path="res://scripts/player/PlayerAudio.cs" id="12"]
-[ext_resource type="Script" path="res://scripts/debug/WeaponGripTuner.cs" id="13"]
-[ext_resource type="Script" path="res://scripts/player/TouchControls.cs" id="14"]
+[ext_resource type="Script" uid="uid://pikamp6vhtto" path="res://scripts/player/PlayerMovement.cs" id="1"]
+[ext_resource type="Script" uid="uid://nqxihnrb77iw" path="res://scripts/player/PlayerAnimationController.cs" id="2"]
+[ext_resource type="PackedScene" uid="uid://cvu4g1q7u08cn" path="res://art/characters/manny.glb" id="3"]
+[ext_resource type="Script" uid="uid://clr0dfqn2qy36" path="res://scripts/player/WeaponAttachment.cs" id="5"]
+[ext_resource type="Script" uid="uid://bv4ex5e47rpam" path="res://scripts/player/WeaponSwitcher.cs" id="6"]
+[ext_resource type="Script" uid="uid://h4aa5jv6d8ix" path="res://scripts/network/PlayerNetworkSynchronizer.cs" id="7"]
+[ext_resource type="Script" uid="uid://e4dswb2l3jvd" path="res://scripts/player/Health.cs" id="8"]
+[ext_resource type="Script" uid="uid://cetm6kc5af2u" path="res://scripts/player/PlayerHud.cs" id="9"]
+[ext_resource type="Script" uid="uid://drdvdadjvl6fh" path="res://scripts/player/RotationWindowTracker.cs" id="10"]
+[ext_resource type="Script" uid="uid://8yx0crdy7yls" path="res://scripts/player/PlayerScore.cs" id="11"]
+[ext_resource type="Script" uid="uid://bnk2rfyi00vdx" path="res://scripts/player/PlayerAudio.cs" id="12"]
+[ext_resource type="Script" uid="uid://c364gffy50o2t" path="res://scripts/debug/WeaponGripTuner.cs" id="13"]
+[ext_resource type="Script" uid="uid://cqvvj4h5cvx1x" path="res://scripts/player/TouchControls.cs" id="14"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.35
@@ -47,67 +47,64 @@ properties/7/path = NodePath("Score:TotalPoints")
 properties/7/spawn = true
 properties/7/replication_mode = 2
 
-[node name="Player" type="CharacterBody3D"]
+[node name="Player" type="CharacterBody3D" unique_id=1171397758]
 script = ExtResource("1")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.9, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=135268054]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("1")
 
-[node name="GroundProbe" type="ShapeCast3D" parent="."]
-position = Vector3(0, 0.35, 0)
-target_position = Vector3(0, -0.2, 0)
+[node name="GroundProbe" type="ShapeCast3D" parent="." unique_id=1246130872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
 shape = SubResource("2")
+target_position = Vector3(0, -0.2, 0)
 
-[node name="Health" type="Node" parent="."]
+[node name="Health" type="Node" parent="." unique_id=1070654854]
 script = ExtResource("8")
 
-[node name="Score" type="Node" parent="."]
+[node name="Score" type="Node" parent="." unique_id=1923389209]
 script = ExtResource("11")
 
-[node name="RotationWindow" type="Node" parent="."]
+[node name="RotationWindow" type="Node" parent="." unique_id=940215206]
 script = ExtResource("10")
 
-[node name="Armature" parent="." instance=ExtResource("3")]
+[node name="Armature" parent="." unique_id=1013488290 instance=ExtResource("3")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
-[node name="WeaponAttachment" type="Node3D" parent="Armature"]
+[node name="WeaponAttachment" type="Node3D" parent="Armature" unique_id=305083634]
 script = ExtResource("5")
 
-[node name="Head" type="Node3D" parent="."]
-position = Vector3(0, 1.6, 0)
+[node name="Head" type="Node3D" parent="." unique_id=410578168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
-[node name="FirstPersonCamera" type="Camera3D" parent="Head"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, -0.15)
-keep_aspect = 1
-fov = 75.0
-near = 0.05
+[node name="FirstPersonCamera" type="Camera3D" parent="Head" unique_id=250919579]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0052988976, 0.08884847, -0.15)
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=755757165]
 
-[node name="AnimationTree" type="AnimationTree" parent="."]
+[node name="AnimationTree" type="AnimationTree" parent="." unique_id=1877666232]
 anim_player = NodePath("../AnimationPlayer")
 
-[node name="AnimationController" type="Node" parent="."]
+[node name="AnimationController" type="Node" parent="." unique_id=1167327812]
 script = ExtResource("2")
 
-[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=830123937]
 replication_config = SubResource("3")
 
-[node name="NetworkSynchronizerSetup" type="Node" parent="."]
+[node name="NetworkSynchronizerSetup" type="Node" parent="." unique_id=503195094]
 script = ExtResource("7")
 
-[node name="WeaponSwitcher" type="Node" parent="."]
+[node name="WeaponSwitcher" type="Node" parent="." unique_id=29256404]
 script = ExtResource("6")
 
-[node name="PlayerAudio" type="Node3D" parent="."]
+[node name="PlayerAudio" type="Node3D" parent="." unique_id=1051886432]
 script = ExtResource("12")
 
-[node name="WeaponGripTuner" type="Node" parent="."]
+[node name="WeaponGripTuner" type="Node" parent="." unique_id=1403424432]
 script = ExtResource("13")
 
-[node name="Hud" type="CanvasLayer" parent="."]
+[node name="Hud" type="CanvasLayer" parent="." unique_id=1596748861]
 script = ExtResource("9")
 
-[node name="TouchControls" type="CanvasLayer" parent="."]
+[node name="TouchControls" type="CanvasLayer" parent="." unique_id=571900540]
 script = ExtResource("14")

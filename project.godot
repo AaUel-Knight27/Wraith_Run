@@ -134,9 +134,6 @@ reload={
 
 [input_devices]
 
-; Off so a touch on TouchControls' joystick/buttons doesn't also emit a synthetic mouse click,
-; and so a look-drag doesn't get double-applied once as InputEventScreenDrag and again as an
-; emulated InputEventMouseMotion. PlayerMovement handles real touch input natively either way.
 pointing/emulate_mouse_from_touch=false
 
 [physics]
