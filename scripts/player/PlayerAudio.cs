@@ -52,9 +52,9 @@ public partial class PlayerAudio : Node3D
 
 		// Footsteps sit low and carry a short distance; the hit/death voice carries further because
 		// it is a positional cue about a fight, not a detail of someone's gait.
-		_footstepPlayer = new AudioStreamPlayer3D { Name = "Footsteps", UnitSize = 7.0f, VolumeDb = -3.0f };
+		_footstepPlayer = new AudioStreamPlayer3D { Name = "Footsteps", UnitSize = 7.0f, VolumeDb = -3.0f, Bus = "Movement" };
 		AddChild(_footstepPlayer);
-		_voicePlayer = new AudioStreamPlayer3D { Name = "Voice", UnitSize = 14.0f };
+		_voicePlayer = new AudioStreamPlayer3D { Name = "Voice", UnitSize = 14.0f, Bus = "Voice" };
 		AddChild(_voicePlayer);
 
 		if (_footsteps.Length == 0)

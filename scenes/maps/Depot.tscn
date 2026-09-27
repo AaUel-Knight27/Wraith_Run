@@ -1,0 +1,132 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://bop84yb8vlir0" path="res://mapkit/Indoor/IndoorMapBuilder.cs" id="1"]
+[ext_resource type="Script" uid="uid://cdjjc7783icx1" path="res://mapkit/Core/SurfaceLayer.cs" id="2"]
+[ext_resource type="Script" uid="uid://ct1xr28aadpvq" path="res://mapkit/Indoor/RoomLayout.cs" id="3"]
+[ext_resource type="Script" uid="uid://b3asesa625cjo" path="res://mapkit/Core/PropDefinition.cs" id="4"]
+[ext_resource type="Script" uid="uid://3itrf8xcu2wl" path="res://mapkit/Indoor/FurnishArea.cs" id="5"]
+
+[sub_resource type="Resource" id="RoomLayout_depot"]
+script = ExtResource("3")
+Rows = PackedStringArray("##WWWW######DD######WWWW##", "#........................#", "#..#######......#######..#", "#..#.....#......#.....#..#", "#..#.....#......#.....#..#", "#..#.....#......#.....#..#", "#..###D###......###D###..#", "#........................#", "#........................D", "#........................#", "#........................#", "#........................#", "#........................#", "#........................#", "#........................#", "##########################")
+CellSize = 3.0
+WallHeight = 3.4
+
+[sub_resource type="Resource" id="SurfaceLayer_wall"]
+script = ExtResource("2")
+Tint = Color(0.45, 0.43, 0.4, 1)
+TileMeters = 2.0
+Roughness = 0.85
+Metallic = 0.0
+
+[sub_resource type="Resource" id="SurfaceLayer_window"]
+script = ExtResource("2")
+Tint = Color(0.55, 0.68, 0.72, 0.55)
+TileMeters = 2.0
+Roughness = 0.15
+Metallic = 0.0
+Transparent = true
+
+[sub_resource type="Resource" id="SurfaceLayer_floor"]
+script = ExtResource("2")
+Tint = Color(0.28, 0.27, 0.26, 1)
+TileMeters = 2.0
+Roughness = 0.8
+Metallic = 0.0
+
+[sub_resource type="Resource" id="SurfaceLayer_ceiling"]
+script = ExtResource("2")
+Tint = Color(0.5, 0.5, 0.52, 1)
+TileMeters = 2.0
+Roughness = 0.9
+Metallic = 0.0
+
+[sub_resource type="Resource" id="SurfaceLayer_desk"]
+script = ExtResource("2")
+Tint = Color(0.35, 0.25, 0.15, 1)
+TileMeters = 1.0
+Roughness = 0.8
+Metallic = 0.0
+
+[sub_resource type="Resource" id="SurfaceLayer_crate"]
+script = ExtResource("2")
+Tint = Color(0.3, 0.28, 0.22, 1)
+TileMeters = 1.0
+Roughness = 0.85
+Metallic = 0.0
+
+[sub_resource type="Resource" id="SurfaceLayer_bench"]
+script = ExtResource("2")
+Tint = Color(0.25, 0.24, 0.22, 1)
+TileMeters = 1.0
+Roughness = 0.6
+Metallic = 0.3
+
+[sub_resource type="Resource" id="PropDefinition_desk"]
+script = ExtResource("4")
+Primitive = 0
+PrimitiveSurface = SubResource("SurfaceLayer_desk")
+PrimitiveSize = Vector3(1.2, 0.75, 0.6)
+Footprint = 1.0
+RandomYaw = false
+SinkIntoGround = 0.0
+Collide = true
+
+[sub_resource type="Resource" id="PropDefinition_crate"]
+script = ExtResource("4")
+Primitive = 0
+PrimitiveSurface = SubResource("SurfaceLayer_crate")
+PrimitiveSize = Vector3(0.8, 0.8, 0.8)
+Footprint = 1.0
+RandomYaw = false
+SinkIntoGround = 0.0
+Collide = true
+
+[sub_resource type="Resource" id="PropDefinition_bench"]
+script = ExtResource("4")
+Primitive = 0
+PrimitiveSurface = SubResource("SurfaceLayer_bench")
+PrimitiveSize = Vector3(1.6, 0.45, 0.5)
+Footprint = 1.2
+RandomYaw = false
+SinkIntoGround = 0.0
+Collide = true
+
+[sub_resource type="Resource" id="FurnishArea_office"]
+script = ExtResource("5")
+Prop = SubResource("PropDefinition_desk")
+CellStart = Vector2i(4, 3)
+CellEnd = Vector2i(8, 5)
+Spacing = 1.8
+MarginFromWalls = 0.4
+FacingDegrees = 0.0
+
+[sub_resource type="Resource" id="FurnishArea_storage"]
+script = ExtResource("5")
+Prop = SubResource("PropDefinition_crate")
+CellStart = Vector2i(17, 3)
+CellEnd = Vector2i(21, 5)
+Spacing = 1.5
+MarginFromWalls = 0.3
+FacingDegrees = 0.0
+
+[sub_resource type="Resource" id="FurnishArea_concourse"]
+script = ExtResource("5")
+Prop = SubResource("PropDefinition_bench")
+CellStart = Vector2i(2, 9)
+CellEnd = Vector2i(23, 9)
+Spacing = 2.5
+MarginFromWalls = 0.5
+FacingDegrees = 90.0
+
+[node name="Depot" type="Node3D"]
+script = ExtResource("1")
+Layout = SubResource("RoomLayout_depot")
+ChunkSize = 0.0
+WallSurface = SubResource("SurfaceLayer_wall")
+WindowSurface = SubResource("SurfaceLayer_window")
+FloorSurface = SubResource("SurfaceLayer_floor")
+CeilingSurface = SubResource("SurfaceLayer_ceiling")
+BuildCeiling = true
+FurnishAreas = Array[ExtResource("5")]([SubResource("FurnishArea_office"), SubResource("FurnishArea_storage"), SubResource("FurnishArea_concourse")])
+SpawnCells = Array[Vector2i]([Vector2i(3, 7), Vector2i(22, 7), Vector2i(3, 13), Vector2i(22, 13), Vector2i(12, 7), Vector2i(12, 13), Vector2i(7, 11), Vector2i(18, 11)])

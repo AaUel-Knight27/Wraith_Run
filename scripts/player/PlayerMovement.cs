@@ -8,9 +8,12 @@ public partial class PlayerMovement : CharacterBody3D
 {
     public enum MovementState { Idle, Walk, Sprint, Crouch, CrouchWalk, Slide, Jump, Fall, Aim }
 
-    public const float WalkSpeed = 4.7f;
-    public const float SprintSpeed = 7.2f;
-    public const float CrouchSpeed = 2.3f;
+    // [Export] rather than const so an operator's kit (MoveSpeedMult/CrouchWalkSpeedMult) can scale
+    // these once in _Ready(), and so the F8 AnimationTuner's Move Speed sliders - which already read
+    // and write these three by name via Get()/Set() - have an actual Godot property to bind to.
+    [Export] public float WalkSpeed { get; set; } = 4.7f;
+    [Export] public float SprintSpeed { get; set; } = 7.2f;
+    [Export] public float CrouchSpeed { get; set; } = 2.3f;
     public const float Gravity = -18.0f;
     public const float JumpVelocity = 6.5727f;
     public const float TerminalFallVelocity = -53.0f;
@@ -103,8 +106,28 @@ public partial class PlayerMovement : CharacterBody3D
         _health = GetNodeOrNull<Health>("Health");
         _capsule = (CapsuleShape3D)_collisionShape.Shape;
         _headBaseHeight = _head.Position.Y;
+        if (SettingsManager.Instance != null)
+        {
+            // The FOV setting overrides BaseFov but keeps AimFov/SprintFov's existing offsets
+            // (-20/+15) relative to it, so ADS pull-in and sprint widen still feel proportional
+            // regardless of what base FOV the player has chosen.
+            float aimOffset = BaseFov - AimFov;
+            float sprintOffset = SprintFov - BaseFov;
+            BaseFov = SettingsManager.Instance.FieldOfView;
+            AimFov = BaseFov - aimOffset;
+            SprintFov = BaseFov + sprintOffset;
+        }
         _camera.Fov = BaseFov;
         ((SphereShape3D)_groundProbe.Shape).Radius = _capsule.Radius;
+        // Vhal "Hush" Raven's crouch-walk drawback, Oren "Gravedigger" Kral's move-speed drawback and
+        // anything like them (CharacterEffectIds.MoveSpeedMult / CrouchWalkSpeedMult). No operator
+        // equipped -> GetModifier returns 1.0 -> unchanged, same as Health.cs's OnFootMaxHealthMult scaling.
+        var loadout = GetNodeOrNull<CharacterLoadout>("CharacterLoadout");
+        float moveMult = loadout?.GetModifier(CharacterEffectIds.MoveSpeedMult, 1.0f) ?? 1.0f;
+        WalkSpeed *= moveMult;
+        SprintSpeed *= moveMult;
+        CrouchSpeed *= loadout?.GetModifier(CharacterEffectIds.CrouchWalkSpeedMult, 1.0f) ?? 1.0f;
+
         // FirstPersonArms used to own this; with a single always-visible body mesh there is no
         // separate view-model to toggle, but each client must still only activate its own camera.
         _camera.Current = IsMultiplayerAuthority();
@@ -143,10 +166,10 @@ public partial class PlayerMovement : CharacterBody3D
     private static float LookInvert() =>
         SettingsManager.Instance != null && SettingsManager.Instance.InvertLookY ? -1.0f : 1.0f;
 
-    /// <summary>Shared by mouse, touch-drag and gyroscope look so all three sources move the
-    /// camera through the exact same pitch clamp and yaw rotation - see the note on IsAiming
-    /// above for why look and state were split apart once already; the same "one thing owns this"
-    /// reasoning applies here.</summary>
+    /// <summary>Shared by mouse, touch-drag, gyroscope and controller-stick look so all four
+    /// sources move the camera through the exact same pitch clamp and yaw rotation - see the note
+    /// on IsAiming above for why look and state were split apart once already; the same "one thing
+    /// owns this" reasoning applies here.</summary>
     private void ApplyLookDelta(float yawDelta, float pitchDelta)
     {
         RotateY(-yawDelta);
@@ -158,6 +181,19 @@ public partial class PlayerMovement : CharacterBody3D
     /// separate from _UnhandledInput because gyro is a polled sensor reporting rad/s, not a
     /// per-event screen delta the way mouse motion and touch drags are.</summary>
     public void ApplyGyroLookDelta(float yawDelta, float pitchDelta) => ApplyLookDelta(yawDelta, pitchDelta);
+
+    /// <summary>Right-stick look, polled every physics frame for the same reason gyro is: a
+    /// joystick axis is a continuous rad/s-like reading, not a discrete per-event delta the way
+    /// mouse motion and touch drags are. look_stick_left/right/up/down are bound only to the right
+    /// stick's axes (see SettingsManager.EnsureControllerBindings) with no keyboard/mouse default,
+    /// so this is simply a no-op with no controller connected.</summary>
+    private void ApplyControllerLook(float delta)
+    {
+        Vector2 stick = Input.GetVector("look_stick_left", "look_stick_right", "look_stick_up", "look_stick_down");
+        if (stick.LengthSquared() <= 0.0001f) return;
+        float sensitivity = SettingsManager.Instance?.ControllerLookSensitivity ?? 3.0f;
+        ApplyLookDelta(stick.X * sensitivity * delta, stick.Y * sensitivity * delta * LookInvert());
+    }
 
     public override void _PhysicsProcess(double deltaValue)
     {
@@ -204,6 +240,7 @@ public partial class PlayerMovement : CharacterBody3D
         IsAiming = Input.IsActionPressed("aim")
             && State is not MovementState.Sprint and not MovementState.Slide;
         UpdateFov(delta);
+        ApplyControllerLook(delta);
         UpdateHeadAim(delta);
         _head.Position = new Vector3(_headOffset.X, _headBaseHeight + _headOffset.Y, _headOffset.Z)
             + _shakeOffset;

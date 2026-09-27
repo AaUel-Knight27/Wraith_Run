@@ -415,6 +415,32 @@ public static class MenuStyle
         return box;
     }
 
+    /// <summary>A rebindable key row: a label on the left, a pill-shaped key button on the right.
+    /// `listening` swaps the pill's text/colour to "PRESS A KEY..." while the caller is capturing
+    /// the next keypress - the row itself does not know how that capture works, only how to draw
+    /// the two states.</summary>
+    public static Control KeybindRow(string label, string currentKeyText, bool listening, Action onPressed)
+    {
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 12);
+        var name = Text(label, 20, TextDim, Medium);
+        name.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        name.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(name);
+
+        var keyButton = NewButton(new Vector2(170, 44), onPressed);
+        StyleButton(keyButton,
+            Box(listening ? PressFill : RowFill, listening ? BorderHot : Hairline, 1, 4),
+            Box(HoverFill, Border, 1, 4), Box(PressFill, BorderHot, 1, 4), Box(RowFill, Hairline, 1, 4));
+        var keyLabel = Text(listening ? "PRESS A KEY..." : currentKeyText, 17,
+            listening ? Accent : TextMain, SemiBold, HorizontalAlignment.Center);
+        keyLabel.VerticalAlignment = VerticalAlignment.Center;
+        Fill(keyLabel);
+        keyButton.AddChild(keyLabel);
+        row.AddChild(keyButton);
+        return row;
+    }
+
     /// <summary>One entry in a list (a discovered LAN game): name, detail text, chevron.</summary>
     public static Button Row(string title, string detail, Action onPressed)
     {

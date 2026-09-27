@@ -1,20 +1,55 @@
 using Godot;
 
 /// <summary>
-/// Attaches the active weapon to the visible player rig (the single "Manny" body mesh +
-/// "Armature" skeleton from manny.glb) and owns everything that lives on the weapon itself:
-/// the model transform, the muzzle flash, and the fire/reload audio players.
+/// Attaches a weapon to a skeleton's hand bone and owns everything that lives on the weapon
+/// itself: the model transform, the muzzle flash, and the fire/reload audio players. Two
+/// instances exist on the player: one on Manny's "Armature" skeleton (the world-model, seen by
+/// every peer), and one on the first-person viewmodel's own skeleton (fps_mp5_arms.glb, local
+/// player only) - see MP5_VIEWMODEL_README.md. HandBoneFragment/UseViewmodelGrip/HiddenFromOwner/
+/// SkipAudio are what let the same class serve both.
 ///
-/// Nothing in here is authority-gated. Every peer's copy of a player runs it, because every peer
-/// needs to see and hear that player's weapon - WeaponSwitcher decides WHEN to fire, this decides
-/// what firing looks and sounds like.
+/// Nothing in here is authority-gated by default. Every peer's copy of a player runs it, because
+/// every peer needs to see and hear that player's weapon - WeaponSwitcher decides WHEN to fire,
+/// this decides what firing looks and sounds like. HiddenFromOwner is the one opt-in exception,
+/// for the world-model instance once a viewmodel is also equipped (see its own doc comment).
 /// </summary>
 public partial class WeaponAttachment : Node3D
 {
 	// Godot's glTF importer sanitizes bone names on import and does not preserve
 	// "mixamorig:RightHand" verbatim. Matching by substring survives whatever the sanitized form
 	// turns out to be; this is already confirmed working in the runtime logs.
-	private const string HandBoneNameFragment = "righthand";
+	//
+	// [Export] rather than a const because this same class now runs on two different skeletons: the
+	// default "righthand" finds Manny's world-model hand, while the first-person viewmodel
+	// (fps_mp5_arms.glb) instance sets this to "Hand.R" in Player.tscn - a different rig, with plain
+	// (unsanitized) bone names, so a substring match still works without needing two classes.
+	[Export] public string HandBoneFragment { get; set; } = "righthand";
+
+	// Where the viewmodel's own MP5 model sits relative to its Hand.R bone in mp5_idle
+	// (fps_mp5_arms.glb), measured directly from the rig's bind pose - see
+	// MP5_VIEWMODEL_README.md. Only used when UseViewmodelGrip is set. WeaponData's
+	// ViewmodelGripPosition/RotationDegrees are adjustments on top of this baseline, the same
+	// relationship LeftHandIk's BaselinePosition/BaselineBasis has to LeftHandPosition.
+	private static readonly Vector3 ViewmodelBaselinePosition = new(-0.05225f, 0.04441f, -0.05111f);
+	private static readonly Vector3 ViewmodelBaselineRotationDegrees = new(51.304f, -118.899f, -23.189f);
+
+	/// <summary>Use WeaponData's ViewmodelGripPosition/RotationDegrees (added on top of the baseline
+	/// above) instead of GripPosition/GripRotationDegrees. Set true on the viewmodel's attachment
+	/// only - the world-model attachment on Manny keeps using the world-space grip as before.</summary>
+	[Export] public bool UseViewmodelGrip { get; set; }
+
+	/// <summary>Model and muzzle flash are built and kept for everyone (so this still reports the
+	/// right CurrentGrip/Muzzle to callers like the tuner), but stay invisible on the device that
+	/// owns this player. Set true on the world-model attachment once the viewmodel is equipped too,
+	/// so the local player is not looking at two overlapping guns; remote peers are unaffected since
+	/// IsMultiplayerAuthority() is false on their copy of this same node.</summary>
+	[Export] public bool HiddenFromOwner { get; set; }
+
+	/// <summary>Skip building fire/reload/empty audio players. Set true on the viewmodel attachment,
+	/// which exists for the local player only - the world-model attachment already plays this
+	/// weapon's audio once for every peer including the shooter; a second copy would double it up.</summary>
+	[Export] public bool SkipAudio { get; set; }
+
 	private const float MuzzleFlashSeconds = 0.045f;
 
 	// Shared across every weapon rather than a per-weapon WeaponData field: only one recording was
@@ -27,6 +62,7 @@ public partial class WeaponAttachment : Node3D
 	private Node3D? _muzzle;
 	private MeshInstance3D? _flashMesh;
 	private OmniLight3D? _flashLight;
+	private bool _hideVisuals;
 	private float _flashRemaining;
 	private Vector3 _gripUnitFix = Vector3.One;
 	private WeaponData? _weapon;
@@ -108,13 +144,19 @@ public partial class WeaponAttachment : Node3D
 		// skinned to the skeleton manny.glb imports. Search by type rather than by a hardcoded
 		// node name - a hardcoded name is exactly what broke weapon attachment twice already.
 		var skeleton = (GetParent() as Skeleton3D) ?? FindSkeleton3D(GetParent());
-		int handBoneIndex = skeleton == null ? -1 : FindBoneContaining(skeleton, HandBoneNameFragment);
+		int handBoneIndex = skeleton == null ? -1 : FindBoneContaining(skeleton, HandBoneFragment.ToLowerInvariant());
 		if (skeleton == null || handBoneIndex < 0)
 		{
 			string available = skeleton == null ? "(no Skeleton3D found)" : DumpBoneNames(skeleton);
-			GD.PushError($"Weapon attachment could not find a bone containing '{HandBoneNameFragment}'. Actual bones: {available}");
+			GD.PushError($"Weapon attachment could not find a bone containing '{HandBoneFragment}'. Actual bones: {available}");
 			return;
 		}
+
+		// Local-only: whether this attachment's model/flash should build normally (so CurrentGrip,
+		// muzzle position, tuners etc. all still work) but stay invisible on the device that owns
+		// this player. IsMultiplayerAuthority() is per-machine, so a remote peer's copy of this same
+		// node/property always evaluates false and renders this player's weapon normally.
+		_hideVisuals = HiddenFromOwner && IsMultiplayerAuthority();
 
 		var attachment = new BoneAttachment3D
 		{
@@ -134,15 +176,28 @@ public partial class WeaponAttachment : Node3D
 		// together when the grip values are retuned.
 		var grip = new Node3D { Name = "Grip" };
 		attachment.AddChild(grip);
-		grip.Position = weapon.GripPosition * unitFix;
-		grip.RotationDegrees = weapon.GripRotationDegrees;
+		if (UseViewmodelGrip)
+		{
+			// Baseline (measured from fps_mp5_arms.glb's own bind pose) composed with the weapon's
+			// adjustment, the same way LeftHandIk composes BaselineBasis with an offset - a plain
+			// Euler add would not equal the intended rotation once the adjustment is more than tiny.
+			Basis baseline = Basis.FromEuler(ViewmodelBaselineRotationDegrees * (Mathf.Pi / 180.0f), EulerOrder.Yxz);
+			Basis offset = Basis.FromEuler(weapon.ViewmodelGripRotationDegrees * (Mathf.Pi / 180.0f), EulerOrder.Yxz);
+			grip.Position = (ViewmodelBaselinePosition + weapon.ViewmodelGripPosition) * unitFix;
+			grip.Basis = baseline * offset;
+		}
+		else
+		{
+			grip.Position = weapon.GripPosition * unitFix;
+			grip.RotationDegrees = weapon.GripRotationDegrees;
+		}
 		grip.Scale = unitFix;
 		_grip = grip;
 		_gripUnitFix = unitFix;
 
 		AddModel(grip, weapon);
 		AddMuzzle(grip, weapon);
-		AddAudioPlayers(grip, weapon);
+		if (!SkipAudio) AddAudioPlayers(grip, weapon);
 	}
 
 	/// <summary>Fire effects: one shot of audio plus a muzzle flash. Called on every peer.</summary>
@@ -152,7 +207,8 @@ public partial class WeaponAttachment : Node3D
 		{
 			RollFireVariant();
 			_fireAudio.PitchScale = _rng.RandfRange(0.94f, 1.06f);
-			_fireAudio.Play();
+			Vector3 muzzlePosition = _muzzle?.GlobalPosition ?? GlobalPosition;
+			SoundManager.Instance.PlayWeaponFire(_fireAudio, _weapon!, muzzlePosition);
 		}
 		if (_flashMesh == null && _flashLight == null) return;
 		SetFlashVisible(true);
@@ -194,6 +250,7 @@ public partial class WeaponAttachment : Node3D
 			Stream = stream,
 			UnitSize = unitSize,
 			PitchScale = _rng.RandfRange(0.9f, 1.1f),
+			Bus = "Weapons",
 		};
 		// One-shots are added to the current scene root: a node parented under the player would be
 		// dragged along by movement, and one parented under the weapon dies on the next switch.
@@ -224,6 +281,7 @@ public partial class WeaponAttachment : Node3D
 		}
 		model.Name = "EquippedWeapon";
 		model.Scale = Vector3.One * (weapon.ModelScale <= 0.0f ? 1.0f : weapon.ModelScale);
+		model.Visible = !_hideVisuals;
 		grip.AddChild(model);
 	}
 
@@ -270,6 +328,7 @@ public partial class WeaponAttachment : Node3D
 
 	private void SetFlashVisible(bool visible)
 	{
+		if (_hideVisuals) visible = false;
 		if (_flashMesh != null) _flashMesh.Visible = visible;
 		if (_flashLight != null) _flashLight.Visible = visible;
 		if (!visible || _flashMesh == null) return;
@@ -284,6 +343,22 @@ public partial class WeaponAttachment : Node3D
 		_fireAudio = AddAudioPlayer(host, "WeaponFireAudio", PickOne(weapon.FireSounds), weapon.FireAudioUnitSize);
 		_reloadAudio = AddAudioPlayer(grip, "WeaponReloadAudio", PickOne(weapon.ReloadSounds), 8.0f);
 		_emptyAudio = AddAudioPlayer(grip, "WeaponEmptyAudio", weapon.EmptySound, 5.0f);
+
+		// Bus routing (WeaponsQuiet skips the footstep-ducking sidechain - see
+		// default_bus_layout.tres) and the muzzle-cone rotation fix.
+		string bus = weapon.FireCanDuckMovement ? "Weapons" : "WeaponsQuiet";
+		if (_fireAudio != null)
+		{
+			_fireAudio.Bus = bus;
+			// AudioStreamPlayer3D's directional cone points down its own local -Z axis, but this
+			// project's grip convention has +Y as the barrel/line-of-fire direction (see
+			// AddMuzzle). Rotating +90 degrees around local X maps -Z onto that +Y, so
+			// FireEmissionAngleDegrees actually points down the barrel. Harmless when the cone is
+			// disabled (FireEmissionAngleDegrees = 360).
+			_fireAudio.RotationDegrees = new Vector3(90.0f, 0.0f, 0.0f);
+		}
+		if (_reloadAudio != null) _reloadAudio.Bus = bus;
+		if (_emptyAudio != null) _emptyAudio.Bus = bus;
 
 		if (weapon.FireSounds.Length > 1)
 		{

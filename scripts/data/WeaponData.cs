@@ -98,6 +98,19 @@ public partial class WeaponData : Resource
 	/// ReloadTime is then the per-shell time rather than the whole magazine.</summary>
 	[Export] public bool ShellByShellReload { get; set; }
 
+	// --- first-person viewmodel grip ---------------------------------------------------------
+	// See MP5_VIEWMODEL_README.md. This weapon's WORLD-model grip (what other players and the
+	// third-person mesh see, via LeftHandPosition/LeftHandRotationDegrees above) is untouched by
+	// anything below - these two only nudge the local viewmodel arms' hold on top of their own
+	// default pose. No F-key tuner for these yet (unlike GripPosition's WeaponGripTuner / F3):
+	// edit the two fields directly on the weapon's .tres and re-run to see the result.
+
+	/// <summary>Viewmodel-hand offset from the default hold, in metres, in Hand.R's local frame.</summary>
+	[Export] public Vector3 ViewmodelGripPosition { get; set; } = Vector3.Zero;
+
+	/// <summary>Extra rotation of the viewmodel grip on top of the default hold, in degrees.</summary>
+	[Export] public Vector3 ViewmodelGripRotationDegrees { get; set; } = Vector3.Zero;
+
 	// --- audio ------------------------------------------------------------------------------
 	// Paths rather than AudioStream references, so a sound can be swapped by editing one string
 	// (or by dropping a new file at the same path) without touching any scene.
@@ -110,4 +123,32 @@ public partial class WeaponData : Resource
 	/// <summary>Metres at which the fire sound falls to roughly half volume. Bigger weapons carry
 	/// further; melee should stay small.</summary>
 	[Export] public float FireAudioUnitSize { get; set; } = 12.0f;
+
+	// --- audio realism (SoundManager) --------------------------------------------------------
+	// Consumed by SoundManager.PlayWeaponFire for distance falloff, muzzle directionality and the
+	// speed-of-sound report delay, and mirrored live by WeaponSoundTuner (F6) for in-editor tuning.
+
+	/// <summary>Mix-level trim on top of the clip's own recorded loudness. 0 = unchanged.</summary>
+	[Export] public float FireVolumeDb { get; set; }
+
+	/// <summary>Distance in metres beyond which the fire sound is treated as inaudible.</summary>
+	[Export] public float FireMaxDistanceMeters { get; set; } = 120.0f;
+
+	/// <summary>Half-angle of the forward-facing loud cone, in degrees. 360 (or anything >= 360)
+	/// disables directionality entirely and the shot is heard equally from any angle.</summary>
+	[Export] public float FireEmissionAngleDegrees { get; set; } = 360.0f;
+
+	/// <summary>How much quieter (in dB, so negative) the shot sounds to a listener outside the
+	/// emission cone - e.g. behind the shooter rather than downrange. Only applied when
+	/// FireEmissionAngleDegrees is directional.</summary>
+	[Export] public float FireEmissionOffAxisAttenuationDb { get; set; } = -6.0f;
+
+	/// <summary>Whether this weapon's fire briefly ducks the Movement bus, so footsteps and cloth
+	/// don't mask the shot. Melee and quiet weapons should leave this off.</summary>
+	[Export] public bool FireCanDuckMovement { get; set; } = true;
+
+	/// <summary>Whether a distant shot's audio is delayed to arrive at roughly the speed of sound,
+	/// rather than instantly. Off for anything meant to always read as immediate (melee, pistols
+	/// at typical engagement range).</summary>
+	[Export] public bool FireReportDelayEnabled { get; set; } = true;
 }

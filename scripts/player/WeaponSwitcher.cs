@@ -44,6 +44,8 @@ public partial class WeaponSwitcher : Node
 	};
 
 	private WeaponAttachment _attachment = null!;
+	private WeaponAttachment? _viewmodelAttachment;
+	private FirstPersonMp5Viewmodel? _viewmodel;
 	private WeaponRegistry _registry = null!;
 	private Camera3D _camera = null!;
 	private CharacterBody3D _player = null!;
@@ -51,11 +53,13 @@ public partial class WeaponSwitcher : Node
 	private PlayerAnimationController? _animation;
 	private RotationWindowTracker _rotationWindow = null!;
 	private Health? _health;
+	private CharacterLoadout? _loadout;
 	private AudioStreamPlayer? _hitMarker;
 	private readonly RandomNumberGenerator _rng = new();
 
 	private WeaponData? _currentWeapon;
 	private int _currentAmmo;
+	private int _currentReserve;
 	private float _cooldownRemaining;
 	private float _reloadRemaining;
 	private int _appliedWeaponIndex = -1;
@@ -81,6 +85,9 @@ public partial class WeaponSwitcher : Node
 	public string WeaponName => _currentWeapon?.WeaponName ?? string.Empty;
 	public int CurrentAmmo => _currentAmmo;
 	public int MagazineSize => _currentWeapon?.MagazineSize ?? 0;
+
+	/// <summary>Rounds left in reserve, beyond what's loaded. Always 0 for a melee weapon.</summary>
+	public int CurrentReserve => _currentReserve;
 	public bool IsReloading => _reloadRemaining > 0.0f;
 	public WeaponData.FireModeType FireMode => _currentWeapon?.FireMode ?? WeaponData.FireModeType.FullAuto;
 
@@ -90,9 +97,15 @@ public partial class WeaponSwitcher : Node
 		_player = (CharacterBody3D)GetParent();
 		_movement = (PlayerMovement)GetParent();
 		_attachment = GetNode<WeaponAttachment>("../Armature/WeaponAttachment");
+		// Both optional: a scene that hasn't picked up the Player.tscn viewmodel changes (see
+		// MP5_VIEWMODEL_README.md) still runs exactly as before - GetNodeOrNull rather than GetNode,
+		// same as _animation below, and every call site already null-conditions on it.
+		_viewmodelAttachment = GetNodeOrNull<WeaponAttachment>("../Head/FirstPersonCamera/FirstPersonMp5Viewmodel/WeaponAttachment");
+		_viewmodel = GetNodeOrNull<FirstPersonMp5Viewmodel>("../Head/FirstPersonCamera/FirstPersonMp5Viewmodel");
 		_camera = GetNode<Camera3D>("../Head/FirstPersonCamera");
 		_rotationWindow = GetNode<RotationWindowTracker>("../RotationWindow");
 		_health = GetNodeOrNull<Health>("../Health");
+		_loadout = GetNodeOrNull<CharacterLoadout>("../CharacterLoadout");
 		_animation = GetNodeOrNull<PlayerAnimationController>("../AnimationController");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
 
@@ -109,6 +122,14 @@ public partial class WeaponSwitcher : Node
 
 		for (int i = 0; i < Loadout.Length; i++)
 			if (Input.IsActionJustPressed($"weapon_{i + 1}")) ReplicatedWeaponIndex = i;
+
+		// Controller-friendly cycling (shoulder buttons - see SettingsManager's controller
+		// bindings). Nothing on keyboard/mouse drives these: a controller is the only input
+		// device without enough face buttons for eight direct weapon_N presses.
+		if (Input.IsActionJustPressed("weapon_cycle_next"))
+			ReplicatedWeaponIndex = (_appliedWeaponIndex + 1) % Loadout.Length;
+		if (Input.IsActionJustPressed("weapon_cycle_prev"))
+			ReplicatedWeaponIndex = (_appliedWeaponIndex - 1 + Loadout.Length) % Loadout.Length;
 
 		if (_health != null && _health.IsDead) return;
 
@@ -150,10 +171,13 @@ public partial class WeaponSwitcher : Node
 			_appliedWeaponIndex = index;
 			_currentWeapon = weapon;
 			_currentAmmo = weapon.MagazineSize;
+			_currentReserve = weapon.MaxReserveAmmo;
 			_cooldownRemaining = 0.0f;
 			_reloadRemaining = 0.0f;
 			_animation?.CancelReload();
 			_attachment.Equip(weapon);
+			_viewmodelAttachment?.Equip(weapon);
+			_viewmodel?.PlayEquip();
 			return;
 		}
 		GD.PushError($"Test loadout weapon '{Loadout[index]}' is not registered.");
@@ -207,6 +231,8 @@ public partial class WeaponSwitcher : Node
 	public void RpcFireEffects()
 	{
 		_attachment.PlayFire();
+		_viewmodelAttachment?.PlayFire();
+		_viewmodel?.PlayShoot();
 		_animation?.PlayFire();
 	}
 
@@ -217,6 +243,8 @@ public partial class WeaponSwitcher : Node
 	public void RpcReloadEffects()
 	{
 		_attachment.PlayReload();
+		_viewmodelAttachment?.PlayReload();
+		_viewmodel?.PlayReload();
 		_animation?.PlayReload();
 	}
 
@@ -231,6 +259,9 @@ public partial class WeaponSwitcher : Node
 		float horizontal = _rng.RandfRange(-_currentWeapon.RecoilHorizontal, _currentWeapon.RecoilHorizontal);
 		// Aiming down sights cuts the kick roughly in half, which is the usual reason to ADS at all.
 		float multiplier = _movement.IsAiming ? 0.5f : 1.0f;
+		// Operator recoil perks (CharacterEffectIds.WeaponRecoilMult). No operator equipped, or the
+		// node missing entirely -> GetModifier returns 1.0 -> unchanged.
+		multiplier *= _loadout?.GetModifier(CharacterEffectIds.WeaponRecoilMult, 1.0f) ?? 1.0f;
 		_movement.AddRecoil(_currentWeapon.RecoilVertical * multiplier, horizontal * multiplier,
 			_currentWeapon.RecoilRecoveryMs);
 	}
@@ -355,7 +386,7 @@ public partial class WeaponSwitcher : Node
 	{
 		if (_currentWeapon == null || _reloadRemaining > 0.0f) return;
 		bool infiniteAmmo = _currentWeapon.MagazineSize <= 0;
-		if (infiniteAmmo || _currentAmmo >= _currentWeapon.MagazineSize) return;
+		if (infiniteAmmo || _currentAmmo >= _currentWeapon.MagazineSize || _currentReserve <= 0) return;
 		_reloadRemaining = _currentWeapon.ReloadTime > 0.0f ? _currentWeapon.ReloadTime : 0.1f;
 		Rpc(MethodName.RpcReloadEffects);
 	}
@@ -367,14 +398,20 @@ public partial class WeaponSwitcher : Node
 
 		if (_currentWeapon.ShellByShellReload)
 		{
-			// One shell per cycle, then start the next one if the tube still has room. ReloadTime
-			// is the per-shell time for these, so a full Mossberg tube takes 6 x 0.5 s and can be
-			// cut short at any point by pulling the trigger.
-			_currentAmmo = Mathf.Min(_currentAmmo + 1, _currentWeapon.MagazineSize);
-			if (_currentAmmo < _currentWeapon.MagazineSize) StartReload();
+			// One shell per cycle, then start the next one if the tube still has room and the
+			// reserve still has a shell to feed it. ReloadTime is the per-shell time for these, so
+			// a full Mossberg tube takes 6 x 0.5 s and can be cut short at any point by firing.
+			if (_currentReserve <= 0) return;
+			_currentAmmo++;
+			_currentReserve--;
+			if (_currentAmmo < _currentWeapon.MagazineSize && _currentReserve > 0) StartReload();
 			return;
 		}
-		_currentAmmo = _currentWeapon.MagazineSize;
+
+		int needed = _currentWeapon.MagazineSize - _currentAmmo;
+		int drawn = Mathf.Min(needed, _currentReserve);
+		_currentAmmo += drawn;
+		_currentReserve -= drawn;
 	}
 
 	// -------------------------------------------------------------------------------------------
@@ -383,7 +420,7 @@ public partial class WeaponSwitcher : Node
 	{
 		var stream = ResourceLoader.Load<AudioStream>(path);
 		if (stream == null) return null;
-		var player = new AudioStreamPlayer { Name = "HitMarker", Stream = stream, VolumeDb = -4.0f };
+		var player = new AudioStreamPlayer { Name = "HitMarker", Stream = stream, VolumeDb = -4.0f, Bus = "UI" };
 		parent.AddChild(player);
 		return player;
 	}
