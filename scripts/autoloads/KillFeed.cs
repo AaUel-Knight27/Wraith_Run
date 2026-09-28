@@ -18,7 +18,7 @@ public partial class KillFeed : Node
 
     [Signal]
     public delegate void KillAnnouncedEventHandler(long killerPeerId, long victimPeerId, int styleFlags,
-        int basePoints, int totalPoints, long assistPeerId, int assistPoints);
+        int basePoints, int totalPoints, long assistPeerId, int assistPoints, bool struggles);
 
     /// <summary>Looks up the autoload without assuming a hardcoded path in every call site.</summary>
     public static KillFeed? From(Node node) => node.GetNodeOrNull<KillFeed>("/root/KillFeed");
@@ -27,35 +27,42 @@ public partial class KillFeed : Node
     /// Publishes a confirmed kill to every peer. With no multiplayer peer configured - single-instance
     /// dev play, which is how this project is tested most of the time - it is delivered locally so
     /// kills still score and the feed still fills in.
+    ///
+    /// struggles is the victim's own read of how they died (see Health.ReceiveDamage) - whether
+    /// PlayerAudio should play the victim's "instant, clean kill" death clip or the "didn't go
+    /// instantly" one. It rides along here rather than through its own message because this is
+    /// already the one channel guaranteed to reach every peer, in order, exactly once per kill.
     /// </summary>
     public void Publish(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
-        int totalPoints, long assistPeerId, int assistPoints)
+        int totalPoints, long assistPeerId, int assistPoints, bool struggles)
     {
         if (!Multiplayer.HasMultiplayerPeer())
         {
-            EmitKill(killerPeerId, victimPeerId, styleFlags, basePoints, totalPoints, assistPeerId, assistPoints);
+            EmitKill(killerPeerId, victimPeerId, styleFlags, basePoints, totalPoints, assistPeerId,
+                assistPoints, struggles);
             return;
         }
         Rpc(MethodName.AnnounceKill, killerPeerId, victimPeerId, styleFlags, basePoints, totalPoints,
-            assistPeerId, assistPoints);
+            assistPeerId, assistPoints, struggles);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
         TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     public void AnnounceKill(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
-        int totalPoints, long assistPeerId, int assistPoints)
+        int totalPoints, long assistPeerId, int assistPoints, bool struggles)
     {
         long sender = Multiplayer.GetRemoteSenderId();
         // 0 means this execution is the local call_local copy, published by the victim's own device.
         if (sender != 0 && sender != victimPeerId) return;
 
-        EmitKill(killerPeerId, victimPeerId, styleFlags, basePoints, totalPoints, assistPeerId, assistPoints);
+        EmitKill(killerPeerId, victimPeerId, styleFlags, basePoints, totalPoints, assistPeerId,
+            assistPoints, struggles);
     }
 
     private void EmitKill(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
-        int totalPoints, long assistPeerId, int assistPoints) =>
+        int totalPoints, long assistPeerId, int assistPoints, bool struggles) =>
         EmitSignal(SignalName.KillAnnounced, killerPeerId, victimPeerId, styleFlags, basePoints,
-            totalPoints, assistPeerId, assistPoints);
+            totalPoints, assistPeerId, assistPoints, struggles);
 
     /// <summary>Feed text for one kill, shared by all peers so every client shows identical wording.</summary>
     public static string DescribeKill(long killerPeerId, long victimPeerId, int styleFlags, int totalPoints) =>

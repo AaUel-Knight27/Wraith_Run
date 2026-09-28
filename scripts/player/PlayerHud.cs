@@ -156,7 +156,7 @@ public partial class PlayerHud : CanvasLayer
 
     /// <summary>Feed line for any kill in the match, on every peer, in identical wording.</summary>
     private void OnKillAnnounced(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
-        int totalPoints, long assistPeerId, int assistPoints)
+        int totalPoints, long assistPeerId, int assistPoints, bool struggles)
     {
         string line = KillFeed.DescribeKill(killerPeerId, victimPeerId, styleFlags, totalPoints);
         if (assistPeerId >= 0) line += $"  (assist Player {assistPeerId} +{assistPoints})";

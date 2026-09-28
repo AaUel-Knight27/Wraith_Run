@@ -46,7 +46,7 @@ public partial class PlayerScore : Node
     }
 
     private void OnKillAnnounced(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
-        int totalPoints, long assistPeerId, int assistPoints)
+        int totalPoints, long assistPeerId, int assistPoints, bool struggles)
     {
         int myPeerId = GetMultiplayerAuthority();
         if (victimPeerId == myPeerId) Deaths++;

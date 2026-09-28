@@ -120,6 +120,13 @@ public partial class WeaponData : Resource
 	[Export] public string[] ImpactSounds { get; set; } = Array.Empty<string>();
 	[Export] public string EmptySound { get; set; } = string.Empty;
 
+	/// <summary>True (the default) means a geometry hit picks its impact sound from the surface
+	/// actually struck (metal/wood/glass/generic - see SurfaceType) instead of this weapon's own
+	/// ImpactSounds array. Set false for a weapon whose ImpactSounds is a deliberate, fixed sound
+	/// that has nothing to do with the surface material - the Bazooka's is an explosion, not a
+	/// bullet ping, and should play the same way whether it hits a wall or a crate.</summary>
+	[Export] public bool ImpactUsesSurfaceVariation { get; set; } = true;
+
 	/// <summary>Metres at which the fire sound falls to roughly half volume. Bigger weapons carry
 	/// further; melee should stay small.</summary>
 	[Export] public float FireAudioUnitSize { get; set; } = 12.0f;

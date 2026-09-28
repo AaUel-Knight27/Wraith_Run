@@ -195,7 +195,7 @@ public partial class MatchManager : Node
     /// agrees on every player's team, so every peer's tally increments on the exact same kills in
     /// the exact same order - no extra network traffic needed just to keep the team score in sync.</summary>
     private void OnKillAnnounced(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
-        int totalPoints, long assistPeerId, int assistPoints)
+        int totalPoints, long assistPeerId, int assistPoints, bool struggles)
     {
         if (GameMode != Mode.TeamDeathmatch || _matchEnded) return;
 

@@ -13,4 +13,10 @@ public enum KillStyle
     HipFire = 1 << 1,
     NoScope360 = 1 << 2,
     VergeOfDeath = 1 << 3,
+
+    /// <summary>Not a scoring bonus (KillStyleBonus.Evaluate never checks it) - carried through
+    /// styleFlags purely so Health.ReceiveDamage can tell a blade kill apart from a bullet kill when
+    /// it decides which death-audio clip the victim should play. See the note on
+    /// Health.DetermineIfDeathStruggles.</summary>
+    Melee = 1 << 4,
 }

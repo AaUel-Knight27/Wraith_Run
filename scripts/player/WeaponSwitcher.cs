@@ -22,6 +22,20 @@ public partial class WeaponSwitcher : Node
 	private const float MaxRange = 500.0f;
 	private const float MeleeRange = 2.5f;
 
+	/// <summary>Every live player is added to this group in PlayerMovement._Ready() - the same
+	/// pattern GameWorld's own "spawn_point" group already uses. Lets a hitscan shot find every
+	/// OTHER player on the map without the map or the match system having to hand it a list.</summary>
+	private const string PlayersGroup = "players";
+
+	/// <summary>How close (metres, perpendicular distance) a shot has to pass a bystander's head to
+	/// read as a "whiz by" rather than just an unheard miss.</summary>
+	private const float FlybyMissRadius = 1.4f;
+
+	/// <summary>Skip the flyby check within this distance of the muzzle - a near-miss at
+	/// point-blank doesn't read as a "whiz", it reads as barely missing at all, and it would
+	/// otherwise fire constantly in a close-range duel.</summary>
+	private const float FlybyMinDistanceFromShooter = 2.5f;
+
 	/// <summary>Radius of the sphere around the Head node that counts as a head hit. The player rig
 	/// is a single capsule, so the head zone is a geometric test against the live Head position
 	/// rather than a separate hitbox.</summary>
@@ -278,15 +292,25 @@ public partial class WeaponSwitcher : Node
 		var query = PhysicsRayQueryParameters3D.Create(from, to,
 			exclude: new Godot.Collections.Array<Rid> { _player.GetRid() });
 		var result = _player.GetWorld3D().DirectSpaceState.IntersectRay(query);
+
+		Node? hitCollider = result.Count > 0 ? result["collider"].As<Node>() : null;
+		Vector3 rayEnd = result.Count > 0 ? (Vector3)result["position"] : to;
+		// A blade has no "whiz by" - only a fired round does. Checked against the ray's actual end
+		// (the impact point when something was hit, otherwise the full range) so a clean miss can
+		// still buzz a bystander standing beyond whatever the shot eventually hit, if anything.
+		if (!melee) CheckBulletFlybys(from, rayEnd, hitCollider);
+
 		if (result.Count == 0) return;
 
-		var impactPoint = (Vector3)result["position"];
+		var impactPoint = rayEnd;
 
-		if (result["collider"].As<Node>() is not CharacterBody3D body)
+		if (hitCollider is not CharacterBody3D body)
 		{
 			// Geometry hit: no damage, but the impact is what tells the shooter where the round
-			// actually went, which matters a lot once spread is in play.
-			_attachment.PlayImpact(impactPoint);
+			// actually went, which matters a lot once spread is in play. Broadcast, like the flesh
+			// impact below - a bullet cracking into a wall or a shipping container near someone is
+			// something they should hear too, not just the shooter.
+			Rpc(MethodName.RpcSurfaceImpact, impactPoint, (int)SurfaceClassifier.Classify(hitCollider));
 			return;
 		}
 
@@ -330,6 +354,60 @@ public partial class WeaponSwitcher : Node
 		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
 	public void RpcFleshImpact(Vector3 worldPosition) => _attachment.PlayFleshImpact(worldPosition);
 
+	/// <summary>A bullet hitting geometry (not a person) - surfaceType is a cast SurfaceType, sent
+	/// as an int the same way styleFlags already rides a KillStyle through Health.ReceiveDamage's
+	/// RPC. Broadcast for the same reason RpcFleshImpact is: everyone nearby should hear a shot
+	/// crack into a wall or a shipping container, not just the shooter.</summary>
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
+		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+	public void RpcSurfaceImpact(Vector3 worldPosition, int surfaceType) =>
+		_attachment.PlayImpact(worldPosition, (SurfaceType)surfaceType);
+
+	/// <summary>A shot that passed close to (but did not hit) this bystander. Broadcast rather than
+	/// targeted at just the near-missed player - it is a positional one-shot like every other impact
+	/// sound here, so ordinary 3D falloff already makes it loud for whoever it actually passed and
+	/// faint or inaudible for everyone else.</summary>
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
+		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+	public void RpcBulletFlyby(Vector3 worldPosition) => _attachment.PlayBulletFlyby(worldPosition);
+
+	/// <summary>Checks every other living player against the shot's actual path (from the muzzle to
+	/// wherever it ended up - an impact point, or the full range on a clean miss) and broadcasts a
+	/// flyby one-shot near anyone the ray passed close to. hitCollider is whoever/whatever the shot
+	/// actually landed on, if anything - excluded here so the player who was actually hit gets the
+	/// impact/hit-marker feedback instead of a redundant "near miss" whiz.</summary>
+	private void CheckBulletFlybys(Vector3 from, Vector3 rayEnd, Node? hitCollider)
+	{
+		foreach (Node node in GetTree().GetNodesInGroup(PlayersGroup))
+		{
+			if (node is not CharacterBody3D otherPlayer || otherPlayer == _player) continue;
+			if (hitCollider == otherPlayer) continue;
+
+			var otherHealth = otherPlayer.GetNodeOrNull<Health>("Health");
+			if (otherHealth == null || otherHealth.IsDead) continue;
+
+			// Rough head height rather than the capsule's origin (feet) - a shot passing at ankle
+			// height twenty centimetres away should not "whiz" past someone's ear.
+			Vector3 ear = otherPlayer.GlobalPosition + Vector3.Up * 1.5f;
+			Vector3 closest = ClosestPointOnSegment(from, rayEnd, ear);
+			if ((closest - from).Length() < FlybyMinDistanceFromShooter) continue;
+			if ((closest - ear).Length() > FlybyMissRadius) continue;
+
+			Rpc(MethodName.RpcBulletFlyby, closest);
+		}
+	}
+
+	/// <summary>Closest point on segment a-b to point p, clamped to the segment (not the infinite
+	/// line) - a shot's near-miss check should never register past where the round actually stops.</summary>
+	private static Vector3 ClosestPointOnSegment(Vector3 a, Vector3 b, Vector3 p)
+	{
+		Vector3 ab = b - a;
+		float lengthSquared = ab.LengthSquared();
+		if (lengthSquared < 0.0001f) return a;
+		float t = Mathf.Clamp((p - a).Dot(ab) / lengthSquared, 0.0f, 1.0f);
+		return a + ab * t;
+	}
+
 	/// <summary>Scatters a direction inside a cone. Uniform over the disc rather than over the
 	/// angle, so a shotgun pattern does not clump in the middle.</summary>
 	private Vector3 ApplySpread(Vector3 direction, float spreadDegrees)
@@ -361,6 +439,7 @@ public partial class WeaponSwitcher : Node
 	private KillStyle CaptureKillStyle(bool headshot, bool melee)
 	{
 		KillStyle styles = headshot ? KillStyle.Headshot : KillStyle.None;
+		if (melee) styles |= KillStyle.Melee;
 		if (!melee)
 		{
 			// IsAiming, not "State == Aim". Aim stopped being a movement state when ADS was pulled

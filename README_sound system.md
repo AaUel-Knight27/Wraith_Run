@@ -438,10 +438,11 @@ Two one-word additions - route footsteps and hit/death/respawn sounds onto the b
 		AddChild(_voicePlayer);
 ```
 
-This is also the hook for jump/land sound if you add one later - there's no dedicated clip for
-those states yet (`PlayerAudio.cs`'s own comment says Jump/Fall are currently silent). Whenever
-you wire one in, give that `AudioStreamPlayer3D` `Bus = "Movement"` too and it's automatically
-covered by the same ducking.
+**Update from a later pass:** a jump sound, a crouch sound, and quiet walk/sprint locomotion loops
+were added on top of this (all on their own `AudioStreamPlayer3D`s, still `Bus = "Movement"`, still
+covered by the same ducking) - there is still no landing thud or slide sound. See `SOUND_SLOTS.md`
+for the current, up-to-date list of every clip and when it plays; this file is a narrative of how
+the system was originally built, not a living reference.
 
 ### `project.godot`
 
@@ -523,8 +524,8 @@ version of the gun. The panel shows how many other players it's currently syncin
 
 5. Distinct dry-fire clicks per weapon family (pistol vs. rifle vs. SMG) instead of the one shared
    `reload_click_rifle.wav` everything currently uses.
-6. A landing thud and a jump sound for `PlayerAudio.cs` - see the note in section 4. Once it
-   exists, it's automatically covered by the same footstep-ducking bus.
+6. ~~A landing thud and a jump sound for `PlayerAudio.cs`~~ - the jump sound was added in a later
+   pass (see `SOUND_SLOTS.md`); a landing thud still doesn't exist.
 
 ### Where to actually get real (not stock/synthetic) recordings
 

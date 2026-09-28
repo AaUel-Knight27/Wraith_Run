@@ -102,12 +102,41 @@ public partial class Health : Node
         if (!IsMultiplayerAuthority() || IsDead || amount <= 0.0f) return;
         if (IsFriendlyFire(attackerId)) return;
         _damageContribution[attackerId] = GetContribution(attackerId) + amount;
+
+        // Read before the hit lands - DetermineIfDeathStruggles needs to know how close to death
+        // this player already was the moment BEFORE this shot, not after.
+        float healthBeforeHit = CurrentHealth;
         CurrentHealth -= amount;
         if (!IsDead) return;
 
         _respawnTimer = RespawnDelaySeconds;
         _deathPosition = _player.GlobalPosition;
-        AnnounceDeath(attackerId, styleFlags, basePoints);
+        bool struggles = DetermineIfDeathStruggles(amount, (KillStyle)styleFlags, healthBeforeHit);
+        AnnounceDeath(attackerId, styleFlags, basePoints, struggles);
+    }
+
+    /// <summary>A human doesn't always drop the instant they're shot - a clean headshot or an
+    /// overwhelming single hit does, but a body wound, a knife, or finishing off someone already on
+    /// the edge of death plays out slower. That distinction is what PlayerAudio's second death clip
+    /// (the "struggling" one) is for; this is the one place that decides it, using only what the
+    /// victim's own authoritative device already knows at the moment of the killing blow:
+    ///  - Headshot or a single hit for InstantKillDamage+ (MaxHealth's own value, i.e. a shot big
+    ///    enough to drop a full-health player outright) reads as instant... UNLESS:
+    ///  - It was melee. A blade kill is deliberately never "instant" here, headshot bit or not - see
+    ///    KillStyle.Melee's own note.
+    ///  - OR this player was already on the verge of death (the same threshold KillStyleBonus's
+    ///    VergeOfDeath bonus uses, just read from the victim's side instead of the shooter's): someone
+    ///    already that far gone doesn't go quietly just because the finishing shot was clean.
+    /// </summary>
+    private bool DetermineIfDeathStruggles(float lethalDamage, KillStyle styles, float healthBeforeHit)
+    {
+        const float InstantKillDamage = 100.0f;
+        bool melee = (styles & KillStyle.Melee) != 0;
+        bool headshot = (styles & KillStyle.Headshot) != 0;
+        bool wasAlreadyOnVergeOfDeath = MaxHealth > 0.0f &&
+            healthBeforeHit <= MaxHealth * KillStyleBonus.VergeOfDeathHealthFraction;
+        bool instantKill = !melee && (headshot || lethalDamage >= InstantKillDamage);
+        return !instantKill || wasAlreadyOnVergeOfDeath;
     }
 
     /// <summary>Team Deathmatch, Friendly Fire off, and the attacker is on this player's own team -
@@ -127,7 +156,7 @@ public partial class Health : Node
     /// player, so only this device may announce it - KillFeed rejects announcements from any peer
     /// other than the victim.
     /// </summary>
-    private void AnnounceDeath(long killerId, int styleFlags, int basePoints)
+    private void AnnounceDeath(long killerId, int styleFlags, int basePoints, bool struggles)
     {
         // A replicated second lethal hit can still land while the victim is already dead (IsDead
         // guards that), but a late RPC could target the respawn; never score the same death twice.
@@ -143,7 +172,7 @@ public partial class Health : Node
         int totalPoints = KillStyleBonus.Evaluate(basePoints, (KillStyle)styleFlags);
         SelectAssist(killerId, out long assistPeerId, out int assistPoints);
         _killFeed.Publish(killerId, (long)_player.GetMultiplayerAuthority(), styleFlags, basePoints,
-            totalPoints, assistPeerId, assistPoints);
+            totalPoints, assistPeerId, assistPoints, struggles);
     }
 
     /// <summary>Highest non-killing damage contributor takes the assist; Part 6 never stacks an

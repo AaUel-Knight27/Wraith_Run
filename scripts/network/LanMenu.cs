@@ -39,6 +39,10 @@ public partial class LanMenu : Control
     /// want to rebind an action to - see _UnhandledInput.</summary>
     private string? _rebindingAction;
 
+    private AudioStreamPlayer? _menuMusic;
+    private AudioStream[] _menuMusicTracks = Array.Empty<AudioStream>();
+    private readonly RandomNumberGenerator _menuMusicRng = new();
+
     public override void _Ready()
     {
         _refreshTimer = new Timer { WaitTime = 0.5, OneShot = false };
@@ -48,7 +52,48 @@ public partial class LanMenu : Control
         _contentRoot = new Control { MouseFilter = MouseFilterEnum.Ignore };
         _contentRoot.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(_contentRoot);
+        StartMenuMusic();
         ShowMain();
+    }
+
+    /// <summary>
+    /// SettingsManager already applies MusicVolume to the "Music" bus (see SettingsManager.cs's
+    /// ApplyAudioSettings) and always has, in anticipation of a music system landing at some point -
+    /// this is that system. Two tracks played back to back in random order rather than either one
+    /// looping alone, so the menu does not obviously repeat itself on a long lobby wait.
+    /// </summary>
+    private void StartMenuMusic()
+    {
+        _menuMusicRng.Randomize();
+        _menuMusicTracks = LoadMenuMusicTracks();
+        if (_menuMusicTracks.Length == 0) return;
+
+        _menuMusic = new AudioStreamPlayer { Bus = "Music" };
+        AddChild(_menuMusic);
+        _menuMusic.Finished += PlayNextMenuMusicTrack;
+        PlayNextMenuMusicTrack();
+    }
+
+    private void PlayNextMenuMusicTrack()
+    {
+        if (_menuMusic == null || _menuMusicTracks.Length == 0) return;
+        _menuMusic.Stream = _menuMusicTracks[_menuMusicRng.RandiRange(0, _menuMusicTracks.Length - 1)];
+        _menuMusic.Play();
+    }
+
+    private static AudioStream[] LoadMenuMusicTracks()
+    {
+        var streams = new System.Collections.Generic.List<AudioStream>();
+        foreach (string path in new[]
+        {
+            "res://audio/Clips/UI and HUD/Menu Music/TacticalSilence.mp3",
+            "res://audio/Clips/UI and HUD/Menu Music/TacticalSilenceV2.mp3",
+        })
+        {
+            var stream = ResourceLoader.Load<AudioStream>(path);
+            if (stream != null) streams.Add(stream);
+        }
+        return streams.ToArray();
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -752,6 +797,9 @@ public partial class LanMenu : Control
         // close/reopen keeps the Timer reusable.
         if (IsUsable(_refreshTimer)) _refreshTimer.Timeout -= PollDiscovery;
         _games.Clear();
+        // Sole terminal cleanup path (LeaveForGame and application shutdown both funnel through
+        // here), so this is the one place the menu music needs to be stopped from.
+        if (IsUsable(_menuMusic)) _menuMusic!.Stop();
     }
 
     private void StopLobbyBrowser()

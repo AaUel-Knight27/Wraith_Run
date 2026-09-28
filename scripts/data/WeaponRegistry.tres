@@ -300,6 +300,7 @@ ShellByShellReload = false
 FireSounds = PackedStringArray("res://audio/Clips/Weapons/Grenade Launcher/Shoot/Grenade Launcher-001.wav", "res://audio/Clips/Weapons/Grenade Launcher/Shoot/Grenade Launcher-002.wav", "res://audio/Clips/Weapons/Grenade Launcher/Shoot/Grenade Launcher-003.wav", "res://audio/Clips/Weapons/RPG/Shoot/rpg_shoot.wav")
 ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/Grenade Launcher/Reload/Grenade Launcher_Reload.wav", "res://audio/Clips/Weapons/RPG/Reload/rpg_reload.mp3")
 ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Grenade Launcher/Explode/Grenade Explode-001.wav", "res://audio/Clips/Weapons/Grenade Launcher/Explode/Grenade Explode-002.wav", "res://audio/Clips/Weapons/Grenade Launcher/Explode/Grenade Explode-003.wav")
+ImpactUsesSurfaceVariation = false
 EmptySound = "res://audio/Clips/Weapons/Common/empty_click.mp3"
 FireAudioUnitSize = 63.5
 FireVolumeDb = 4.0

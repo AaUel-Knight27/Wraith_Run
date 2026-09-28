@@ -12,16 +12,6 @@
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/default_bus_layout.tres" beforeDir="false" afterPath="$PROJECT_DIR$/default_bus_layout.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/project.godot" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/Player.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/Player.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/autoloads/SettingsManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/autoloads/SettingsManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/network/LanMenu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/LanMenu.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerAudio.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerAudio.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerMovement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerMovement.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/MenuStyle.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/MenuStyle.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -249,7 +239,8 @@
     <MESSAGE value="removeing un neccessary files form project" />
     <MESSAGE value="fix hud system, add sound system editor" />
     <MESSAGE value="added team death match game mode" />
-    <option name="LAST_COMMIT_MESSAGE" value="added team death match game mode" />
+    <MESSAGE value="sounds, camera, dev debug tools bug fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="sounds, camera, dev debug tools bug fix" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

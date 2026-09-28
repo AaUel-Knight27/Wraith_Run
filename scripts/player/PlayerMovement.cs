@@ -98,6 +98,10 @@ public partial class PlayerMovement : CharacterBody3D
 
     public override void _Ready()
     {
+        // Lets WeaponSwitcher's bullet-flyby check (and anything else that needs "every other
+        // player on the map") find this player without the map or the match system having to hand
+        // it a list - the same reason GameWorld's spawn markers use their own "spawn_point" group.
+        AddToGroup("players");
         _collisionShape = GetNode<CollisionShape3D>("CollisionShape3D");
         _groundProbe = GetNode<ShapeCast3D>("GroundProbe");
         _head = GetNode<Node3D>("Head");

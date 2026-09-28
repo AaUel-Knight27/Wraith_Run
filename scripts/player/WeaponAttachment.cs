@@ -56,6 +56,22 @@ public partial class WeaponAttachment : Node3D
 	// supplied, and "a body got hit" reads the same whether it was a bullet or the Karambit.
 	private const string FleshImpactSound = "res://audio/Clips/Weapons/Melee/Impact/flesh_hit.mp3";
 
+	// Surface-varied geometry impacts (see SurfaceType.cs for how a hit is classified) - shared
+	// across every weapon that leaves ImpactUsesSurfaceVariation on, the same reasoning as
+	// FleshImpactSound above: these are "a bullet hit X" recordings, not anything weapon-specific.
+	private const string MetalImpactHeavySound = "res://audio/Clips/Weapons/Impacts/Surfaces/BulletMetalHeavy.mp3";
+	private const string MetalImpactThickSound = "res://audio/Clips/Weapons/Impacts/Surfaces/BulletMetalThick.mp3";
+	private const string WoodImpactSound = "res://audio/Clips/Weapons/Impacts/Surfaces/BulletWood.mp3";
+	private const string GlassImpactSound = "res://audio/Clips/Weapons/Impacts/Surfaces/BulletGlassHit.wav";
+	private const string WallImpactSound = "res://audio/Clips/Weapons/Impacts/Surfaces/BulletWallHit.wav";
+	private const string RicochetSound = "res://audio/Clips/Weapons/Impacts/Surfaces/BulletRicochet.wav";
+	private const string BulletFlybySound = "res://audio/Clips/Weapons/Impacts/Surfaces/BulletFlyBy.wav";
+
+	// Only Metal and Generic (concrete/wall-ish) surfaces get a ricochet layer - a bullet deflecting
+	// off wood or glass doesn't read as a "ping", it reads as a thud or a shatter, so those two
+	// surfaces never roll for one.
+	private const float RicochetChance = 0.22f;
+
 	private AudioStreamPlayer3D? _fireAudio;
 	private AudioStreamPlayer3D? _reloadAudio;
 	private AudioStreamPlayer3D? _emptyAudio;
@@ -228,13 +244,45 @@ public partial class WeaponAttachment : Node3D
 	public void PlayEmpty() => _emptyAudio?.Play();
 
 	/// <summary>Spawns an impact one-shot at a world point. Parented to the map rather than to the
-	/// weapon so it does not follow the barrel around while it plays.</summary>
-	public void PlayImpact(Vector3 worldPosition)
+	/// weapon so it does not follow the barrel around while it plays. surface is what the shot
+	/// actually hit (see SurfaceType.cs) - ignored for a weapon that turned
+	/// ImpactUsesSurfaceVariation off, which keeps its own fixed ImpactSounds instead (the
+	/// Bazooka's explosion, notably: a rocket doesn't care whether the wall was concrete or wood).</summary>
+	public void PlayImpact(Vector3 worldPosition, SurfaceType surface)
 	{
-		if (_weapon == null || _weapon.ImpactSounds.Length == 0) return;
-		var stream = LoadStream(_weapon.ImpactSounds[_rng.RandiRange(0, _weapon.ImpactSounds.Length - 1)]);
-		SpawnOneShotAt(stream, worldPosition, unitSize: 6.0f);
+		if (_weapon == null) return;
+
+		if (!_weapon.ImpactUsesSurfaceVariation)
+		{
+			if (_weapon.ImpactSounds.Length == 0) return;
+			var fixedStream = LoadStream(_weapon.ImpactSounds[_rng.RandiRange(0, _weapon.ImpactSounds.Length - 1)]);
+			SpawnOneShotAt(fixedStream, worldPosition, unitSize: 6.0f);
+			return;
+		}
+
+		SpawnOneShotAt(LoadStream(PickSurfaceImpactPath(surface)), worldPosition, unitSize: 6.0f);
+
+		// A knife swing has no ricochet - only bullets deflect.
+		if (_weapon.WeaponClass == "Melee") return;
+		if (surface is SurfaceType.Wood or SurfaceType.Glass) return;
+		if (_rng.Randf() < RicochetChance)
+			SpawnOneShotAt(LoadStream(RicochetSound), worldPosition, unitSize: 6.0f);
 	}
+
+	private string PickSurfaceImpactPath(SurfaceType surface) => surface switch
+	{
+		SurfaceType.Metal => _rng.Randf() < 0.5f ? MetalImpactHeavySound : MetalImpactThickSound,
+		SurfaceType.Wood => WoodImpactSound,
+		SurfaceType.Glass => GlassImpactSound,
+		_ => WallImpactSound,
+	};
+
+	/// <summary>A bullet passing close to (but not hitting) a listener - "the whiz of a near miss".
+	/// Positioned at the closest point on the shot's path to that listener, not at the shooter or
+	/// the eventual impact, so the 3D falloff makes it loudest exactly where it actually passed
+	/// them.</summary>
+	public void PlayBulletFlyby(Vector3 worldPosition) =>
+		SpawnOneShotAt(LoadStream(BulletFlybySound), worldPosition, unitSize: 5.0f);
 
 	/// <summary>Plays the shared "hit a person" sound at the impact point - bullet or blade, any
 	/// weapon. Called from WeaponSwitcher over a broadcast RPC so every peer hears it, not just the
