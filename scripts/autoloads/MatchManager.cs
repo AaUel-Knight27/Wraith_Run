@@ -52,7 +52,7 @@ public partial class MatchManager : Node
     private float _elapsedSeconds;
     private bool _matchEnded;
 
-    public bool MatchEnded => _matchEnded;
+    public bool IsMatchEnded => _matchEnded;
     public int WinningTeam { get; private set; } = -1;
 
     public override void _Ready()
@@ -124,10 +124,10 @@ public partial class MatchManager : Node
         if (GameMode != Mode.TeamDeathmatch) return;
 
         int countAlpha = 0, countBravo = 0;
-        foreach (int team in _peerTeams.Values)
+        foreach (int assignedTeam in _peerTeams.Values)
         {
-            if (team == 0) countAlpha++;
-            else if (team == 1) countBravo++;
+            if (assignedTeam == 0) countAlpha++;
+            else if (assignedTeam == 1) countBravo++;
         }
         int team = countAlpha <= countBravo ? 0 : 1;
 

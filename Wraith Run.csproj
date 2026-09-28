@@ -4,5 +4,6 @@
     <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>WraithRun</RootNamespace>
+    <Nullable>annotations</Nullable>
   </PropertyGroup>
 </Project>

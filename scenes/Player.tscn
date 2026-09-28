@@ -13,8 +13,6 @@
 [ext_resource type="Script" uid="uid://bnk2rfyi00vdx" path="res://scripts/player/PlayerAudio.cs" id="12"]
 [ext_resource type="Script" uid="uid://c364gffy50o2t" path="res://scripts/debug/WeaponGripTuner.cs" id="13"]
 [ext_resource type="Script" uid="uid://cqvvj4h5cvx1x" path="res://scripts/player/TouchControls.cs" id="14"]
-[ext_resource type="Script" path="res://scripts/player/FirstPersonMp5Viewmodel.cs" id="15"]
-[ext_resource type="PackedScene" path="res://art/characters/fps_mp5_arms.glb" id="16"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.35
@@ -75,22 +73,12 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
 [node name="WeaponAttachment" type="Node3D" parent="Armature" unique_id=305083634]
 script = ExtResource("5")
-HiddenFromOwner = true
 
 [node name="Head" type="Node3D" parent="." unique_id=410578168]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="FirstPersonCamera" type="Camera3D" parent="Head" unique_id=250919579]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0052988976, 0.08884847, -0.15)
-
-[node name="FirstPersonMp5Viewmodel" parent="Head/FirstPersonCamera" unique_id=629111528 instance=ExtResource("16")]
-script = ExtResource("15")
-
-[node name="WeaponAttachment" type="Node3D" parent="Head/FirstPersonCamera/FirstPersonMp5Viewmodel" unique_id=2036414186]
-script = ExtResource("5")
-HandBoneFragment = "Hand.R"
-UseViewmodelGrip = true
-SkipAudio = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=755757165]
 

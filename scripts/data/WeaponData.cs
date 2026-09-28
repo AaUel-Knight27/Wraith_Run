@@ -136,4 +136,39 @@ public partial class WeaponData : Resource
 	/// <summary>Metres at which the fire sound falls to roughly half volume. Bigger weapons carry
 	/// further; melee should stay small.</summary>
 	[Export] public float FireAudioUnitSize { get; set; } = 12.0f;
+
+	// --- audio: realism (SoundManager.cs / WeaponSoundTuner.cs) -----------------------------
+	// See scripts/autoloads/SoundManager.cs for what these actually do. Tune live with the
+	// sound tuner (F6) rather than guessing numbers by hand.
+
+	/// <summary>Source loudness trim in dB at the FireAudioUnitSize reference distance. Keep
+	/// deltas small - the realism lever is UnitSize/MaxDistance, not this.</summary>
+	[Export] public float FireVolumeDb { get; set; } = 0.0f;
+
+	/// <summary>Hard cutoff in metres - past this the shot isn't spawned as an audible source at
+	/// all (silent AND free, no voice wasted). Should be well beyond FireAudioUnitSize.</summary>
+	[Export] public float FireMaxDistanceMeters { get; set; } = 120.0f;
+
+	/// <summary>Half-angle, in degrees, of the cone straight down the barrel that hears the shot
+	/// at full volume. 360 = omnidirectional (no cone). Real muzzle blast is louder in front of
+	/// and beside the gun than directly behind it.</summary>
+	[Export] public float FireEmissionAngleDegrees { get; set; } = 360.0f;
+
+	/// <summary>How many dB quieter the shot is heard from directly behind the muzzle vs on-axis.
+	/// Only matters when FireEmissionAngleDegrees is less than 360.</summary>
+	[Export] public float FireEmissionOffAxisAttenuationDb { get; set; } = -6.0f;
+
+	/// <summary>Whether this weapon's report ducks the Movement bus (footsteps/jump/land) through
+	/// the sidechain compressor on that bus. True for every firearm; false for the Karambit,
+	/// which is not loud enough in reality to mask anything.</summary>
+	[Export] public bool FireCanDuckMovement { get; set; } = true;
+
+	/// <summary>Whether a listener more than ~15 m away hears this shot's report delayed by
+	/// distance / speed-of-sound, the way real gunfire is a crack-then-boom past close range. On
+	/// for firearms, off for melee.</summary>
+	[Export] public bool FireReportDelayEnabled { get; set; } = true;
+
+	/// <summary>Whether impact sounds vary by surface (metal/wood/glass/wall). The Bazooka sets
+	/// this false so its explosion sound is never swapped out. Not read by any code yet.</summary>
+	[Export] public bool ImpactUsesSurfaceVariation { get; set; } = true;
 }

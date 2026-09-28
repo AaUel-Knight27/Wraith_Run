@@ -240,7 +240,10 @@
     <MESSAGE value="fix hud system, add sound system editor" />
     <MESSAGE value="added team death match game mode" />
     <MESSAGE value="sounds, camera, dev debug tools bug fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="sounds, camera, dev debug tools bug fix" />
+    <MESSAGE value="sound effects and rooms sound" />
+    <MESSAGE value="adding more sound effects and fixing sound effects" />
+    <MESSAGE value="adding and fps model to make the game more stable" />
+    <option name="LAST_COMMIT_MESSAGE" value="adding and fps model to make the game more stable" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
