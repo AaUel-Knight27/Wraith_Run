@@ -86,6 +86,32 @@ public partial class WeaponData : Resource
 		_ => WeaponClass != "Pistol" && WeaponClass != "Melee",
 	};
 
+	// ---------------------------------------------------------------------------------------
+	// First-person viewmodel grip (fps_mp5_arms.glb - see MP5_VIEWMODEL_README.md).
+	//
+	// The viewmodel's right hand ("Hand.R") is a completely different bone, on a completely
+	// different skeleton, than the world-model "righthand" bone GripPosition/GripRotationDegrees
+	// above are expressed in - a rifle held correctly on one will not sit right on the other. The
+	// two are independent on purpose: this weapon's WORLD-model grip (what other players and the
+	// third-person mesh see) is untouched by anything below.
+	//
+	// Same "adjustment on top of a default hold" pattern as LeftHandPosition/LeftHandRotationDegrees
+	// above: the default hold is where the viewmodel's own MP5 model's body bone ("Base") sits
+	// relative to Hand.R in mp5_idle, measured directly from the rig - so a weapon shaped roughly
+	// like the MP5 (any of the rifles) needs no numbers at all. A pistol or the knife will need a
+	// real adjustment. There is no F-key tuner for these yet (unlike GripPosition's WeaponGripTuner /
+	// F3): edit the two fields below directly on the weapon's .tres and re-run to see the result, or
+	// nudge FirstPersonMp5Viewmodel's ExtraPositionMeters/ExtraRotationDegrees live via the Scene
+	// dock's "Remote" tab for a quick global check (that offsets the whole viewmodel, every weapon,
+	// rather than one weapon - fold a per-weapon result back into the fields below afterward).
+	// ---------------------------------------------------------------------------------------
+
+	/// <summary>Viewmodel-hand offset from the default hold, in metres, in Hand.R's local frame.</summary>
+	[Export] public Vector3 ViewmodelGripPosition { get; set; } = Vector3.Zero;
+
+	/// <summary>Extra rotation of the viewmodel grip on top of the default hold, in degrees.</summary>
+	[Export] public Vector3 ViewmodelGripRotationDegrees { get; set; } = Vector3.Zero;
+
 	// --- ballistics -------------------------------------------------------------------------
 
 	/// <summary>Rays fired per trigger pull. 1 for everything except the shotgun.</summary>
@@ -98,19 +124,6 @@ public partial class WeaponData : Resource
 	/// ReloadTime is then the per-shell time rather than the whole magazine.</summary>
 	[Export] public bool ShellByShellReload { get; set; }
 
-	// --- first-person viewmodel grip ---------------------------------------------------------
-	// See MP5_VIEWMODEL_README.md. This weapon's WORLD-model grip (what other players and the
-	// third-person mesh see, via LeftHandPosition/LeftHandRotationDegrees above) is untouched by
-	// anything below - these two only nudge the local viewmodel arms' hold on top of their own
-	// default pose. No F-key tuner for these yet (unlike GripPosition's WeaponGripTuner / F3):
-	// edit the two fields directly on the weapon's .tres and re-run to see the result.
-
-	/// <summary>Viewmodel-hand offset from the default hold, in metres, in Hand.R's local frame.</summary>
-	[Export] public Vector3 ViewmodelGripPosition { get; set; } = Vector3.Zero;
-
-	/// <summary>Extra rotation of the viewmodel grip on top of the default hold, in degrees.</summary>
-	[Export] public Vector3 ViewmodelGripRotationDegrees { get; set; } = Vector3.Zero;
-
 	// --- audio ------------------------------------------------------------------------------
 	// Paths rather than AudioStream references, so a sound can be swapped by editing one string
 	// (or by dropping a new file at the same path) without touching any scene.
@@ -120,42 +133,7 @@ public partial class WeaponData : Resource
 	[Export] public string[] ImpactSounds { get; set; } = Array.Empty<string>();
 	[Export] public string EmptySound { get; set; } = string.Empty;
 
-	/// <summary>True (the default) means a geometry hit picks its impact sound from the surface
-	/// actually struck (metal/wood/glass/generic - see SurfaceType) instead of this weapon's own
-	/// ImpactSounds array. Set false for a weapon whose ImpactSounds is a deliberate, fixed sound
-	/// that has nothing to do with the surface material - the Bazooka's is an explosion, not a
-	/// bullet ping, and should play the same way whether it hits a wall or a crate.</summary>
-	[Export] public bool ImpactUsesSurfaceVariation { get; set; } = true;
-
 	/// <summary>Metres at which the fire sound falls to roughly half volume. Bigger weapons carry
 	/// further; melee should stay small.</summary>
 	[Export] public float FireAudioUnitSize { get; set; } = 12.0f;
-
-	// --- audio realism (SoundManager) --------------------------------------------------------
-	// Consumed by SoundManager.PlayWeaponFire for distance falloff, muzzle directionality and the
-	// speed-of-sound report delay, and mirrored live by WeaponSoundTuner (F6) for in-editor tuning.
-
-	/// <summary>Mix-level trim on top of the clip's own recorded loudness. 0 = unchanged.</summary>
-	[Export] public float FireVolumeDb { get; set; }
-
-	/// <summary>Distance in metres beyond which the fire sound is treated as inaudible.</summary>
-	[Export] public float FireMaxDistanceMeters { get; set; } = 120.0f;
-
-	/// <summary>Half-angle of the forward-facing loud cone, in degrees. 360 (or anything >= 360)
-	/// disables directionality entirely and the shot is heard equally from any angle.</summary>
-	[Export] public float FireEmissionAngleDegrees { get; set; } = 360.0f;
-
-	/// <summary>How much quieter (in dB, so negative) the shot sounds to a listener outside the
-	/// emission cone - e.g. behind the shooter rather than downrange. Only applied when
-	/// FireEmissionAngleDegrees is directional.</summary>
-	[Export] public float FireEmissionOffAxisAttenuationDb { get; set; } = -6.0f;
-
-	/// <summary>Whether this weapon's fire briefly ducks the Movement bus, so footsteps and cloth
-	/// don't mask the shot. Melee and quiet weapons should leave this off.</summary>
-	[Export] public bool FireCanDuckMovement { get; set; } = true;
-
-	/// <summary>Whether a distant shot's audio is delayed to arrive at roughly the speed of sound,
-	/// rather than instantly. Off for anything meant to always read as immediate (melee, pistols
-	/// at typical engagement range).</summary>
-	[Export] public bool FireReportDelayEnabled { get; set; } = true;
 }

@@ -22,20 +22,6 @@ public partial class WeaponSwitcher : Node
 	private const float MaxRange = 500.0f;
 	private const float MeleeRange = 2.5f;
 
-	/// <summary>Every live player is added to this group in PlayerMovement._Ready() - the same
-	/// pattern GameWorld's own "spawn_point" group already uses. Lets a hitscan shot find every
-	/// OTHER player on the map without the map or the match system having to hand it a list.</summary>
-	private const string PlayersGroup = "players";
-
-	/// <summary>How close (metres, perpendicular distance) a shot has to pass a bystander's head to
-	/// read as a "whiz by" rather than just an unheard miss.</summary>
-	private const float FlybyMissRadius = 1.4f;
-
-	/// <summary>Skip the flyby check within this distance of the muzzle - a near-miss at
-	/// point-blank doesn't read as a "whiz", it reads as barely missing at all, and it would
-	/// otherwise fire constantly in a close-range duel.</summary>
-	private const float FlybyMinDistanceFromShooter = 2.5f;
-
 	/// <summary>Radius of the sphere around the Head node that counts as a head hit. The player rig
 	/// is a single capsule, so the head zone is a geometric test against the live Head position
 	/// rather than a separate hitbox.</summary>
@@ -67,7 +53,6 @@ public partial class WeaponSwitcher : Node
 	private PlayerAnimationController? _animation;
 	private RotationWindowTracker _rotationWindow = null!;
 	private Health? _health;
-	private CharacterLoadout? _loadout;
 	private AudioStreamPlayer? _hitMarker;
 	private readonly RandomNumberGenerator _rng = new();
 
@@ -119,7 +104,6 @@ public partial class WeaponSwitcher : Node
 		_camera = GetNode<Camera3D>("../Head/FirstPersonCamera");
 		_rotationWindow = GetNode<RotationWindowTracker>("../RotationWindow");
 		_health = GetNodeOrNull<Health>("../Health");
-		_loadout = GetNodeOrNull<CharacterLoadout>("../CharacterLoadout");
 		_animation = GetNodeOrNull<PlayerAnimationController>("../AnimationController");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
 
@@ -136,14 +120,6 @@ public partial class WeaponSwitcher : Node
 
 		for (int i = 0; i < Loadout.Length; i++)
 			if (Input.IsActionJustPressed($"weapon_{i + 1}")) ReplicatedWeaponIndex = i;
-
-		// Controller-friendly cycling (shoulder buttons - see SettingsManager's controller
-		// bindings). Nothing on keyboard/mouse drives these: a controller is the only input
-		// device without enough face buttons for eight direct weapon_N presses.
-		if (Input.IsActionJustPressed("weapon_cycle_next"))
-			ReplicatedWeaponIndex = (_appliedWeaponIndex + 1) % Loadout.Length;
-		if (Input.IsActionJustPressed("weapon_cycle_prev"))
-			ReplicatedWeaponIndex = (_appliedWeaponIndex - 1 + Loadout.Length) % Loadout.Length;
 
 		if (_health != null && _health.IsDead) return;
 
@@ -209,10 +185,11 @@ public partial class WeaponSwitcher : Node
 		if (!infiniteAmmo && _currentAmmo <= 0)
 		{
 			// Dry fire: a click and a rate limit, so holding the trigger on an empty mag does not
-			// spam. Only auto-reload if a reload is not already running.
+			// spam. Only auto-reload if a reload is not already running, and only if there's
+			// reserve ammo left to pull from - otherwise this is just "out of ammo".
 			_attachment.PlayEmpty();
 			_cooldownRemaining = 0.35f;
-			if (_reloadRemaining <= 0.0f) StartReload();
+			if (_reloadRemaining <= 0.0f && _currentReserve > 0) StartReload();
 			return;
 		}
 
@@ -245,9 +222,12 @@ public partial class WeaponSwitcher : Node
 	public void RpcFireEffects()
 	{
 		_attachment.PlayFire();
-		_viewmodelAttachment?.PlayFire();
-		_viewmodel?.PlayShoot();
 		_animation?.PlayFire();
+		_viewmodel?.PlayShoot();
+		// Flash only: SkipAudio on this attachment (set in Player.tscn) means _fireAudio is null, so
+		// this plays nothing but the muzzle flash, positioned at the viewmodel's own barrel instead
+		// of at the (now-hidden, see HiddenFromOwner) world model's.
+		_viewmodelAttachment?.PlayFire();
 	}
 
 	/// <summary>Reload audio and animation. Reliable, unlike fire: a dropped reload would leave a
@@ -257,9 +237,8 @@ public partial class WeaponSwitcher : Node
 	public void RpcReloadEffects()
 	{
 		_attachment.PlayReload();
-		_viewmodelAttachment?.PlayReload();
-		_viewmodel?.PlayReload();
 		_animation?.PlayReload();
+		_viewmodel?.PlayReload();
 	}
 
 	/// <summary>
@@ -273,9 +252,6 @@ public partial class WeaponSwitcher : Node
 		float horizontal = _rng.RandfRange(-_currentWeapon.RecoilHorizontal, _currentWeapon.RecoilHorizontal);
 		// Aiming down sights cuts the kick roughly in half, which is the usual reason to ADS at all.
 		float multiplier = _movement.IsAiming ? 0.5f : 1.0f;
-		// Operator recoil perks (CharacterEffectIds.WeaponRecoilMult). No operator equipped, or the
-		// node missing entirely -> GetModifier returns 1.0 -> unchanged.
-		multiplier *= _loadout?.GetModifier(CharacterEffectIds.WeaponRecoilMult, 1.0f) ?? 1.0f;
 		_movement.AddRecoil(_currentWeapon.RecoilVertical * multiplier, horizontal * multiplier,
 			_currentWeapon.RecoilRecoveryMs);
 	}
@@ -292,31 +268,20 @@ public partial class WeaponSwitcher : Node
 		var query = PhysicsRayQueryParameters3D.Create(from, to,
 			exclude: new Godot.Collections.Array<Rid> { _player.GetRid() });
 		var result = _player.GetWorld3D().DirectSpaceState.IntersectRay(query);
-
-		Node? hitCollider = result.Count > 0 ? result["collider"].As<Node>() : null;
-		Vector3 rayEnd = result.Count > 0 ? (Vector3)result["position"] : to;
-		// A blade has no "whiz by" - only a fired round does. Checked against the ray's actual end
-		// (the impact point when something was hit, otherwise the full range) so a clean miss can
-		// still buzz a bystander standing beyond whatever the shot eventually hit, if anything.
-		if (!melee) CheckBulletFlybys(from, rayEnd, hitCollider);
-
 		if (result.Count == 0) return;
 
-		var impactPoint = rayEnd;
+		var impactPoint = (Vector3)result["position"];
 
-		if (hitCollider is not CharacterBody3D body)
+		if (result["collider"].As<Node>() is not CharacterBody3D body)
 		{
 			// Geometry hit: no damage, but the impact is what tells the shooter where the round
-			// actually went, which matters a lot once spread is in play. Broadcast, like the flesh
-			// impact below - a bullet cracking into a wall or a shipping container near someone is
-			// something they should hear too, not just the shooter.
-			Rpc(MethodName.RpcSurfaceImpact, impactPoint, (int)SurfaceClassifier.Classify(hitCollider));
+			// actually went, which matters a lot once spread is in play.
+			_attachment.PlayImpact(impactPoint);
 			return;
 		}
 
 		var targetHealth = body.GetNodeOrNull<Health>("Health");
 		if (targetHealth == null || targetHealth == _health) return;
-		if (IsFriendlyTarget(targetHealth)) return;
 
 		// Head zone first: it decides both the damage (FR-WP-05 uses the weapon's own stat) and the
 		// headshot style bonus.
@@ -337,76 +302,11 @@ public partial class WeaponSwitcher : Node
 		PlayHitMarker();
 	}
 
-	/// <summary>True when Friendly Fire is off and the hit target is a Team Deathmatch teammate.
-	/// This is a client-side courtesy skip only, so a friendly hit gives no hit-marker feedback -
-	/// Health.ReceiveDamage enforces the same rule again on the victim's own authoritative device,
-	/// which is the check that actually matters.</summary>
-	private bool IsFriendlyTarget(Health targetHealth)
-	{
-		MatchManager? match = MatchManager.Instance;
-		if (match == null || match.FriendlyFire) return false;
-		return match.AreTeammates(_player.GetMultiplayerAuthority(), targetHealth.GetMultiplayerAuthority());
-	}
-
 	/// <summary>The shared "hit a person" sound, broadcast from the shooter's hitscan result to
 	/// every peer including itself.</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
 		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
 	public void RpcFleshImpact(Vector3 worldPosition) => _attachment.PlayFleshImpact(worldPosition);
-
-	/// <summary>A bullet hitting geometry (not a person) - surfaceType is a cast SurfaceType, sent
-	/// as an int the same way styleFlags already rides a KillStyle through Health.ReceiveDamage's
-	/// RPC. Broadcast for the same reason RpcFleshImpact is: everyone nearby should hear a shot
-	/// crack into a wall or a shipping container, not just the shooter.</summary>
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
-		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-	public void RpcSurfaceImpact(Vector3 worldPosition, int surfaceType) =>
-		_attachment.PlayImpact(worldPosition, (SurfaceType)surfaceType);
-
-	/// <summary>A shot that passed close to (but did not hit) this bystander. Broadcast rather than
-	/// targeted at just the near-missed player - it is a positional one-shot like every other impact
-	/// sound here, so ordinary 3D falloff already makes it loud for whoever it actually passed and
-	/// faint or inaudible for everyone else.</summary>
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
-		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-	public void RpcBulletFlyby(Vector3 worldPosition) => _attachment.PlayBulletFlyby(worldPosition);
-
-	/// <summary>Checks every other living player against the shot's actual path (from the muzzle to
-	/// wherever it ended up - an impact point, or the full range on a clean miss) and broadcasts a
-	/// flyby one-shot near anyone the ray passed close to. hitCollider is whoever/whatever the shot
-	/// actually landed on, if anything - excluded here so the player who was actually hit gets the
-	/// impact/hit-marker feedback instead of a redundant "near miss" whiz.</summary>
-	private void CheckBulletFlybys(Vector3 from, Vector3 rayEnd, Node? hitCollider)
-	{
-		foreach (Node node in GetTree().GetNodesInGroup(PlayersGroup))
-		{
-			if (node is not CharacterBody3D otherPlayer || otherPlayer == _player) continue;
-			if (hitCollider == otherPlayer) continue;
-
-			var otherHealth = otherPlayer.GetNodeOrNull<Health>("Health");
-			if (otherHealth == null || otherHealth.IsDead) continue;
-
-			// Rough head height rather than the capsule's origin (feet) - a shot passing at ankle
-			// height twenty centimetres away should not "whiz" past someone's ear.
-			Vector3 ear = otherPlayer.GlobalPosition + Vector3.Up * 1.5f;
-			Vector3 closest = ClosestPointOnSegment(from, rayEnd, ear);
-			if ((closest - from).Length() < FlybyMinDistanceFromShooter) continue;
-			if ((closest - ear).Length() > FlybyMissRadius) continue;
-
-			Rpc(MethodName.RpcBulletFlyby, closest);
-		}
-	}
-
-	/// <summary>Closest point on segment a-b to point p, clamped to the segment (not the infinite
-	/// line) - a shot's near-miss check should never register past where the round actually stops.</summary>
-	private static Vector3 ClosestPointOnSegment(Vector3 a, Vector3 b, Vector3 p)
-	{
-		Vector3 ab = b - a;
-		float lengthSquared = ab.LengthSquared();
-		if (lengthSquared < 0.0001f) return a;
-		float t = Mathf.Clamp((p - a).Dot(ab) / lengthSquared, 0.0f, 1.0f);
-		return a + ab * t;
-	}
 
 	/// <summary>Scatters a direction inside a cone. Uniform over the disc rather than over the
 	/// angle, so a shotgun pattern does not clump in the middle.</summary>
@@ -439,7 +339,6 @@ public partial class WeaponSwitcher : Node
 	private KillStyle CaptureKillStyle(bool headshot, bool melee)
 	{
 		KillStyle styles = headshot ? KillStyle.Headshot : KillStyle.None;
-		if (melee) styles |= KillStyle.Melee;
 		if (!melee)
 		{
 			// IsAiming, not "State == Aim". Aim stopped being a movement state when ADS was pulled
@@ -499,7 +398,7 @@ public partial class WeaponSwitcher : Node
 	{
 		var stream = ResourceLoader.Load<AudioStream>(path);
 		if (stream == null) return null;
-		var player = new AudioStreamPlayer { Name = "HitMarker", Stream = stream, VolumeDb = -4.0f, Bus = "UI" };
+		var player = new AudioStreamPlayer { Name = "HitMarker", Stream = stream, VolumeDb = -4.0f };
 		parent.AddChild(player);
 		return player;
 	}
