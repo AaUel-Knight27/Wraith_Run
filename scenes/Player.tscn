@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://c364gffy50o2t" path="res://scripts/debug/WeaponGripTuner.cs" id="13"]
 [ext_resource type="Script" uid="uid://cqvvj4h5cvx1x" path="res://scripts/player/TouchControls.cs" id="14"]
 [ext_resource type="Script" path="res://scripts/debug/CharacterRigTuner.cs" id="15"]
+[ext_resource type="Script" path="res://scripts/debug/WeaponSoundTuner.cs" id="16"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.35
@@ -106,6 +107,9 @@ script = ExtResource("13")
 
 [node name="CharacterRigTuner" type="Node" parent="."]
 script = ExtResource("15")
+
+[node name="WeaponSoundTuner" type="Node" parent="."]
+script = ExtResource("16")
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1596748861]
 script = ExtResource("9")

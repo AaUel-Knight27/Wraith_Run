@@ -9,11 +9,12 @@ using System.Linq;
 /// Static on purpose, same reasoning as AnimationTuning: there is one calibration for every player in
 /// the process, including remote copies, because everyone shares the same manny.glb rig.
 ///
-/// SHAPE: overrides are grouped by PoseMode (Idle, Crouch, Aim, Fire, ...), and a special "Global"
-/// mode acts as the base layer every other mode falls back to. CharacterRigOverrideModifier and
-/// CharacterRigCameraScaleApplier (CharacterRigApplier.cs) read this every frame and pick, for each
-/// bone/camera/scale target, the most specific mode that is both CURRENTLY ACTIVE for that player and
-/// actually defines that target - see ActiveLayersHighToLow.
+/// SHAPE: overrides are keyed by (PoseMode, weapon). PoseMode has a "Global" fallback every other
+/// mode falls back to; weapon has an "AnyWeapon" fallback every specific weapon falls back to. So a
+/// bone/camera/scale target checks, in order: this mode + this weapon, this mode + any weapon, then
+/// repeats for each less-specific mode down to Global + any weapon. CharacterRigOverrideModifier and
+/// CharacterRigCameraScaleApplier (CharacterRigApplier.cs) read this every frame and apply whichever
+/// of those is the first one actually defined - see ActiveLayerKeysHighToLow.
 ///
 /// UNITS: bone position offsets and camera position offsets are metres, matching every other tunable
 /// number in this project (WeaponData, LeftHandIk). Bone positions are stored in metres here even
@@ -22,14 +23,20 @@ using System.Linq;
 /// Rotations are degrees. Scale is a plain multiplier (1.0 = unchanged).
 ///
 /// PERMANENCE: LoadDefaults() is the paste target. The Character Rig Editor's "Copy / Print ALL"
-/// button builds exactly the SetBone/SetCamera/SetCharacterScale lines that belong inside it. Paste
-/// them in and the calibration ships in release builds - nothing about applying it is debug-only,
-/// only the live editor UI is. Until you paste something, every lookup here falls through to the
-/// identity default and nothing changes from today's behaviour.
+/// button builds exactly the SetBone/SetCamera/SetCharacterScale lines that belong inside it - weapon
+/// is a trailing optional argument, omitted when it's AnyWeapon, so untouched weapon-agnostic tuning
+/// prints exactly as it did before this axis existed. Paste the lines in and the calibration ships in
+/// release builds - nothing about applying it is debug-only, only the live editor UI is. Until you
+/// paste something, every lookup here falls through to the identity default and nothing changes from
+/// today's behaviour.
 /// </summary>
 public static class CharacterRigTuning
 {
 	private const string SavePath = "user://character_rig_tuning.cfg";
+
+	/// <summary>The weapon-scope wildcard: "apply regardless of which weapon (or no weapon) is
+	/// equipped". A real WeaponData.WeaponName is never expected to equal this.</summary>
+	public const string AnyWeapon = "*";
 
 	/// <summary>
 	/// Global is the fallback layer, always considered. The eight movement modes share their names
@@ -66,21 +73,27 @@ public static class CharacterRigTuning
 		public readonly bool IsIdentity => PositionOffset == Vector3.Zero && RotationOffsetDegrees == Vector3.Zero;
 	}
 
-	private static readonly Dictionary<PoseMode, Dictionary<string, BoneOverride>> BoneOverrides = new();
-	private static readonly Dictionary<PoseMode, CameraOverride> CameraOverrides = new();
-	private static readonly Dictionary<PoseMode, float> CharacterScaleOverrides = new();
+	// Keyed by (mode, weapon) rather than mode alone - see the class comment's SHAPE paragraph. A
+	// plain ValueTuple key works fine as a Dictionary key (structural equality/hashing built in) and
+	// keeps every existing per-mode dictionary shape otherwise unchanged.
+	private static readonly Dictionary<(PoseMode Mode, string Weapon), Dictionary<string, BoneOverride>> BoneOverrides = new();
+	private static readonly Dictionary<(PoseMode Mode, string Weapon), CameraOverride> CameraOverrides = new();
+	private static readonly Dictionary<(PoseMode Mode, string Weapon), float> CharacterScaleOverrides = new();
 
 	private static bool _loaded;
 
 	// -------------------------------------------------------------------------------------------
-	// Reading/writing overrides - used by the applier (read-only) and the editor (read + write)
+	// Reading/writing overrides - used by the applier (read-only) and the editor (read + write).
+	// weapon defaults to AnyWeapon on every convenience method, so code that doesn't care about
+	// per-weapon tuning (or predates this axis) reads exactly as it always did.
 	// -------------------------------------------------------------------------------------------
 
 	public static void SetBone(PoseMode mode, string boneName, Vector3 positionOffset,
-		Vector3 rotationOffsetDegrees, float scaleMultiplier)
+		Vector3 rotationOffsetDegrees, float scaleMultiplier, string weapon = AnyWeapon)
 	{
-		if (!BoneOverrides.TryGetValue(mode, out var bones))
-			BoneOverrides[mode] = bones = new Dictionary<string, BoneOverride>();
+		var key = (mode, weapon);
+		if (!BoneOverrides.TryGetValue(key, out var bones))
+			BoneOverrides[key] = bones = new Dictionary<string, BoneOverride>();
 		bones[boneName] = new BoneOverride
 		{
 			PositionOffset = positionOffset,
@@ -89,52 +102,55 @@ public static class CharacterRigTuning
 		};
 	}
 
-	public static BoneOverride GetBone(PoseMode mode, string boneName) =>
-		TryGetBone(mode, boneName, out var ov) ? ov : BoneOverride.Identity;
+	public static BoneOverride GetBone(PoseMode mode, string boneName, string weapon = AnyWeapon) =>
+		TryGetBone(mode, boneName, weapon, out var ov) ? ov : BoneOverride.Identity;
 
-	/// <summary>True only if <paramref name="mode"/> has an EXPLICIT entry for this bone - distinct
-	/// from GetBone's fallback-to-identity, so a deliberate "reset to identity in this one mode" can
-	/// still outrank a lower-priority mode that has a real (non-identity) override for the same bone.
-	/// This is what CharacterRigOverrideModifier's layering actually walks.</summary>
-	public static bool TryGetBone(PoseMode mode, string boneName, out BoneOverride ov)
+	/// <summary>True only if (<paramref name="mode"/>, <paramref name="weapon"/>) has an EXPLICIT
+	/// entry for this bone - distinct from GetBone's fallback-to-identity, so a deliberate "reset to
+	/// identity for this mode+weapon" can still outrank a less-specific entry for the same bone. This
+	/// is what CharacterRigOverrideModifier's layering actually walks, once per key ActiveLayerKeysHighToLow yields.</summary>
+	public static bool TryGetBone(PoseMode mode, string boneName, string weapon, out BoneOverride ov)
 	{
-		if (BoneOverrides.TryGetValue(mode, out var bones) && bones.TryGetValue(boneName, out ov)) return true;
+		if (BoneOverrides.TryGetValue((mode, weapon), out var bones) && bones.TryGetValue(boneName, out ov)) return true;
 		ov = BoneOverride.Identity;
 		return false;
 	}
 
-	public static void ClearBone(PoseMode mode, string boneName)
+	public static void ClearBone(PoseMode mode, string boneName, string weapon = AnyWeapon)
 	{
-		if (BoneOverrides.TryGetValue(mode, out var bones)) bones.Remove(boneName);
+		if (BoneOverrides.TryGetValue((mode, weapon), out var bones)) bones.Remove(boneName);
 	}
 
-	public static void SetCamera(PoseMode mode, Vector3 positionOffset, Vector3 rotationOffsetDegrees) =>
-		CameraOverrides[mode] = new CameraOverride
+	public static void SetCamera(PoseMode mode, Vector3 positionOffset, Vector3 rotationOffsetDegrees, string weapon = AnyWeapon) =>
+		CameraOverrides[(mode, weapon)] = new CameraOverride
 		{
 			PositionOffset = positionOffset,
 			RotationOffsetDegrees = rotationOffsetDegrees,
 		};
 
-	public static CameraOverride GetCamera(PoseMode mode) =>
-		TryGetCamera(mode, out var ov) ? ov : CameraOverride.Identity;
+	public static CameraOverride GetCamera(PoseMode mode, string weapon = AnyWeapon) =>
+		TryGetCamera(mode, weapon, out var ov) ? ov : CameraOverride.Identity;
 
 	/// <summary>Presence check, same reasoning as TryGetBone.</summary>
-	public static bool TryGetCamera(PoseMode mode, out CameraOverride ov) => CameraOverrides.TryGetValue(mode, out ov);
+	public static bool TryGetCamera(PoseMode mode, string weapon, out CameraOverride ov) =>
+		CameraOverrides.TryGetValue((mode, weapon), out ov);
 
-	public static void ClearCamera(PoseMode mode) => CameraOverrides.Remove(mode);
+	public static void ClearCamera(PoseMode mode, string weapon = AnyWeapon) => CameraOverrides.Remove((mode, weapon));
 
-	public static void SetCharacterScale(PoseMode mode, float scale) => CharacterScaleOverrides[mode] = scale;
+	public static void SetCharacterScale(PoseMode mode, float scale, string weapon = AnyWeapon) =>
+		CharacterScaleOverrides[(mode, weapon)] = scale;
 
-	public static float GetCharacterScale(PoseMode mode) =>
-		TryGetScale(mode, out var s) ? s : 1.0f;
+	public static float GetCharacterScale(PoseMode mode, string weapon = AnyWeapon) =>
+		TryGetScale(mode, weapon, out var s) ? s : 1.0f;
 
 	/// <summary>Presence check, same reasoning as TryGetBone.</summary>
-	public static bool TryGetScale(PoseMode mode, out float scale) => CharacterScaleOverrides.TryGetValue(mode, out scale);
+	public static bool TryGetScale(PoseMode mode, string weapon, out float scale) =>
+		CharacterScaleOverrides.TryGetValue((mode, weapon), out scale);
 
-	public static void ClearCharacterScale(PoseMode mode) => CharacterScaleOverrides.Remove(mode);
+	public static void ClearCharacterScale(PoseMode mode, string weapon = AnyWeapon) => CharacterScaleOverrides.Remove((mode, weapon));
 
-	/// <summary>Every bone name that has an override in ANY mode - what the editor's target list
-	/// badges as "already tuned" and what a per-bone lookup below has to consider.</summary>
+	/// <summary>Every bone name that has an override under ANY (mode, weapon) key - what the editor's
+	/// target list badges as "already tuned" and what a per-bone lookup below has to consider.</summary>
 	public static IEnumerable<string> TunedBoneNames() =>
 		BoneOverrides.Values.SelectMany(d => d.Keys).Distinct();
 
@@ -143,11 +159,12 @@ public static class CharacterRigTuning
 	// -------------------------------------------------------------------------------------------
 
 	/// <summary>
-	/// Ordered highest-to-lowest priority. The FIRST mode in this sequence that actually defines a
-	/// given bone/camera/scale wins for that target this frame; Global is always last, so it is what
-	/// you get when nothing more specific has been tuned. Fire and Reload outrank Aim (you can aim
-	/// while firing, but the shot itself is the more specific thing happening), which outranks the
-	/// movement state, which outranks Global.
+	/// Ordered highest-to-lowest priority BY MODE ALONE. The FIRST mode in this sequence that
+	/// actually defines a given bone/camera/scale (at whatever weapon key - see
+	/// ActiveLayerKeysHighToLow) wins for that target this frame; Global is always last, so it is
+	/// what you get when nothing more specific has been tuned. Fire and Reload outrank Aim (you can
+	/// aim while firing, but the shot itself is the more specific thing happening), which outranks
+	/// the movement state, which outranks Global.
 	///
 	/// Reads PlayerMovement.State directly on the authority (the only place it is actually kept up to
 	/// date - see PlayerMovement's own class comment) and ReplicatedMovementState/ReplicatedAimState
@@ -168,6 +185,25 @@ public static class CharacterRigTuning
 		yield return moveMode;
 
 		yield return PoseMode.Global;
+	}
+
+	/// <summary>
+	/// The full lookup order, mode AND weapon together: for each mode from ActiveLayersHighToLow,
+	/// yield (mode, the currently equipped weapon's name) before (mode, AnyWeapon) - so a Glock-only
+	/// Aim entry outranks a weapon-agnostic Aim entry, which outranks a Fire entry (wrong mode), and
+	/// so on down to (Global, AnyWeapon), which is what you get if nothing at all has been tuned.
+	/// <paramref name="weaponName"/> is null/empty/AnyWeapon when no weapon is equipped (or the
+	/// caller doesn't track one) - in which case only the AnyWeapon half of each pair is yielded.
+	/// </summary>
+	public static IEnumerable<(PoseMode Mode, string Weapon)> ActiveLayerKeysHighToLow(
+		PlayerMovement movement, PlayerAnimationController controller, string? weaponName)
+	{
+		bool hasSpecificWeapon = !string.IsNullOrEmpty(weaponName) && weaponName != AnyWeapon;
+		foreach (PoseMode mode in ActiveLayersHighToLow(movement, controller))
+		{
+			if (hasSpecificWeapon) yield return (mode, weaponName!);
+			yield return (mode, AnyWeapon);
+		}
 	}
 
 	// -------------------------------------------------------------------------------------------
@@ -201,8 +237,9 @@ public static class CharacterRigTuning
 	/// <summary>
 	/// THE PASTE TARGET. Run the game, open the Character Rig Editor (F2), tune whatever you want,
 	/// press "Copy / Print ALL", and paste the lines it gives you here. Empty until you have pasted
-	/// something - every lookup above quietly falls through to Global/identity until then, so this
-	/// system does nothing at all to the game unless you have actually tuned something and pasted it.
+	/// something - every lookup above quietly falls through to Global/AnyWeapon/identity until then,
+	/// so this system does nothing at all to the game unless you have actually tuned something and
+	/// pasted it.
 	/// </summary>
 	private static void LoadDefaults()
 	{
@@ -216,32 +253,41 @@ public static class CharacterRigTuning
 
 	/// <summary>The current values as C# lines, ready to paste into LoadDefaults() above. Skips
 	/// anything that is still at its identity value, so re-running this after a session that touched
-	/// ten bones but only actually changed three prints exactly three lines.</summary>
+	/// ten bones but only actually changed three prints exactly three lines. A weapon-scoped entry
+	/// prints with a trailing weapon argument; an AnyWeapon entry omits it, so lines from before this
+	/// axis existed and lines that never used it look exactly the same as they always did.</summary>
 	public static string ToSourceLines()
 	{
 		var sb = new System.Text.StringBuilder();
-		foreach (PoseMode mode in Enum.GetValues<PoseMode>())
+		var keys = BoneOverrides.Keys.Concat(CameraOverrides.Keys).Concat(CharacterScaleOverrides.Keys)
+			.Distinct()
+			.OrderBy(k => k.Mode)
+			.ThenBy(k => k.Weapon == AnyWeapon ? "" : k.Weapon, StringComparer.Ordinal);
+
+		foreach (var key in keys)
 		{
-			if (BoneOverrides.TryGetValue(mode, out var bones))
+			string weaponArg = key.Weapon == AnyWeapon ? "" : $", \"{key.Weapon}\"";
+
+			if (BoneOverrides.TryGetValue(key, out var bones))
 			{
 				foreach (var name in bones.Keys.OrderBy(n => n, StringComparer.Ordinal))
 				{
 					var ov = bones[name];
 					if (ov.IsIdentity) continue;
-					sb.Append($"SetBone(PoseMode.{mode}, \"{name}\", ")
+					sb.Append($"SetBone(PoseMode.{key.Mode}, \"{name}\", ")
 						.Append($"new Vector3({F(ov.PositionOffset.X)}f, {F(ov.PositionOffset.Y)}f, {F(ov.PositionOffset.Z)}f), ")
 						.Append($"new Vector3({F(ov.RotationOffsetDegrees.X)}f, {F(ov.RotationOffsetDegrees.Y)}f, {F(ov.RotationOffsetDegrees.Z)}f), ")
-						.Append($"{F(ov.ScaleMultiplier)}f);\n");
+						.Append($"{F(ov.ScaleMultiplier)}f{weaponArg});\n");
 				}
 			}
-			if (CameraOverrides.TryGetValue(mode, out var cam) && !cam.IsIdentity)
+			if (CameraOverrides.TryGetValue(key, out var cam) && !cam.IsIdentity)
 			{
-				sb.Append($"SetCamera(PoseMode.{mode}, ")
+				sb.Append($"SetCamera(PoseMode.{key.Mode}, ")
 					.Append($"new Vector3({F(cam.PositionOffset.X)}f, {F(cam.PositionOffset.Y)}f, {F(cam.PositionOffset.Z)}f), ")
-					.Append($"new Vector3({F(cam.RotationOffsetDegrees.X)}f, {F(cam.RotationOffsetDegrees.Y)}f, {F(cam.RotationOffsetDegrees.Z)}f));\n");
+					.Append($"new Vector3({F(cam.RotationOffsetDegrees.X)}f, {F(cam.RotationOffsetDegrees.Y)}f, {F(cam.RotationOffsetDegrees.Z)}f){weaponArg});\n");
 			}
-			if (CharacterScaleOverrides.TryGetValue(mode, out float scale) && !Mathf.IsEqualApprox(scale, 1.0f))
-				sb.Append($"SetCharacterScale(PoseMode.{mode}, {F(scale)}f);\n");
+			if (CharacterScaleOverrides.TryGetValue(key, out float scale) && !Mathf.IsEqualApprox(scale, 1.0f))
+				sb.Append($"SetCharacterScale(PoseMode.{key.Mode}, {F(scale)}f{weaponArg});\n");
 		}
 		return sb.ToString();
 	}
@@ -253,7 +299,9 @@ public static class CharacterRigTuning
 	}
 
 	// -------------------------------------------------------------------------------------------
-	// Debug-only session persistence (survives a restart mid-tuning-session; not shipped)
+	// Debug-only session persistence (survives a restart mid-tuning-session; not shipped).
+	// Weapon is folded into the key text with a "::" separator so the common AnyWeapon case keeps
+	// looking exactly like it did before this axis existed; a key with no "::" is read as AnyWeapon.
 	// -------------------------------------------------------------------------------------------
 
 	public static void Save()
@@ -262,21 +310,29 @@ public static class CharacterRigTuning
 		var config = new ConfigFile();
 		foreach (var pair in BoneOverrides)
 		{
-			string section = "bones_" + pair.Key;
+			string section = "bones_" + pair.Key.Mode;
+			string namePrefix = pair.Key.Weapon == AnyWeapon ? "" : pair.Key.Weapon + "::";
 			foreach (var bonePair in pair.Value)
 			{
-				config.SetValue(section, bonePair.Key + ".pos", bonePair.Value.PositionOffset);
-				config.SetValue(section, bonePair.Key + ".rot", bonePair.Value.RotationOffsetDegrees);
-				config.SetValue(section, bonePair.Key + ".scale", bonePair.Value.ScaleMultiplier);
+				string name = namePrefix + bonePair.Key;
+				config.SetValue(section, name + ".pos", bonePair.Value.PositionOffset);
+				config.SetValue(section, name + ".rot", bonePair.Value.RotationOffsetDegrees);
+				config.SetValue(section, name + ".scale", bonePair.Value.ScaleMultiplier);
 			}
 		}
 		foreach (var pair in CameraOverrides)
 		{
-			config.SetValue("camera", pair.Key + ".pos", pair.Value.PositionOffset);
-			config.SetValue("camera", pair.Key + ".rot", pair.Value.RotationOffsetDegrees);
+			// Same "<weapon>::<name>" convention as the bones section above (weapon first) so
+			// SplitWeapon below can parse all three sections the same way.
+			string name = pair.Key.Weapon == AnyWeapon ? pair.Key.Mode.ToString() : $"{pair.Key.Weapon}::{pair.Key.Mode}";
+			config.SetValue("camera", name + ".pos", pair.Value.PositionOffset);
+			config.SetValue("camera", name + ".rot", pair.Value.RotationOffsetDegrees);
 		}
 		foreach (var pair in CharacterScaleOverrides)
-			config.SetValue("scale", pair.Key.ToString(), pair.Value);
+		{
+			string name = pair.Key.Weapon == AnyWeapon ? pair.Key.Mode.ToString() : $"{pair.Key.Weapon}::{pair.Key.Mode}";
+			config.SetValue("scale", name, pair.Value);
+		}
 		config.Save(SavePath);
 	}
 
@@ -295,46 +351,61 @@ public static class CharacterRigTuning
 		{
 			if (section == "camera")
 			{
-				var names = SectionModeNames(config, section);
-				foreach (string modeName in names)
+				foreach (string combined in SectionNames(config, section))
 				{
+					var (modeName, weapon) = SplitWeapon(combined);
 					if (!Enum.TryParse(modeName, out PoseMode mode)) continue;
-					Vector3 pos = GetVector3(config, section, modeName + ".pos");
-					Vector3 rot = GetVector3(config, section, modeName + ".rot");
-					CameraOverrides[mode] = new CameraOverride { PositionOffset = pos, RotationOffsetDegrees = rot };
+					Vector3 pos = GetVector3(config, section, combined + ".pos");
+					Vector3 rot = GetVector3(config, section, combined + ".rot");
+					CameraOverrides[(mode, weapon)] = new CameraOverride { PositionOffset = pos, RotationOffsetDegrees = rot };
 				}
 			}
 			else if (section == "scale")
 			{
 				foreach (string key in config.GetSectionKeys(section))
 				{
-					if (!Enum.TryParse(key, out PoseMode mode)) continue;
-					CharacterScaleOverrides[mode] = config.GetValue(section, key).AsSingle();
+					var (modeName, weapon) = SplitWeapon(key);
+					if (!Enum.TryParse(modeName, out PoseMode mode)) continue;
+					CharacterScaleOverrides[(mode, weapon)] = config.GetValue(section, key).AsSingle();
 				}
 			}
 			else if (section.StartsWith("bones_"))
 			{
 				string modeName = section["bones_".Length..];
 				if (!Enum.TryParse(modeName, out PoseMode mode)) continue;
-				var bones = new Dictionary<string, BoneOverride>();
-				foreach (string boneName in SectionModeNames(config, section))
+				// One section holds every weapon for this mode - group by the (weapon) half so each
+				// weapon gets its own bone dictionary, same shape SetBone builds up live.
+				foreach (string combined in SectionNames(config, section))
 				{
+					var (boneName, weapon) = SplitWeapon(combined);
+					var key = (mode, weapon);
+					if (!BoneOverrides.TryGetValue(key, out var bones))
+						BoneOverrides[key] = bones = new Dictionary<string, BoneOverride>();
 					bones[boneName] = new BoneOverride
 					{
-						PositionOffset = GetVector3(config, section, boneName + ".pos"),
-						RotationOffsetDegrees = GetVector3(config, section, boneName + ".rot"),
-						ScaleMultiplier = config.HasSectionKey(section, boneName + ".scale")
-							? config.GetValue(section, boneName + ".scale").AsSingle() : 1.0f,
+						PositionOffset = GetVector3(config, section, combined + ".pos"),
+						RotationOffsetDegrees = GetVector3(config, section, combined + ".rot"),
+						ScaleMultiplier = config.HasSectionKey(section, combined + ".scale")
+							? config.GetValue(section, combined + ".scale").AsSingle() : 1.0f,
 					};
 				}
-				BoneOverrides[mode] = bones;
 			}
 		}
 	}
 
+	/// <summary>Splits a "<weapon>::<name>" key back into (name, weapon) - or (whole string,
+	/// AnyWeapon) if there is no "::", so a key saved before this axis existed still loads correctly
+	/// as an AnyWeapon entry. Weapon is always first, for bones ("weapon::boneName"), camera
+	/// ("weapon::mode") and scale ("weapon::mode") alike - see Save() above.</summary>
+	private static (string Name, string Weapon) SplitWeapon(string combined)
+	{
+		int sep = combined.IndexOf("::", StringComparison.Ordinal);
+		return sep < 0 ? (combined, AnyWeapon) : (combined[(sep + 2)..], combined[..sep]);
+	}
+
 	/// <summary>Every distinct name a "<name>.pos"/"<name>.rot"/"<name>.scale" key group belongs to,
-	/// in a section - i.e. every bone name (or, for the camera section, every mode name).</summary>
-	private static IEnumerable<string> SectionModeNames(ConfigFile config, string section)
+	/// in a section - i.e. every "[weapon::]boneName" (or "mode[::weapon]" for the camera section).</summary>
+	private static IEnumerable<string> SectionNames(ConfigFile config, string section)
 	{
 		var names = new HashSet<string>();
 		foreach (string key in config.GetSectionKeys(section))

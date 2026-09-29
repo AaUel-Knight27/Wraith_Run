@@ -161,14 +161,25 @@ public partial class PlayerMovement : CharacterBody3D
             ApplyLookDelta(drag.Relative.X * sensitivity, drag.Relative.Y * sensitivity * LookInvert());
         }
 
-        if (@event.IsActionPressed("ui_cancel"))
-            Input.MouseMode = Input.MouseModeEnum.Visible;
-        else if (@event is InputEventMouseButton && Input.MouseMode == Input.MouseModeEnum.Visible)
+        // Esc used to free the mouse right here. It now opens the pause menu (PauseMenu), which owns
+        // the mouse mode for as long as it is up - so this branch only re-captures the mouse after
+        // something ELSE freed it (a debug tool, say), and never while the menu is open.
+        if (@event is InputEventMouseButton && Input.MouseMode == Input.MouseModeEnum.Visible
+            && !GameUiState.MenuOpen)
             Input.MouseMode = Input.MouseModeEnum.Captured;
     }
 
     private static float LookInvert() =>
         SettingsManager.Instance != null && SettingsManager.Instance.InvertLookY ? -1.0f : 1.0f;
+
+    // Gameplay-input reads. While the pause menu is open these all report "not pressed", so a held
+    // key or a mouse button that was already down when the menu opened cannot keep acting behind it.
+    // Physics (gravity, sliding to a stop) is untouched - the game does not pause for a menu.
+    private static bool ActionHeld(string action) =>
+        !GameUiState.BlocksGameplayInput && Input.IsActionPressed(action);
+
+    private static bool ActionTapped(string action) =>
+        !GameUiState.BlocksGameplayInput && Input.IsActionJustPressed(action);
 
     /// <summary>Shared by mouse, touch-drag, gyroscope and controller-stick look so all four
     /// sources move the camera through the exact same pitch clamp and yaw rotation - see the note
@@ -176,6 +187,9 @@ public partial class PlayerMovement : CharacterBody3D
     /// owns this" reasoning applies here.</summary>
     private void ApplyLookDelta(float yawDelta, float pitchDelta)
     {
+        // The one place every look source passes through, so it is also the one place the pause
+        // menu needs to stop the camera from turning behind it.
+        if (GameUiState.BlocksGameplayInput) return;
         RotateY(-yawDelta);
         _pitch = Mathf.Clamp(_pitch - pitchDelta,
             Mathf.DegToRad(-CameraPitchLimitDegrees), Mathf.DegToRad(CameraPitchLimitDegrees));
@@ -214,9 +228,11 @@ public partial class PlayerMovement : CharacterBody3D
         }
         float delta = (float)deltaValue;
         bool grounded = IsOnFloor() || _groundProbe.IsColliding();
-        Vector2 moveInput = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+        Vector2 moveInput = GameUiState.BlocksGameplayInput
+            ? Vector2.Zero
+            : Input.GetVector("move_left", "move_right", "move_forward", "move_back");
         Vector3 moveDirection = (Transform.Basis * new Vector3(moveInput.X, 0.0f, moveInput.Y)).Normalized();
-        bool crouchHeld = Input.IsActionPressed("crouch");
+        bool crouchHeld = ActionHeld("crouch");
 
         // Decay the shake first, before any new shake is set this frame. Decaying after the assignment
         // would zero a fresh shake in the same frame it was created and the shake would never show.
@@ -241,7 +257,7 @@ public partial class PlayerMovement : CharacterBody3D
         UpdateHeadBob(delta);
         // Sprinting and sliding cancel ADS; every other state - including crouch and airborne -
         // allows it, which is the whole point of pulling this out of the state machine.
-        IsAiming = Input.IsActionPressed("aim")
+        IsAiming = ActionHeld("aim")
             && State is not MovementState.Sprint and not MovementState.Slide;
         UpdateFov(delta);
         ApplyControllerLook(delta);
@@ -352,14 +368,14 @@ public partial class PlayerMovement : CharacterBody3D
 
     private void UpdateGroundMovement(float delta, Vector2 moveInput, Vector3 moveDirection, bool crouchHeld)
     {
-        if (Input.IsActionJustPressed("crouch") && State == MovementState.Sprint)
+        if (ActionTapped("crouch") && State == MovementState.Sprint)
         {
             StartSlide(moveDirection);
             return;
         }
 
         bool canJump = State is MovementState.Idle or MovementState.Walk or MovementState.Sprint or MovementState.Crouch or MovementState.Aim;
-        if (canJump && Input.IsActionJustPressed("jump"))
+        if (canJump && ActionTapped("jump"))
         {
             Velocity = new Vector3(Velocity.X, JumpVelocity, Velocity.Z);
             SetState(MovementState.Jump);
@@ -371,7 +387,7 @@ public partial class PlayerMovement : CharacterBody3D
         // Auto Sprint (SettingsManager) mainly exists for touch, where holding a second button
         // just to run is awkward, but nothing about the check itself is touch-specific.
         bool autoSprint = SettingsManager.Instance != null && SettingsManager.Instance.AutoSprint;
-        bool sprinting = !crouchHeld && forwardish && (autoSprint || Input.IsActionPressed("sprint"));
+        bool sprinting = !crouchHeld && forwardish && (autoSprint || ActionHeld("sprint"));
         float targetSpeed = crouchHeld ? CrouchSpeed : sprinting ? SprintSpeed : WalkSpeed;
         ApplyHorizontalVelocity(moveDirection * targetSpeed, delta, 1.0f);
 
@@ -383,7 +399,7 @@ public partial class PlayerMovement : CharacterBody3D
             ? (hasMovement ? MovementState.CrouchWalk : MovementState.Crouch)
             : sprinting && hasMovement ? MovementState.Sprint
             : hasMovement ? MovementState.Walk
-            : Input.IsActionPressed("aim") ? MovementState.Aim
+            : ActionHeld("aim") ? MovementState.Aim
             : MovementState.Idle);
     }
 

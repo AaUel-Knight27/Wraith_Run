@@ -51,9 +51,25 @@ public partial class MatchManager : Node
     private readonly int[] _teamScores = new int[TeamCount];
     private float _elapsedSeconds;
     private bool _matchEnded;
+    // True from PrepareHostMatch/PrepareClientMatch (the lobby -> match handoff) until EndSession
+    // (leaving to the main menu). The clock only runs while this is true, so it never counts up
+    // while the player is sitting in a menu.
+    private bool _sessionActive;
 
     public bool IsMatchEnded => _matchEnded;
     public int WinningTeam { get; private set; } = -1;
+
+    /// <summary>Seconds since this match began, in every game mode (Free-For-All used to have no clock
+    /// at all). On a joining client it starts from the host's clock (see ReceiveHostConfig), so both
+    /// sides show roughly the same time. Read by the Tab scoreboard and the objectives screen.</summary>
+    public float ElapsedSeconds => _elapsedSeconds;
+
+    /// <summary>Only Team Deathmatch has a time limit today; Free-For-All runs until someone leaves.</summary>
+    public bool HasTimeLimit => GameMode == Mode.TeamDeathmatch && TimeLimitMinutes > 0;
+
+    /// <summary>Seconds left on the clock, or -1 when this mode has no time limit.</summary>
+    public float TimeRemainingSeconds =>
+        HasTimeLimit ? Mathf.Max(0.0f, TimeLimitMinutes * 60.0f - _elapsedSeconds) : -1.0f;
 
     public override void _Ready()
     {
@@ -72,8 +88,11 @@ public partial class MatchManager : Node
 
     public override void _Process(double delta)
     {
-        if (GameMode != Mode.TeamDeathmatch || _matchEnded || TimeLimitMinutes <= 0) return;
+        if (!_sessionActive || _matchEnded) return;
         _elapsedSeconds += (float)delta;
+        // Everything below is the Team Deathmatch time limit, unchanged; Free-For-All just keeps
+        // the clock running for the scoreboard and never ends by time.
+        if (!HasTimeLimit) return;
         if (_elapsedSeconds < TimeLimitMinutes * 60.0f) return;
 
         int winner = _teamScores[0] == _teamScores[1] ? -1 : (_teamScores[0] > _teamScores[1] ? 0 : 1);
@@ -97,6 +116,22 @@ public partial class MatchManager : Node
         _elapsedSeconds = 0.0f;
         _matchEnded = false;
         WinningTeam = -1;
+        _sessionActive = true;
+        MatchStats.Instance?.Reset();
+    }
+
+    /// <summary>GameWorld calls this when it loads. Through the normal lobby flow the clock is already
+    /// running (PrepareHostMatch/PrepareClientMatch started it), so this changes nothing there; it only
+    /// matters when GameWorld.tscn is run directly from the editor for single-instance testing, where
+    /// no lobby ran and the scoreboard clock would otherwise sit at 00:00 forever.</summary>
+    public void EnsureSessionActive() => _sessionActive = true;
+
+    /// <summary>Called when the player leaves a running match for the main menu (see GameSession).
+    /// Stops the clock; the next PrepareHostMatch/PrepareClientMatch starts everything fresh.</summary>
+    public void EndSession()
+    {
+        _sessionActive = false;
+        _peerTeams.Clear();
     }
 
     /// <summary>Called by LanMenu right before LanSession.Join. The real rules arrive moments later

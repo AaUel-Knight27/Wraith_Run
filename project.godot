@@ -18,6 +18,7 @@ config/name="Wraith Run"
 run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
 config/icon="res://icon.png"
+config/quit_on_go_back=false
 
 [autoload]
 
@@ -25,8 +26,10 @@ LanSession="*res://scripts/network/LanSession.cs"
 KillFeed="*res://scripts/autoloads/KillFeed.cs"
 MatchManager="*res://scripts/autoloads/MatchManager.cs"
 SettingsManager="*res://scripts/autoloads/SettingsManager.cs"
+MatchStats="*res://scripts/autoloads/MatchStats.cs"
 SoundManager="*res://scripts/autoloads/SoundManager.cs"
 LoadingScreen="*res://scripts/autoloads/LoadingScreen.cs"
+DebugHub="*res://scripts/debug/DebugHub.cs"
 
 [display]
 

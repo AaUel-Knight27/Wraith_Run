@@ -7,6 +7,8 @@ using System.Globalization;
 /// only: it arms for the local player and is inert in release exports - same rule WeaponGripTuner
 /// (F3) and AnimationTuner (F8) already follow.
 ///
+/// Open it from the F2 tool list, or straight with F6. F2 while it is open returns to the list.
+///
 /// F6  Open / close the tuner panel. Opening it pauses mouse-look and firing, the same trade-off
 ///     WeaponGripTuner's F7 entry panel makes, so the mouse is free to drag sliders. A "Test Fire"
 ///     button in the panel plays the shot on demand so every change is heard immediately.
@@ -25,9 +27,8 @@ using System.Globalization;
 /// See scripts/autoloads/SoundManager.cs for what these numbers actually do to the sound, and
 /// WeaponData.cs for what each field means.
 /// </summary>
-public partial class WeaponSoundTuner : Node
+public partial class WeaponSoundTuner : Node, IDebugTool
 {
-	private const Key ToggleKey = Key.F6;
 	private const Key PrintKey = Key.F1;
 	private const Key ResetKey = Key.F9;
 
@@ -80,7 +81,6 @@ public partial class WeaponSoundTuner : Node
 
 	private bool _active;
 	private bool _syncingUi;
-	private bool _togglePressedLastFrame;
 	private bool _printPressedLastFrame;
 	private bool _resetPressedLastFrame;
 	private string? _lastWeaponName;
@@ -100,6 +100,16 @@ public partial class WeaponSoundTuner : Node
 	// is sharing rather than the numbers that were actually saved to disk.
 	private readonly System.Collections.Generic.Dictionary<string, float[]> _originalValues = new();
 
+	// IDebugTool - the F2 hub drives this tool through these. F6 stays as a direct hotkey.
+	public string ToolName => "Weapon Sound Tuner";
+	public string ToolDescription => "Fire-sound loudness, reach, cone and ducking for the equipped weapon";
+	public Key ShortcutKey => Key.F6;
+	public bool IsToolOpen => _active;
+	public void OpenTool() => SetActive(true);
+	public void CloseTool() => SetActive(false);
+
+	public override void _ExitTree() => DebugHub.Unregister(this);
+
 	public override void _Ready()
 	{
 		_player = (CharacterBody3D)GetParent();
@@ -118,11 +128,11 @@ public partial class WeaponSoundTuner : Node
 				_originalValues[w.WeaponName] = ReadCurrent(w);
 
 		BuildOverlay();
+		DebugHub.Register(this);
 	}
 
 	public override void _Process(double delta)
 	{
-		HandleToggle();
 		if (!_active) return;
 
 		if (TrackWeaponChange()) SyncUiFromWeapon();
@@ -135,13 +145,6 @@ public partial class WeaponSoundTuner : Node
 	// -------------------------------------------------------------------------------------------
 	// Open / close
 	// -------------------------------------------------------------------------------------------
-
-	private void HandleToggle()
-	{
-		bool pressed = Input.IsPhysicalKeyPressed(ToggleKey);
-		if (pressed && !_togglePressedLastFrame) SetActive(!_active);
-		_togglePressedLastFrame = pressed;
-	}
 
 	private void SetActive(bool active)
 	{
@@ -475,7 +478,7 @@ public partial class WeaponSoundTuner : Node
 		buttons.AddChild(CreateButton("Test fire", TestFire));
 		buttons.AddChild(CreateButton("Copy (F1)", PrintAndCopyValues));
 		buttons.AddChild(CreateButton("Reset (F9)", ResetWeapon));
-		buttons.AddChild(CreateButton("Close (F6)", () => SetActive(false)));
+		buttons.AddChild(CreateButton("Back (F2)", () => DebugHub.Back(this)));
 
 		_netLabel = new Label { Modulate = new Color(1.0f, 1.0f, 1.0f, 0.65f) };
 		column.AddChild(_netLabel);

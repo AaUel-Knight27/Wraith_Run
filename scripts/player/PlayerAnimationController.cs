@@ -210,7 +210,7 @@ public partial class PlayerAnimationController : Node
 		// Player.tscn) is debug-only.
 		var rigOverride = new CharacterRigOverrideModifier { Name = "CharacterRigOverride" };
 		skeleton.AddChild(rigOverride);
-		rigOverride.Setup((PlayerMovement)_body, this);
+		rigOverride.Setup((PlayerMovement)_body, this, _body.GetNodeOrNull<WeaponAttachment>("Armature/WeaponAttachment"));
 
 		var rigCameraScale = new CharacterRigCameraScaleApplier { Name = "CharacterRigCameraScale" };
 		AddChild(rigCameraScale);

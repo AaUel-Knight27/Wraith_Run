@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 
 /// <summary>
-/// Press F8 in a debug build to open a panel that edits AnimationTuning and the current weapon's left-
+/// Open it from the F2 tool list (or press F8) in a debug build to get a panel that edits AnimationTuning and the current weapon's left-
 /// hand offset while the game keeps running, so you can see the character's legs and hands respond
 /// immediately instead of guessing numbers, exporting, and re-testing.
 ///
@@ -22,7 +22,7 @@ using System.Globalization;
 /// which is the actual handoff: tune here, paste the numbers into the source, delete the tuner's saved
 /// file (button provided) once you're happy, and the debug-only save file stops mattering.
 /// </summary>
-public partial class AnimationTuner : CanvasLayer
+public partial class AnimationTuner : CanvasLayer, IDebugTool
 {
 	private Panel? _panel;
 	private VBoxContainer? _list;
@@ -32,29 +32,74 @@ public partial class AnimationTuner : CanvasLayer
 	private readonly List<Action> _refreshers = new();
 	private bool _open;
 
+	// The cursor / mouse-look pause while the panel is open, remembered so closing puts it back.
+	private CharacterBody3D? _body;
+	private bool _cursorTaken;
+	private bool _bodyWasProcessingUnhandledInput = true;
+	private Input.MouseModeEnum _mouseBefore = Input.MouseModeEnum.Captured;
+
+	// IDebugTool - the F2 hub drives this tool through these. F8 stays as a direct hotkey.
+	public string ToolName => "Animation Tuner";
+	public string ToolDescription => "Move speeds, run/crouch cadence, leg strafing and left-hand IK";
+	public Key ShortcutKey => Key.F8;
+	public bool IsToolOpen => _open;
+	public void OpenTool() => SetOpen(true);
+	public void CloseTool() => SetOpen(false);
+
+	public override void _ExitTree() => DebugHub.Unregister(this);
+
 	public override void _Ready()
 	{
+		_controller = GetParent<PlayerAnimationController>();
+		_body = _controller.GetParent<CharacterBody3D>();
+
+		// Debug builds and the local player only, as the header comment always promised: on a
+		// remote copy of another player this would otherwise stack a second panel on F8 and edit
+		// that other player's hand IK.
+		if (!OS.IsDebugBuild() || !_body.IsMultiplayerAuthority())
+		{
+			QueueFree();
+			return;
+		}
+
 		Layer = 64;
 		ProcessMode = ProcessModeEnum.Always;
-		_controller = GetParent<PlayerAnimationController>();
 		BuildUi();
 		SetOpen(false);
-	}
-
-	public override void _UnhandledKeyInput(InputEvent @event)
-	{
-		if (@event is InputEventKey { Pressed: true, Echo: false, Keycode: Key.F8 })
-		{
-			SetOpen(!_open);
-			GetViewport().SetInputAsHandled();
-		}
+		DebugHub.Register(this);
 	}
 
 	private void SetOpen(bool open)
 	{
+		bool changed = open != _open;
 		_open = open;
 		if (_panel != null) _panel.Visible = open;
 		if (open) foreach (var refresh in _refreshers) refresh();
+		if (!changed) return;
+		if (open) TakeCursor();
+		else ReturnCursor();
+	}
+
+	/// <summary>Frees the mouse and stops PlayerMovement's mouse-look / click-to-recapture, so the
+	/// sliders stay usable until you leave the tool. Weapon switching and firing are left alone on
+	/// purpose: switching weapons while this is open is how you tune each weapon's left hand.</summary>
+	private void TakeCursor()
+	{
+		if (_body == null || OS.HasFeature("mobile")) return;
+		_mouseBefore = Input.MouseMode;
+		Input.MouseMode = Input.MouseModeEnum.Visible;
+		_bodyWasProcessingUnhandledInput = _body.IsProcessingUnhandledInput();
+		_body.SetProcessUnhandledInput(false);
+		_cursorTaken = true;
+	}
+
+	private void ReturnCursor()
+	{
+		if (!_cursorTaken) return;
+		_cursorTaken = false;
+		if (_body == null || !IsInstanceValid(_body)) return;
+		_body.SetProcessUnhandledInput(_bodyWasProcessingUnhandledInput);
+		Input.MouseMode = _mouseBefore;
 	}
 
 	public override void _Process(double delta)
@@ -87,7 +132,10 @@ public partial class AnimationTuner : CanvasLayer
 		_list.AddThemeConstantOverride("separation", 2);
 		scroll.AddChild(_list);
 
-		Header("Animation Tuner - F8 to toggle");
+		Header("Animation Tuner - F2: back to tools, F8: close");
+		var backButton = new Button { Text = "Back to tools (F2)", FocusMode = Control.FocusModeEnum.None };
+		backButton.Pressed += () => DebugHub.Back(this);
+		_list!.AddChild(backButton);
 		_stats = new RichTextLabel { CustomMinimumSize = new Vector2(400, 40), FitContent = true, BbcodeEnabled = false };
 		_list!.AddChild(_stats);
 

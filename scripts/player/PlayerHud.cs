@@ -52,6 +52,21 @@ public partial class PlayerHud : CanvasLayer
         if (_score != null) _score.MultiKillAwarded += OnMultiKillAwarded;
         if (MatchManager.Instance != null) MatchManager.Instance.MatchEnded += OnMatchEnded;
         Build();
+        BuildMenus(player);
+    }
+
+    /// <summary>The pause menu (Esc / Android Back / MENU button) and the Tab scoreboard are their own
+    /// CanvasLayers (each has its own Layer number, so nesting them under this HUD does not change how
+    /// they draw), added here on the local player only - this method already runs only for the owning
+    /// peer. They are children of the HUD rather than of the player because the player is still
+    /// readying its own children at this point and Godot refuses add_child on it, whereas adding to
+    /// this node from its own _Ready is fine. TouchControls and PauseMenu find them at "Hud/PauseMenu"
+    /// and "Hud/Scoreboard".</summary>
+    private void BuildMenus(CharacterBody3D player)
+    {
+        GameUiState.EnsureInputActions();
+        AddChild(new Scoreboard { Name = "Scoreboard", Player = player });
+        AddChild(new PauseMenu { Name = "PauseMenu", Player = player });
     }
 
     public override void _ExitTree()

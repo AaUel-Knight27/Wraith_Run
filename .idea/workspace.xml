@@ -10,7 +10,12 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/icon.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/icon.svg.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/photo_2026-09-23_07-20-00.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/photo_2026-09-23_07-20-00.jpg.import" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -242,7 +247,9 @@
     <MESSAGE value="adding more sound effects and fixing sound effects" />
     <MESSAGE value="adding and fps model to make the game more stable" />
     <MESSAGE value="fix compile error" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix compile error" />
+    <MESSAGE value="fixed an audio bug" />
+    <MESSAGE value="added character rig edit system and audio files" />
+    <option name="LAST_COMMIT_MESSAGE" value="added character rig edit system and audio files" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

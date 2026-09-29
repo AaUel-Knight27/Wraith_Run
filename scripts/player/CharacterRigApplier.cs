@@ -18,19 +18,21 @@ using System.Collections.Generic;
 ///
 /// Overrides are DELTAS on top of whatever pose is already there, not replacements - a position/
 /// rotation offset stays sensible however the underlying clip or IK solve changes, instead of fighting
-/// a specific animation's pose. A bone with no override for the currently active PoseMode (see
-/// CharacterRigTuning.ActiveLayersHighToLow) is left exactly as the animation/IK left it.
+/// a specific animation's pose. A bone with no override for the currently active (PoseMode, weapon)
+/// key (see CharacterRigTuning.ActiveLayerKeysHighToLow) is left exactly as the animation/IK left it.
 /// </summary>
 public partial class CharacterRigOverrideModifier : SkeletonModifier3D
 {
 	private PlayerMovement? _movement;
 	private PlayerAnimationController? _controller;
+	private WeaponAttachment? _weaponAttachment;
 	private readonly HashSet<string> _appliedThisFrame = new();
 
-	public void Setup(PlayerMovement movement, PlayerAnimationController controller)
+	public void Setup(PlayerMovement movement, PlayerAnimationController controller, WeaponAttachment? weaponAttachment)
 	{
 		_movement = movement;
 		_controller = controller;
+		_weaponAttachment = weaponAttachment;
 	}
 
 	public override void _ProcessModificationWithDelta(double delta)
@@ -45,17 +47,20 @@ public partial class CharacterRigOverrideModifier : SkeletonModifier3D
 		float rawScale = skeleton.GlobalTransform.Basis.Scale.X;
 		float unit = Mathf.IsZeroApprox(rawScale) ? 100.0f : 1.0f / rawScale;
 
-		// TunedBoneNames() is every bone tuned in ANY mode - typically a handful, so walking it once
-		// per active layer (at most five: Fire, Reload, Aim, the movement state, Global) is cheap.
-		// For each bone, the first layer with an EXPLICIT entry (TryGetBone) wins; a lower-priority
-		// mode's entry for the same bone is correctly ignored, identity-reset entries included.
+		string? weaponName = _weaponAttachment?.CurrentWeapon?.WeaponName;
+
+		// TunedBoneNames() is every bone tuned under ANY (mode, weapon) key - typically a handful, so
+		// walking it once per active layer key (at most ten: five modes x weapon-specific/AnyWeapon)
+		// is cheap. For each bone, the first key with an EXPLICIT entry (TryGetBone) wins; a
+		// less-specific key's entry for the same bone is correctly ignored, identity-reset entries
+		// included.
 		_appliedThisFrame.Clear();
-		foreach (var mode in CharacterRigTuning.ActiveLayersHighToLow(_movement, _controller))
+		foreach (var (mode, weapon) in CharacterRigTuning.ActiveLayerKeysHighToLow(_movement, _controller, weaponName))
 		{
 			foreach (string boneName in CharacterRigTuning.TunedBoneNames())
 			{
 				if (_appliedThisFrame.Contains(boneName)) continue;
-				if (!CharacterRigTuning.TryGetBone(mode, boneName, out var ov)) continue;
+				if (!CharacterRigTuning.TryGetBone(mode, boneName, weapon, out var ov)) continue;
 				_appliedThisFrame.Add(boneName);
 				int index = skeleton.FindBone(boneName);
 				if (index < 0) continue;
@@ -117,12 +122,13 @@ public partial class CharacterRigCameraScaleApplier : Node
 	{
 		if (_camera == null || _armature == null || _movement == null || _controller == null) return;
 
+		string? weaponName = _worldAttachment?.CurrentWeapon?.WeaponName;
 		CharacterRigTuning.CameraOverride? camera = null;
 		float? scale = null;
-		foreach (var mode in CharacterRigTuning.ActiveLayersHighToLow(_movement, _controller))
+		foreach (var (mode, weapon) in CharacterRigTuning.ActiveLayerKeysHighToLow(_movement, _controller, weaponName))
 		{
-			if (camera == null && CharacterRigTuning.TryGetCamera(mode, out var camOv)) camera = camOv;
-			if (scale == null && CharacterRigTuning.TryGetScale(mode, out float s)) scale = s;
+			if (camera == null && CharacterRigTuning.TryGetCamera(mode, weapon, out var camOv)) camera = camOv;
+			if (scale == null && CharacterRigTuning.TryGetScale(mode, weapon, out float s)) scale = s;
 			if (camera != null && scale != null) break;
 		}
 

@@ -5,6 +5,8 @@ using System.Globalization;
 /// Live in-game calibrator for how a weapon sits in the hand. Development tool only: it arms for
 /// the local player, only touches the visual Grip node, and is inert in release exports.
 ///
+/// Open it from the F2 tool list, or straight with F3. F2 while it is open returns to the list.
+///
 /// LIVE SYNC: while the tuner is open (F3), every change is also sent to the other players, so a
 /// second window (host + client) shows the weapon in your hand exactly as you edit it - from their
 /// point of view. Only the cosmetic grip numbers are sent, never any gameplay state.
@@ -21,9 +23,8 @@ using System.Globalization;
 /// While the entry panel is open the player's mouse look, weapon switching and firing are paused.
 /// Without that, typing a digit 1-8 would switch weapons and clicking a box would shoot.
 /// </summary>
-public partial class WeaponGripTuner : Node
+public partial class WeaponGripTuner : Node, IDebugTool
 {
-	private const Key ToggleKey = Key.F3;
 	private const Key PrintKey = Key.F4;
 	private const Key ResetKey = Key.F5;
 	private const Key EntryKey = Key.F7;
@@ -65,7 +66,6 @@ public partial class WeaponGripTuner : Node
 	private bool _active;
 	private bool _panelOpen;
 	private bool _syncingFields;
-	private bool _togglePressedLastFrame;
 	private bool _entryPressedLastFrame;
 	private bool _printPressedLastFrame;
 	private bool _resetPressedLastFrame;
@@ -82,6 +82,16 @@ public partial class WeaponGripTuner : Node
 	private bool _switcherWasProcessing = true;
 	private bool _playerWasProcessingUnhandledInput = true;
 
+	// IDebugTool - the F2 hub drives this tool through these. F3 stays as a direct hotkey.
+	public string ToolName => "Weapon Grip Tuner";
+	public string ToolDescription => "How the weapon sits in the hand: position, rotation, scale";
+	public Key ShortcutKey => Key.F3;
+	public bool IsToolOpen => _active;
+	public void OpenTool() => SetActive(true);
+	public void CloseTool() => SetActive(false);
+
+	public override void _ExitTree() => DebugHub.Unregister(this);
+
 	public override void _Ready()
 	{
 		_player = (CharacterBody3D)GetParent();
@@ -96,11 +106,11 @@ public partial class WeaponGripTuner : Node
 		if (!enabled) return;
 
 		BuildOverlay();
+		DebugHub.Register(this);
 	}
 
 	public override void _Process(double delta)
 	{
-		HandleToggle();
 		HandleEntryToggle();
 		if (!_active) return;
 
@@ -125,17 +135,16 @@ public partial class WeaponGripTuner : Node
 	// Open / close
 	// -------------------------------------------------------------------------------------------
 
-	private void HandleToggle()
-	{
-		bool pressed = Input.IsPhysicalKeyPressed(ToggleKey);
-		if (pressed && !_togglePressedLastFrame) SetActive(!_active);
-		_togglePressedLastFrame = pressed;
-	}
-
 	private void HandleEntryToggle()
 	{
 		bool pressed = Input.IsPhysicalKeyPressed(EntryKey);
-		if (pressed && !_entryPressedLastFrame) SetPanelOpen(!_panelOpen);
+		if (pressed && !_entryPressedLastFrame)
+		{
+			// F7 also works from cold (it always did): route the opening through the hub so any
+			// other tool is closed first and the hub knows this one is now the open one.
+			if (!_active) DebugHub.Open(this);
+			SetPanelOpen(!_panelOpen);
+		}
 		_entryPressedLastFrame = pressed;
 	}
 
@@ -520,7 +529,7 @@ public partial class WeaponGripTuner : Node
 			keys + "\n" +
 			"F4: print + copy values   F5: reset weapon\n" +
 			net + "\n" +
-			"F3: close";
+			"F2: back to tools   F3: close";
 	}
 
 	// -------------------------------------------------------------------------------------------

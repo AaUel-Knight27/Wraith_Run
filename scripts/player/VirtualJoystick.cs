@@ -69,6 +69,17 @@ public partial class VirtualJoystick : Control
         }
     }
 
+    /// <summary>Drops the current touch as if the finger had lifted. Used when a full-screen menu opens
+    /// on top of the controls: the real lift-off then never reaches this control, and without this
+    /// _touchIndex would stay set and the stick would ignore every later touch.</summary>
+    public void ResetTouch()
+    {
+        _touchIndex = -1;
+        if (Floating) _origin = new Vector2(BaseRadius, BaseRadius);
+        DrawAt(_origin, _origin);
+        Release();
+    }
+
     private void UpdateKnob(Vector2 touchPosition)
     {
         Vector2 offset = touchPosition - _origin;

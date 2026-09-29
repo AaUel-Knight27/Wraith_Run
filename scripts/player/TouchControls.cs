@@ -32,6 +32,8 @@ public partial class TouchControls : CanvasLayer
     private bool _sprintOn;
     private bool _adsOn;
     private int _weaponCursor;
+    private VirtualJoystick? _joystick;
+    private Button? _sprintButton;
 
     public override void _Ready()
     {
@@ -84,6 +86,44 @@ public partial class TouchControls : CanvasLayer
         BuildJoystick(settings, joystickRight, scale);
         BuildFireCluster(clusterRight, scale);
         BuildUtilityStack(settings, joystickRight, scale);
+        BuildSystemButtons(scale);
+    }
+
+    /// <summary>MENU (opens the pause menu) and SCORE (toggles the scoreboard), side by side at the
+    /// top edge in the middle - the one part of a landscape phone screen neither thumb is using.
+    /// Sits below the Team Deathmatch score line PlayerHud draws at the very top. A phone has no Esc
+    /// or Tab key; Android's Back gesture also opens the menu (see PauseMenu), this is the visible
+    /// way in. Both nodes are looked up at press time because PlayerHud adds them a frame after
+    /// this layer is built.</summary>
+    private void BuildSystemButtons(float scale)
+    {
+        float size = 60f * scale;
+        float half = 4f;
+        float top = 64f;
+
+        var menu = NewButton("MENU", null, size);
+        MenuStyle.Place(menu, 0.5f, 0f, 0.5f, 0f, -(size + half), top, -half, top + size);
+        menu.ButtonDown += () => _player.GetNodeOrNull<PauseMenu>("Hud/PauseMenu")?.Toggle();
+
+        var score = NewButton("SCORE", null, size);
+        MenuStyle.Place(score, 0.5f, 0f, 0.5f, 0f, half, top, half + size, top + size);
+        score.ButtonDown += () => _player.GetNodeOrNull<Scoreboard>("Hud/Scoreboard")?.ToggleTouch();
+    }
+
+    /// <summary>Called when the pause menu opens. Its full-screen overlay swallows every touch from
+    /// then on - including the lift-off of a finger that was on the joystick, FIRE or ADS a moment
+    /// earlier - so without this an action could stay pressed for good and the character would keep
+    /// running or shooting after RESUME. Also resets the sprint/ADS toggles and their button
+    /// highlight so what is drawn matches what is pressed.</summary>
+    public void ReleaseAllHeld()
+    {
+        if (_root == null) return; // touch controls are off on this device
+        _joystick?.ResetTouch();
+        foreach (string action in new[] { "fire", "aim", "jump", "crouch", "sprint", "reload" })
+            Input.ActionRelease(action);
+        _sprintOn = false;
+        _adsOn = false;
+        if (_sprintButton != null) _sprintButton.Modulate = Colors.White;
     }
 
     private void BuildJoystick(SettingsManager settings, bool right, float scale)
@@ -97,6 +137,7 @@ public partial class TouchControls : CanvasLayer
             Floating = settings.JoystickFloating,
         };
         _root.AddChild(joystick);
+        _joystick = joystick;
         PlaceCorner(joystick, right, bottom: true, baseRadius * 2, baseRadius * 2, EdgeMargin, EdgeMargin);
     }
 
@@ -146,6 +187,7 @@ public partial class TouchControls : CanvasLayer
         {
             var sprint = NewButton("SPRINT", null, size);
             sprint.ButtonDown += () => OnSprintTap(sprint);
+            _sprintButton = sprint;
             slots.Add(sprint);
         }
 

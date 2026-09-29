@@ -7,11 +7,13 @@ using System.Linq;
 /// <summary>
 /// Live in-game armature/mesh/camera editor for Manny's rig. Development tool only: it arms for the
 /// local player and is inert in release exports, the same rule WeaponGripTuner (F3), WeaponSoundTuner
-/// (F6) and AnimationTuner (F8) already follow. Unlike those three, this is an RPC-bearing tool like
+/// (F6) and AnimationTuner (F8) already follow. F2 now belongs to the debug hub (DebugHub.cs): this
+/// editor is opened from its tool list, and F2 inside it returns to that list.
+/// Unlike those three, this is an RPC-bearing tool like
 /// WeaponGripTuner/WeaponSoundTuner, so it has to be a real node in Player.tscn (not spawned in code
 /// like AnimationTuner) - see the integration notes shipped alongside this file.
 ///
-/// F2  Open / close the editor. Opening it pauses mouse-look and weapon-switch digit keys (typing "5"
+/// Open from the F2 list. Opening it pauses mouse-look and weapon-switch digit keys (typing "5"
 ///     into a number box would otherwise switch to weapon slot 5) - the same trade-off WeaponGripTuner's
 ///     F7 panel makes. Walking, crouching, sprinting and aiming keep working (they are polled every
 ///     physics frame, not delivered as the input events that got paused), so you can hold the actual
@@ -22,9 +24,11 @@ using System.Linq;
 /// same static data CharacterRigOverrideModifier and CharacterRigCameraScaleApplier read every frame
 /// for every player, in every build. There is no separate "preview" copy: typing a number changes the
 /// game's actual live pose immediately, for you and (once synced) for everyone else too. The "editing
-/// mode" dropdown only chooses which PoseMode bucket a change is filed under - what you actually SEE is
-/// always whichever bucket is really active for you right now (see CharacterRigTuning.
-/// ActiveLayersHighToLow), exactly like it would in a shipped build.
+/// mode" and "weapon scope" dropdowns only choose which (PoseMode, weapon) bucket a change is filed
+/// under - what you actually SEE is always whichever bucket is really active for you right now (see
+/// CharacterRigTuning.ActiveLayerKeysHighToLow), exactly like it would in a shipped build. Picking a
+/// specific weapon does not require having it equipped - "Match equipped" jumps the dropdown to
+/// whatever you are actually holding, if you'd rather tune what's in your hands than plan ahead.
 ///
 /// LIVE SYNC: while open, whichever single target (bone/camera/scale, in whichever mode) is currently
 /// selected is sent to every other peer, at most every SyncIntervalSeconds and at least every
@@ -38,9 +42,8 @@ using System.Linq;
 /// the actual handoff - once pasted, the calibration ships in release builds, and the debug-only saved
 /// session (Save/Delete buttons, character_rig_tuning.cfg) stops mattering.
 /// </summary>
-public partial class CharacterRigTuner : Node
+public partial class CharacterRigTuner : Node, IDebugTool
 {
-	private const Key ToggleKey = Key.F2;
 	private const float SyncIntervalSeconds = 0.05f;
 	private const float KeepAliveSeconds = 1.0f;
 
@@ -58,9 +61,12 @@ public partial class CharacterRigTuner : Node
 	private Skeleton3D? _skeleton;
 	private Node3D _armature = null!;
 	private WeaponSwitcher? _switcher;
+	private WeaponAttachment? _weaponAttachment;
+	private WeaponRegistry? _weaponRegistry;
 
 	private CanvasLayer _canvas = null!;
 	private OptionButton _modeOption = null!;
+	private OptionButton _weaponOption = null!;
 	private LineEdit _searchField = null!;
 	private VBoxContainer _targetListBox = null!;
 	private readonly Dictionary<string, Button> _boneButtons = new();
@@ -73,12 +79,12 @@ public partial class CharacterRigTuner : Node
 	private readonly LineEdit[] _fields = new LineEdit[FieldCount];
 
 	private bool _active;
-	private bool _togglePressedLastFrame;
 	private bool _syncingFields;
 
 	private TargetKind _currentKind = TargetKind.Camera;
 	private string? _currentBoneName;
 	private CharacterRigTuning.PoseMode _currentMode = CharacterRigTuning.PoseMode.Global;
+	private string _currentWeapon = CharacterRigTuning.AnyWeapon;
 
 	private float _syncCooldown;
 	private float _keepAliveCountdown;
@@ -90,6 +96,16 @@ public partial class CharacterRigTuner : Node
 	private bool _switcherWasProcessing = true;
 	private bool _playerWasProcessingUnhandledInput = true;
 
+	// IDebugTool - the F2 hub drives this tool through these.
+	public string ToolName => "Character Rig Editor";
+	public string ToolDescription => "Per-bone, camera and whole-character offsets for each pose mode and weapon";
+	public Key ShortcutKey => Key.None;
+	public bool IsToolOpen => _active;
+	public void OpenTool() => SetActive(true);
+	public void CloseTool() => SetActive(false);
+
+	public override void _ExitTree() => DebugHub.Unregister(this);
+
 	public override void _Ready()
 	{
 		_playerBody = (CharacterBody3D)GetParent();
@@ -98,6 +114,11 @@ public partial class CharacterRigTuner : Node
 		_armature = GetNode<Node3D>("../Armature");
 		_skeleton = FindSkeleton(_armature);
 		_switcher = GetNodeOrNull<WeaponSwitcher>("../WeaponSwitcher");
+		_weaponAttachment = _armature.GetNodeOrNull<WeaponAttachment>("WeaponAttachment");
+		// Same fixed path WeaponSwitcher itself loads the registry from - gives the weapon dropdown
+		// every known weapon, not just whichever one happens to be equipped right now, so a weapon's
+		// grip can be tuned in advance and previewed later by actually equipping it.
+		_weaponRegistry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres");
 
 		// Defensive: PlayerAnimationController._Ready() already calls this, and node order in
 		// Player.tscn puts it before this node, but EnsureLoaded() is a cheap no-op the second time.
@@ -117,11 +138,11 @@ public partial class CharacterRigTuner : Node
 			return;
 		}
 		BuildOverlay();
+		DebugHub.Register(this);
 	}
 
 	public override void _Process(double delta)
 	{
-		HandleToggle();
 		if (!_active) return;
 		SyncCurrentTargetToPeers((float)delta);
 		UpdateLiveLabel();
@@ -131,13 +152,6 @@ public partial class CharacterRigTuner : Node
 	// -------------------------------------------------------------------------------------------
 	// Open / close
 	// -------------------------------------------------------------------------------------------
-
-	private void HandleToggle()
-	{
-		bool pressed = Input.IsPhysicalKeyPressed(ToggleKey);
-		if (pressed && !_togglePressedLastFrame) SetActive(!_active);
-		_togglePressedLastFrame = pressed;
-	}
 
 	private void SetActive(bool active)
 	{
@@ -207,7 +221,8 @@ public partial class CharacterRigTuner : Node
 			TargetKind.Camera => "Camera (first-person)",
 			_ => "Whole-character scale",
 		};
-		_targetLabel.Text = $"Editing: {_currentMode} -> {targetName}";
+		string weaponNote = _currentWeapon == CharacterRigTuning.AnyWeapon ? "any weapon" : _currentWeapon;
+		_targetLabel.Text = $"Editing: {_currentMode} + {weaponNote} -> {targetName}";
 	}
 
 	private void OnSearchChanged(string text)
@@ -223,20 +238,48 @@ public partial class CharacterRigTuner : Node
 		SyncFieldsFromData();
 	}
 
+	/// <summary>Item 0 is always "Any weapon"; items 1.. mirror WeaponRegistry.Weapons in order (built
+	/// once in BuildWeaponOptions, only when the registry loaded). Picking a specific weapon here does
+	/// NOT require it to be equipped - same philosophy as the mode dropdown: this only chooses the
+	/// filing bucket. To preview a weapon-scoped edit, actually equip that weapon (see "Match equipped
+	/// weapon").</summary>
+	private void OnWeaponSelected(long index)
+	{
+		_currentWeapon = index <= 0 || _weaponRegistry == null
+			? CharacterRigTuning.AnyWeapon
+			: _weaponRegistry.Weapons[index - 1].WeaponName;
+		SyncFieldsFromData();
+	}
+
+	/// <summary>Jumps the weapon dropdown to whatever is currently equipped, or to "Any weapon" if
+	/// nothing is (or the registry/world attachment couldn't be found).</summary>
+	private void MatchEquippedWeapon()
+	{
+		string? equipped = _weaponAttachment?.CurrentWeapon?.WeaponName;
+		if (string.IsNullOrEmpty(equipped) || _weaponRegistry == null) { _weaponOption.Selected = 0; OnWeaponSelected(0); return; }
+		for (int i = 0; i < _weaponRegistry.Weapons.Length; i++)
+		{
+			if (_weaponRegistry.Weapons[i].WeaponName != equipped) continue;
+			_weaponOption.Selected = i + 1;
+			OnWeaponSelected(i + 1);
+			return;
+		}
+	}
+
 	// -------------------------------------------------------------------------------------------
 	// Reading / writing the current target
 	// -------------------------------------------------------------------------------------------
 
 	/// <summary>The 7 field values as CharacterRigTuning currently has them for (_currentMode,
-	/// _currentKind[, _currentBoneName]). This is the single source of truth the fields, the preview
-	/// line and the network sync all read from - typing never edits anything except CharacterRigTuning
-	/// itself.</summary>
+	/// _currentWeapon, _currentKind[, _currentBoneName]). This is the single source of truth the
+	/// fields, the preview line and the network sync all read from - typing never edits anything
+	/// except CharacterRigTuning itself.</summary>
 	private float[] ReadCurrentAppliedValues()
 	{
 		switch (_currentKind)
 		{
 			case TargetKind.Bone when _currentBoneName != null:
-				var b = CharacterRigTuning.GetBone(_currentMode, _currentBoneName);
+				var b = CharacterRigTuning.GetBone(_currentMode, _currentBoneName, _currentWeapon);
 				return new[]
 				{
 					b.PositionOffset.X, b.PositionOffset.Y, b.PositionOffset.Z,
@@ -244,7 +287,7 @@ public partial class CharacterRigTuner : Node
 					b.ScaleMultiplier,
 				};
 			case TargetKind.Camera:
-				var c = CharacterRigTuning.GetCamera(_currentMode);
+				var c = CharacterRigTuning.GetCamera(_currentMode, _currentWeapon);
 				return new[]
 				{
 					c.PositionOffset.X, c.PositionOffset.Y, c.PositionOffset.Z,
@@ -252,7 +295,7 @@ public partial class CharacterRigTuner : Node
 					1.0f,
 				};
 			default:
-				float scale = CharacterRigTuning.GetCharacterScale(_currentMode);
+				float scale = CharacterRigTuning.GetCharacterScale(_currentMode, _currentWeapon);
 				return new[] { 0f, 0f, 0f, 0f, 0f, 0f, scale };
 		}
 	}
@@ -265,13 +308,13 @@ public partial class CharacterRigTuner : Node
 			case TargetKind.Bone:
 				if (_currentBoneName == null) return;
 				CharacterRigTuning.SetBone(_currentMode, _currentBoneName,
-					new Vector3(v[0], v[1], v[2]), new Vector3(v[3], v[4], v[5]), v[ScaleFieldIndex]);
+					new Vector3(v[0], v[1], v[2]), new Vector3(v[3], v[4], v[5]), v[ScaleFieldIndex], _currentWeapon);
 				break;
 			case TargetKind.Camera:
-				CharacterRigTuning.SetCamera(_currentMode, new Vector3(v[0], v[1], v[2]), new Vector3(v[3], v[4], v[5]));
+				CharacterRigTuning.SetCamera(_currentMode, new Vector3(v[0], v[1], v[2]), new Vector3(v[3], v[4], v[5]), _currentWeapon);
 				break;
 			case TargetKind.CharacterScale:
-				CharacterRigTuning.SetCharacterScale(_currentMode, v[ScaleFieldIndex]);
+				CharacterRigTuning.SetCharacterScale(_currentMode, v[ScaleFieldIndex], _currentWeapon);
 				break;
 		}
 	}
@@ -296,13 +339,13 @@ public partial class CharacterRigTuner : Node
 		switch (_currentKind)
 		{
 			case TargetKind.Bone:
-				if (_currentBoneName != null) CharacterRigTuning.ClearBone(_currentMode, _currentBoneName);
+				if (_currentBoneName != null) CharacterRigTuning.ClearBone(_currentMode, _currentBoneName, _currentWeapon);
 				break;
 			case TargetKind.Camera:
-				CharacterRigTuning.ClearCamera(_currentMode);
+				CharacterRigTuning.ClearCamera(_currentMode, _currentWeapon);
 				break;
 			case TargetKind.CharacterScale:
-				CharacterRigTuning.ClearCharacterScale(_currentMode);
+				CharacterRigTuning.ClearCharacterScale(_currentMode, _currentWeapon);
 				break;
 		}
 		SyncFieldsFromData();
@@ -344,7 +387,7 @@ public partial class CharacterRigTuner : Node
 		if (_currentKind == TargetKind.Bone && _currentBoneName == null) return;
 
 		float[] current = ReadCurrentAppliedValues();
-		string identity = $"{_currentKind}:{_currentMode}:{_currentBoneName}";
+		string identity = $"{_currentKind}:{_currentMode}:{_currentBoneName}:{_currentWeapon}";
 		bool changed = _lastSent == null || _lastSentIdentity != identity || !SameValues(current, _lastSent);
 		if (!changed && _keepAliveCountdown > 0.0f) return;
 
@@ -352,7 +395,7 @@ public partial class CharacterRigTuner : Node
 		_lastSentIdentity = identity;
 		_syncCooldown = SyncIntervalSeconds;
 		_keepAliveCountdown = KeepAliveSeconds;
-		Rpc(MethodName.RpcSyncTarget, (int)_currentKind, (int)_currentMode, _currentBoneName ?? "",
+		Rpc(MethodName.RpcSyncTarget, (int)_currentKind, (int)_currentMode, _currentBoneName ?? "", _currentWeapon,
 			new Vector3(current[0], current[1], current[2]), new Vector3(current[3], current[4], current[5]),
 			current[ScaleFieldIndex]);
 	}
@@ -370,7 +413,7 @@ public partial class CharacterRigTuner : Node
 	/// their own camera. Ignored unless it comes from the player's own owner. Enum fields cross the
 	/// wire as plain ints (Godot RPC parameters have to be Variant-friendly types).</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void RpcSyncTarget(int kind, int mode, string boneName, Vector3 pos, Vector3 rot, float scale)
+	public void RpcSyncTarget(int kind, int mode, string boneName, string weapon, Vector3 pos, Vector3 rot, float scale)
 	{
 		if (!OS.IsDebugBuild()) return;
 		if (Multiplayer.GetRemoteSenderId() != _playerBody.GetMultiplayerAuthority()) return;
@@ -378,13 +421,13 @@ public partial class CharacterRigTuner : Node
 		switch ((TargetKind)kind)
 		{
 			case TargetKind.Bone:
-				if (!string.IsNullOrEmpty(boneName)) CharacterRigTuning.SetBone(poseMode, boneName, pos, rot, scale);
+				if (!string.IsNullOrEmpty(boneName)) CharacterRigTuning.SetBone(poseMode, boneName, pos, rot, scale, weapon);
 				break;
 			case TargetKind.Camera:
-				CharacterRigTuning.SetCamera(poseMode, pos, rot);
+				CharacterRigTuning.SetCamera(poseMode, pos, rot, weapon);
 				break;
 			case TargetKind.CharacterScale:
-				CharacterRigTuning.SetCharacterScale(poseMode, scale);
+				CharacterRigTuning.SetCharacterScale(poseMode, scale, weapon);
 				break;
 		}
 	}
@@ -448,18 +491,25 @@ public partial class CharacterRigTuner : Node
 		bool reloading = _controller.IsReloadPlaying;
 		string flags = (aiming ? " +Aim" : "") + (reloading ? " +Reload" : "") + (firing ? " +Fire" : "");
 
+		string? equippedWeapon = _weaponAttachment?.CurrentWeapon?.WeaponName;
+		string equippedNote = equippedWeapon ?? "(none equipped)";
+
 		var activeLayers = CharacterRigTuning.ActiveLayersHighToLow(_movement, _controller).ToList();
-		string previewNote = activeLayers.Contains(_currentMode)
+		bool modeIsActive = activeLayers.Contains(_currentMode);
+		bool weaponMatches = _currentWeapon == CharacterRigTuning.AnyWeapon || _currentWeapon == equippedWeapon;
+		string previewNote = modeIsActive && weaponMatches
 			? "previewing live"
-			: "not active right now - do this, or use a Preview button, to see it";
+			: !modeIsActive
+				? "mode not active right now - do this, or use a Preview button, to see it"
+				: $"not previewing - equip '{_currentWeapon}' to see this weapon-scoped edit";
 
 		int peers = Multiplayer.GetPeers().Length;
 		string net = peers > 0 ? $"live-syncing to {peers} other player(s)" : "no other players connected";
 		int tunedBones = CharacterRigTuning.TunedBoneNames().Count();
 
 		_liveLabel.Text =
-			$"Live: {state}{flags}   Tuned bones so far: {tunedBones}   {net}\n" +
-			$"Editing mode '{_currentMode}': {previewNote}";
+			$"Live: {state}{flags}   Weapon equipped: {equippedNote}   Tuned bones so far: {tunedBones}   {net}\n" +
+			$"Editing '{_currentMode}' + '{(_currentWeapon == CharacterRigTuning.AnyWeapon ? "any weapon" : _currentWeapon)}': {previewNote}";
 	}
 
 	private void UpdatePreviewLabel()
@@ -470,15 +520,16 @@ public partial class CharacterRigTuner : Node
 			return;
 		}
 		float[] v = ReadCurrentAppliedValues();
+		string weaponArg = _currentWeapon == CharacterRigTuning.AnyWeapon ? "" : $", \"{_currentWeapon}\"";
 		_previewLabel.Text = _currentKind switch
 		{
 			TargetKind.Bone =>
 				$"SetBone(PoseMode.{_currentMode}, \"{_currentBoneName}\", " +
-				$"new Vector3({F(v[0])}f, {F(v[1])}f, {F(v[2])}f), new Vector3({F(v[3])}f, {F(v[4])}f, {F(v[5])}f), {F(v[6])}f);",
+				$"new Vector3({F(v[0])}f, {F(v[1])}f, {F(v[2])}f), new Vector3({F(v[3])}f, {F(v[4])}f, {F(v[5])}f), {F(v[6])}f{weaponArg});",
 			TargetKind.Camera =>
 				$"SetCamera(PoseMode.{_currentMode}, " +
-				$"new Vector3({F(v[0])}f, {F(v[1])}f, {F(v[2])}f), new Vector3({F(v[3])}f, {F(v[4])}f, {F(v[5])}f));",
-			_ => $"SetCharacterScale(PoseMode.{_currentMode}, {F(v[6])}f);",
+				$"new Vector3({F(v[0])}f, {F(v[1])}f, {F(v[2])}f), new Vector3({F(v[3])}f, {F(v[4])}f, {F(v[5])}f){weaponArg});",
+			_ => $"SetCharacterScale(PoseMode.{_currentMode}, {F(v[6])}f{weaponArg});",
 		};
 	}
 
@@ -541,7 +592,7 @@ public partial class CharacterRigTuner : Node
 		column.AddThemeConstantOverride("separation", 6);
 		scroll.AddChild(column);
 
-		column.AddChild(new Label { Text = "CHARACTER RIG EDITOR - F2 to toggle", ThemeTypeVariation = "HeaderSmall" });
+		column.AddChild(new Label { Text = "CHARACTER RIG EDITOR - F2: back to tools", ThemeTypeVariation = "HeaderSmall" });
 		_liveLabel = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
 		column.AddChild(_liveLabel);
 		column.AddChild(new HSeparator());
@@ -552,6 +603,16 @@ public partial class CharacterRigTuner : Node
 			_modeOption.AddItem(mode.ToString());
 		_modeOption.ItemSelected += OnModeSelected;
 		column.AddChild(_modeOption);
+
+		column.AddChild(new Label { Text = "Weapon scope (which weapon this edit applies to):" });
+		var weaponRow = new HBoxContainer();
+		weaponRow.AddThemeConstantOverride("separation", 6);
+		_weaponOption = new OptionButton { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+		BuildWeaponOptions();
+		_weaponOption.ItemSelected += OnWeaponSelected;
+		weaponRow.AddChild(_weaponOption);
+		weaponRow.AddChild(MakeButton("Match equipped", MatchEquippedWeapon));
+		column.AddChild(weaponRow);
 		column.AddChild(new HSeparator());
 
 		column.AddChild(new Label { Text = "Target:" });
@@ -603,7 +664,7 @@ public partial class CharacterRigTuner : Node
 		sessionRow.AddThemeConstantOverride("separation", 6);
 		sessionRow.AddChild(MakeButton("Save session", () => CharacterRigTuning.Save()));
 		sessionRow.AddChild(MakeButton("Delete saved session", () => CharacterRigTuning.DeleteSaved()));
-		sessionRow.AddChild(MakeButton("Close (F2)", () => SetActive(false)));
+		sessionRow.AddChild(MakeButton("Back to tools (F2)", () => DebugHub.Back(this)));
 		column.AddChild(sessionRow);
 
 		var hint = new Label
@@ -612,7 +673,9 @@ public partial class CharacterRigTuner : Node
 			Modulate = new Color(1.0f, 1.0f, 1.0f, 0.65f),
 			Text = "Mouse-look and weapon-switch digits are paused while this is open. Walking, "
 				+ "crouching, sprinting and aiming still work, so you can hold the real pose while you "
-				+ "tune it. Fire/Reload are one-shots - use the preview buttons for those.",
+				+ "tune it. Fire/Reload are one-shots - use the preview buttons for those. Weapon scope "
+				+ "picks a filing bucket, not a live weapon swap - equip the weapon (or hit 'Match "
+				+ "equipped') to actually preview a weapon-scoped edit.",
 		};
 		column.AddChild(hint);
 
@@ -630,6 +693,13 @@ public partial class CharacterRigTuner : Node
 		button.Pressed += () => SelectTarget(kind, boneName);
 		_targetListBox.AddChild(button);
 		if (boneName != null) _boneButtons[boneName] = button;
+	}
+
+	private void BuildWeaponOptions()
+	{
+		_weaponOption.AddItem("Any weapon");
+		if (_weaponRegistry == null) return;
+		foreach (var weapon in _weaponRegistry.Weapons) _weaponOption.AddItem(weapon.WeaponName);
 	}
 
 	private void BuildBoneButtons()

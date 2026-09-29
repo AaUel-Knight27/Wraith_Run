@@ -14,7 +14,17 @@ public partial class LoadingScreen : CanvasLayer
 {
 	public static LoadingScreen Instance { get; private set; } = null!;
 
-	private const string BackgroundImagePath = "res://art/ui/loading/loading_background.png";
+	/// <summary>Shown for every menu->match and match->menu transition. One is picked at random
+	/// each time Show() is called (never the same one twice in a row) so the loading screen
+	/// doesn't go stale over a long play session.</summary>
+	private static readonly string[] BackgroundImagePaths =
+	{
+		"res://art/ui/loading/loading_1.png",
+		"res://art/ui/loading/loading_2.png",
+		"res://art/ui/loading/loading_3.png",
+		"res://art/ui/loading/loading_4.png",
+		"res://art/ui/loading/loading_5.png",
+	};
 
 	/// <summary>Never disappears faster than this, even if GameWorld._Ready() fires the same
 	/// frame Show() was called - a loading screen that flashes for one frame reads as a glitch,
@@ -38,9 +48,11 @@ public partial class LoadingScreen : CanvasLayer
 	private Tween? _barTween;
 	private Tween? _fadeTween;
 	private Timer _tipTimer = null!;
+	private TextureRect _background = null!;
 	private ulong _shownAtMsec;
 	private bool _visible;
 	private int _tipIndex = -1;
+	private int _bgIndex = -1;
 	private readonly RandomNumberGenerator _rng = new();
 
 	public override void _Ready()
@@ -61,6 +73,7 @@ public partial class LoadingScreen : CanvasLayer
 		_bar.Value = 0.0;
 		_tipIndex = -1;
 		RollTip();
+		RollBackground();
 		_tipTimer.Start(TipRotateSeconds);
 		SetOverlayVisible(true, immediate: true);
 
@@ -121,6 +134,15 @@ public partial class LoadingScreen : CanvasLayer
 		_tipLabel.Text = Tips[_tipIndex];
 	}
 
+	private void RollBackground()
+	{
+		if (BackgroundImagePaths.Length == 0) return;
+		int next = BackgroundImagePaths.Length == 1 ? 0 : _rng.RandiRange(0, BackgroundImagePaths.Length - 1);
+		if (next == _bgIndex) next = (next + 1) % BackgroundImagePaths.Length;
+		_bgIndex = next;
+		_background.Texture = GD.Load<Texture2D>(BackgroundImagePaths[_bgIndex]);
+	}
+
 	// -------------------------------------------------------------------------------------------
 	// Layout - built once in code, no .tscn to keep in sync.
 	// -------------------------------------------------------------------------------------------
@@ -131,16 +153,15 @@ public partial class LoadingScreen : CanvasLayer
 		root.MouseFilter = Control.MouseFilterEnum.Stop;
 		AddChild(root);
 
-		var bg = new TextureRect
+		_background = new TextureRect
 		{
 			Name = "Background",
-			Texture = GD.Load<Texture2D>(BackgroundImagePath),
 			StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
 			ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
 		};
-		bg.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-		bg.ClipContents = true;
-		root.AddChild(bg);
+		_background.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+		_background.ClipContents = true;
+		root.AddChild(_background);
 
 		// Darken the lower third so the bar/label/tip stay legible over any background.
 		var scrim = new ColorRect { Name = "Scrim", Color = new Color(0, 0, 0, 0.55f) };

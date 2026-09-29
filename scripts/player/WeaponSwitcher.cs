@@ -56,12 +56,28 @@ public partial class WeaponSwitcher : Node
 	private AudioStreamPlayer? _hitMarker;
 	private readonly RandomNumberGenerator _rng = new();
 
+	/// <summary>
+	/// true: every loadout weapon remembers its own magazine and reserve while you carry another one,
+	/// and all of them are refilled when you respawn. This is what makes "ammo per weapon" real, and
+	/// what the pause menu's Items screen shows.
+	/// false: the original behaviour - equipping a weapon always hands it back full, so swapping is
+	/// an instant free reload and non-equipped weapons always read as full.
+	/// </summary>
+	private const bool KeepAmmoPerWeapon = true;
+
 	private WeaponData? _currentWeapon;
 	private int _currentAmmo;
 	private int _currentReserve;
 	private float _cooldownRemaining;
 	private float _reloadRemaining;
 	private int _appliedWeaponIndex = -1;
+
+	// Ammo of every loadout slot that is NOT the equipped one (the equipped weapon's live numbers
+	// are _currentAmmo/_currentReserve above). _hasSavedAmmo[i] is false until slot i has been
+	// carried at least once, so a never-used weapon still reads as full.
+	private readonly int[] _savedAmmo = new int[Loadout.Length];
+	private readonly int[] _savedReserve = new int[Loadout.Length];
+	private readonly bool[] _hasSavedAmmo = new bool[Loadout.Length];
 
 	/// <summary>
 	/// Index into Loadout, replicated by PlayerNetworkSynchronizer. The authority writes it when
@@ -90,6 +106,50 @@ public partial class WeaponSwitcher : Node
 	public bool IsReloading => _reloadRemaining > 0.0f;
 	public WeaponData.FireModeType FireMode => _currentWeapon?.FireMode ?? WeaponData.FireModeType.FullAuto;
 
+	/// <summary>Slot in Loadout of the weapon that is actually equipped right now (-1 before the
+	/// first equip in _Ready has run).</summary>
+	public int EquippedIndex => _appliedWeaponIndex;
+
+	public static int LoadoutCount => Loadout.Length;
+
+	/// <summary>Stats for a loadout slot, or null if the slot is out of range or not in the registry.</summary>
+	public WeaponData? GetWeaponData(int index)
+	{
+		if (_registry == null || index < 0 || index >= Loadout.Length) return null;
+		foreach (var weapon in _registry.Weapons)
+			if (weapon.WeaponName == Loadout[index]) return weapon;
+		return null;
+	}
+
+	/// <summary>Magazine and reserve for any loadout slot: live numbers for the equipped weapon, the
+	/// remembered ones for a weapon carried earlier, full for one never used (or for every weapon when
+	/// KeepAmmoPerWeapon is off). Melee reads 0/0 - MagazineSize 0 is how the rest of the game marks
+	/// "no ammo" weapons.</summary>
+	public bool TryGetAmmo(int index, out int magazine, out int reserve)
+	{
+		magazine = 0;
+		reserve = 0;
+		WeaponData? weapon = GetWeaponData(index);
+		if (weapon == null) return false;
+
+		if (index == _appliedWeaponIndex) { magazine = _currentAmmo; reserve = _currentReserve; }
+		else if (KeepAmmoPerWeapon && _hasSavedAmmo[index]) { magazine = _savedAmmo[index]; reserve = _savedReserve[index]; }
+		else { magazine = weapon.MagazineSize; reserve = weapon.MaxReserveAmmo; }
+		return true;
+	}
+
+	/// <summary>Same effect as pressing that slot's number key: used by the pause menu's Weapon Set
+	/// screen. Only the owning device may change its own weapon, and not while dead (the number keys
+	/// are ignored then too).</summary>
+	public bool TryEquip(int index)
+	{
+		if (!_player.IsMultiplayerAuthority()) return false;
+		if (index < 0 || index >= Loadout.Length) return false;
+		if (_health != null && _health.IsDead) return false;
+		ReplicatedWeaponIndex = index;
+		return true;
+	}
+
 	public override void _Ready()
 	{
 		_rng.Randomize();
@@ -107,19 +167,33 @@ public partial class WeaponSwitcher : Node
 		_animation = GetNodeOrNull<PlayerAnimationController>("../AnimationController");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
 
-		if (_player.IsMultiplayerAuthority()) _hitMarker = BuildHitMarker();
+		if (_player.IsMultiplayerAuthority())
+		{
+			_hitMarker = BuildHitMarker();
+			if (_health != null && KeepAmmoPerWeapon) _health.Respawned += OnRespawned;
+		}
 
 		// Apply whatever index is already set. On the authority that is 0 (the AK); on a remote
 		// copy the synchronizer may already have delivered the real value.
 		ApplyWeaponIndex(_replicatedWeaponIndex);
 	}
 
+	public override void _ExitTree()
+	{
+		if (_health != null && IsInstanceValid(_health)) _health.Respawned -= OnRespawned;
+	}
+
 	public override void _Process(double delta)
 	{
 		if (!_player.IsMultiplayerAuthority()) return;
 
-		for (int i = 0; i < Loadout.Length; i++)
-			if (Input.IsActionJustPressed($"weapon_{i + 1}")) ReplicatedWeaponIndex = i;
+		// While the pause menu is open no gameplay key or button reaches this weapon (the timers
+		// below still run, so a reload that was already under way finishes normally).
+		bool inputBlocked = GameUiState.BlocksGameplayInput;
+
+		if (!inputBlocked)
+			for (int i = 0; i < Loadout.Length; i++)
+				if (Input.IsActionJustPressed($"weapon_{i + 1}")) ReplicatedWeaponIndex = i;
 
 		if (_health != null && _health.IsDead) return;
 
@@ -131,14 +205,14 @@ public partial class WeaponSwitcher : Node
 			if (_reloadRemaining <= 0.0f) FinishReload();
 		}
 
-		if (Input.IsActionJustPressed("reload")) StartReload();
+		if (!inputBlocked && Input.IsActionJustPressed("reload")) StartReload();
 
 		// Rate-limited by FireRateRPM below. Semi-auto weapons (Glock, Desert Eagle, shotgun)
 		// require a fresh press per shot - holding the trigger on them fires one round and then
 		// waits for the cooldown to drain without firing again. Full-auto keeps firing on hold.
-		bool fireRequested = FireMode == WeaponData.FireModeType.FullAuto
+		bool fireRequested = !inputBlocked && (FireMode == WeaponData.FireModeType.FullAuto
 			? Input.IsActionPressed("fire")
-			: Input.IsActionJustPressed("fire");
+			: Input.IsActionJustPressed("fire"));
 		if (fireRequested && _cooldownRemaining <= 0.0f) TryFire();
 	}
 
@@ -158,10 +232,19 @@ public partial class WeaponSwitcher : Node
 		foreach (var weapon in _registry.Weapons)
 		{
 			if (weapon.WeaponName != Loadout[index]) continue;
+			RememberOutgoingAmmo();
 			_appliedWeaponIndex = index;
 			_currentWeapon = weapon;
-			_currentAmmo = weapon.MagazineSize;
-			_currentReserve = weapon.MaxReserveAmmo;
+			if (KeepAmmoPerWeapon && _hasSavedAmmo[index])
+			{
+				_currentAmmo = _savedAmmo[index];
+				_currentReserve = _savedReserve[index];
+			}
+			else
+			{
+				_currentAmmo = weapon.MagazineSize;
+				_currentReserve = weapon.MaxReserveAmmo;
+			}
 			_cooldownRemaining = 0.0f;
 			_reloadRemaining = 0.0f;
 			_animation?.CancelReload();
@@ -171,6 +254,29 @@ public partial class WeaponSwitcher : Node
 			return;
 		}
 		GD.PushError($"Test loadout weapon '{Loadout[index]}' is not registered.");
+	}
+
+	/// <summary>Stores the numbers of the weapon that is about to be put away, so they are still
+	/// there when it is picked up again.</summary>
+	private void RememberOutgoingAmmo()
+	{
+		if (!KeepAmmoPerWeapon || _currentWeapon == null) return;
+		if (_appliedWeaponIndex < 0 || _appliedWeaponIndex >= Loadout.Length) return;
+		_savedAmmo[_appliedWeaponIndex] = _currentAmmo;
+		_savedReserve[_appliedWeaponIndex] = _currentReserve;
+		_hasSavedAmmo[_appliedWeaponIndex] = true;
+	}
+
+	/// <summary>Respawning resupplies the whole loadout. Without this, once ammo is per-weapon a
+	/// player who has shot everything dry would have no way to ever get more.</summary>
+	private void OnRespawned()
+	{
+		for (int i = 0; i < Loadout.Length; i++) _hasSavedAmmo[i] = false;
+		if (_currentWeapon == null) return;
+		_currentAmmo = _currentWeapon.MagazineSize;
+		_currentReserve = _currentWeapon.MaxReserveAmmo;
+		_reloadRemaining = 0.0f;
+		_animation?.CancelReload();
 	}
 
 	// -------------------------------------------------------------------------------------------
