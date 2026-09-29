@@ -11,10 +11,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/icon.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/icon.svg.import" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/photo_2026-09-23_07-20-00.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/photo_2026-09-23_07-20-00.jpg.import" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -225,8 +222,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="working on camera set and FPS possition" />
-    <MESSAGE value="remove complied items" />
     <MESSAGE value="fixing player face toward and the respawn and death animation problem, fixing other bugs" />
     <MESSAGE value="fixing visualization throuth the models by chaning the model into glb from fbx" />
     <MESSAGE value="import files" />
@@ -249,7 +244,10 @@
     <MESSAGE value="fix compile error" />
     <MESSAGE value="fixed an audio bug" />
     <MESSAGE value="added character rig edit system and audio files" />
-    <option name="LAST_COMMIT_MESSAGE" value="added character rig edit system and audio files" />
+    <MESSAGE value="fix debugging systems and fixed control systems." />
+    <MESSAGE value="remaking sound systems" />
+    <MESSAGE value="created loading screen, score board and pause" />
+    <option name="LAST_COMMIT_MESSAGE" value="created loading screen, score board and pause" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -16,9 +16,9 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="Wraith Run"
 run/main_scene="res://scenes/MainMenu.tscn"
+config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
 config/icon="res://icon.png"
-config/quit_on_go_back=false
 
 [autoload]
 

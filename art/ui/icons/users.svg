@@ -1,17 +1,6 @@
-<svg
- 
-  xmlns="http://www.w3.org/2000/svg"
-  width="96"
-  height="96"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="#ffffff"
-  stroke-width="2.25"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-  <path d="M16 3.128a4 4 0 0 1 0 7.744" />
-  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-  <circle cx="9" cy="7" r="4" />
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24">
+<path fill="#ffffff" fill-rule="evenodd" d="M9.16 8.20 L12.56 9.56 L13.24 12.96 L13.24 14.66 L11.54 17.72 L9.16 18.74 L6.78 17.72 L5.08 14.66 L5.08 12.96 L5.76 9.56 Z M6.44 12.35 L11.88 12.35 L11.40 14.25 L6.92 14.25 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M2.70 21.46 L3.04 19.76 L6.44 18.06 L9.16 19.56 L11.88 18.06 L15.28 19.76 L15.62 21.46 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M18.40 3.25 L20.90 4.25 L21.40 6.75 L21.40 8.00 L20.15 10.25 L18.40 11.00 L16.65 10.25 L15.40 8.00 L15.40 6.75 L15.90 4.25 Z M16.40 6.30 L20.40 6.30 L20.05 7.70 L16.75 7.70 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M13.65 13.00 L13.90 11.75 L16.40 10.50 L18.40 11.60 L20.40 10.50 L22.90 11.75 L23.15 13.00 Z"/>
 </svg>

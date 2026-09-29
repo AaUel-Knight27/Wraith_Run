@@ -1,19 +1,6 @@
-<svg
- 
-  xmlns="http://www.w3.org/2000/svg"
-  width="96"
-  height="96"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="#ffffff"
-  stroke-width="2.25"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M12 8V4H8" />
-  <rect width="16" height="12" x="4" y="8" rx="2" />
-  <path d="M2 14h2" />
-  <path d="M20 14h2" />
-  <path d="M15 13v2" />
-  <path d="M9 13v2" />
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24">
+<path fill="#ffffff" fill-rule="evenodd" d="M5.00 8.00 L8.00 5.00 L16.00 5.00 L19.00 8.00 L19.00 17.00 L16.00 20.00 L8.00 20.00 L5.00 17.00 Z M7.40 10.20 L11.00 10.20 L10.20 13.00 L7.40 13.00 Z M13.00 10.20 L16.60 10.20 L16.60 13.00 L13.80 13.00 Z M8.00 15.60 L16.00 15.60 L16.00 17.20 L8.00 17.20 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M2.50 10.00 L4.00 10.00 L4.00 15.00 L2.50 15.00 Z M20.00 10.00 L21.50 10.00 L21.50 15.00 L20.00 15.00 Z"/>
+<path fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="miter" stroke-miterlimit="4" stroke-linecap="butt" d="M12.00 5.00 L12.00 2.40"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M10.60 1.00 L13.40 1.00 L13.40 2.60 L10.60 2.60 Z"/>
 </svg>

@@ -15,6 +15,7 @@
 [ext_resource type="Script" uid="uid://cqvvj4h5cvx1x" path="res://scripts/player/TouchControls.cs" id="14"]
 [ext_resource type="Script" path="res://scripts/debug/CharacterRigTuner.cs" id="15"]
 [ext_resource type="Script" path="res://scripts/debug/WeaponSoundTuner.cs" id="16"]
+[ext_resource type="Script" uid="uid://cxg1yq5hqar8y" path="res://scripts/player/CharacterLoadout.cs" id="17"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.35
@@ -51,6 +52,9 @@ properties/7/replication_mode = 2
 
 [node name="Player" type="CharacterBody3D" unique_id=1171397758]
 script = ExtResource("1")
+
+[node name="CharacterLoadout" type="Node" parent="." unique_id=1893462017]
+script = ExtResource("17")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=135268054]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)

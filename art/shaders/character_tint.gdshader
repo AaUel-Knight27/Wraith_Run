@@ -7,6 +7,14 @@ uniform vec4 jacket_color : source_color = vec4(1.0);
 uniform vec4 pants_color : source_color = vec4(1.0);
 uniform vec4 accent_color : source_color = vec4(1.0);
 
+// Colour of the unpainted vertices (head, neck). White keeps the old behaviour exactly.
+uniform vec4 skin_color : source_color = vec4(1.0);
+
+// false = ignore the vertex-colour mask and wear jacket_color everywhere. CharacterAppearance
+// turns this off when it could not write a region mask onto the mesh - with manny.glb's plain
+// white vertex colours the mask formula below would otherwise add all three colours together.
+uniform bool use_regions = true;
+
 // Optional base texture. manny.glb currently has no material at all (confirmed empty on export),
 // so this defaults to plain white - set it once a real texture exists without touching the tint
 // logic below.
@@ -24,10 +32,13 @@ void fragment() {
 	// with r+g+b > 1 never goes negative instead of just over-tinting.
 	float neutral = clamp(1.0 - mask.r - mask.g - mask.b, 0.0, 1.0);
 
-	vec3 tinted = base.rgb * neutral
+	vec3 tinted = base.rgb * skin_color.rgb * neutral
 		+ base.rgb * jacket_color.rgb * mask.r
 		+ base.rgb * pants_color.rgb * mask.g
 		+ base.rgb * accent_color.rgb * mask.b;
+	if (!use_regions) {
+		tinted = base.rgb * jacket_color.rgb;
+	}
 
 	ALBEDO = tinted;
 	ROUGHNESS = roughness;

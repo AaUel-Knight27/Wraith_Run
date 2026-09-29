@@ -132,6 +132,16 @@ public partial class LanMenu : Control
         if (_terminalCleanupDone) return;
         BeginScreen(null);
 
+        CharacterData? op = OperatorInfo.Find(PlayerProfile.OperatorId);
+        WeaponData? weapon = OperatorInfo.FindWeapon(PlayerProfile.WeaponName);
+
+        // The selected operator, live in 3D, in the middle of the screen. Added first so every
+        // button below draws over it; the stage itself never takes mouse input.
+        var stage = new OperatorStage();
+        MenuStyle.Place(stage, 0.335f, 0.27f, 0.665f, 0.985f, 0, 0, 0, 0);
+        _contentRoot.AddChild(stage);
+        stage.ShowOperator(op, weapon);
+
         var title = new VBoxContainer();
         title.AddThemeConstantOverride("separation", 2);
         title.AddChild(MenuStyle.Text("WRAITH RUN", 42, MenuStyle.TextMain,
@@ -142,40 +152,86 @@ public partial class LanMenu : Control
         _contentRoot.AddChild(title);
         AddTopIcons(includeSettings: true, reopen: ShowMain);
 
+        // Top row: everything that edits the character or its gear.
+        var top = new HBoxContainer();
+        top.AddThemeConstantOverride("separation", 10);
+        MenuStyle.Place(top, 0, 0, 0, 0, 64, 108, 64 + 3 * 196 + 20, 108);
+        _contentRoot.AddChild(top);
+        top.AddChild(MenuStyle.Card("users", "CHOOSE\nOPERATOR", null, new Vector2(196, 68),
+            ShowOperators, titleSize: 19, iconSize: 36));
+        top.AddChild(MenuStyle.Card("weapon", "CHOOSE\nWEAPON", null, new Vector2(196, 68),
+            ShowWeapons, titleSize: 19, iconSize: 36));
+        top.AddChild(MenuStyle.Card("helmet-gear", "CUSTOMIZE\nPLAYER", null, new Vector2(196, 68),
+            ShowCustomize, titleSize: 19, iconSize: 36));
+
+        // Left column, lower half: a smaller PLAY (the middle of the screen belongs to the
+        // operator now) and the bot range.
         var column = new VBoxContainer();
-        column.AddThemeConstantOverride("separation", 18);
-        MenuStyle.Place(column, 0, 0, 0, 0, 64, 118, 64 + 500, 118);
+        column.AddThemeConstantOverride("separation", 14);
+        MenuStyle.Place(column, 0, 0.5f, 0, 0.5f, 64, 0, 64 + 300, 0);
         _contentRoot.AddChild(column);
 
-        var top = new HBoxContainer();
-        top.AddThemeConstantOverride("separation", 12);
-        top.AddChild(MenuStyle.Card("users", "CHOOSE\nOPERATOR", null, new Vector2(244, 80),
-            () => ShowSoon("CHOOSE OPERATOR",
-                "Pick which operator you play as. The roster isn't built yet.", ShowMain)));
-        top.AddChild(MenuStyle.Card("helmet-gear", "CUSTOMIZE\nPLAYER", null, new Vector2(244, 80),
-            () => ShowSoon("CUSTOMIZE PLAYER",
-                "Outfit, headgear and accessories aren't built yet.", ShowMain)));
-        column.AddChild(top);
-
-        var spacer = new Control { CustomMinimumSize = new Vector2(0, 26) };
-        column.AddChild(spacer);
-
-        var play = MenuStyle.Hero("PLAY", "Select to Start Match", new Vector2(384, 104), ShowPlay);
+        var play = MenuStyle.Hero("PLAY", "Select to Start Match", new Vector2(300, 84), ShowPlay);
         column.AddChild(play);
-
-        var trainRow = new HBoxContainer();
-        trainRow.AddChild(MenuStyle.Card("crosshair", "TRAIN BUTTON", "Train With Bots",
-            new Vector2(244, 84), () => ShowSoon("TRAIN",
+        column.AddChild(MenuStyle.Card("crosshair", "TRAIN BUTTON", "Train With Bots",
+            new Vector2(300, 72), () => ShowSoon("TRAIN",
                 "A shooting range with bot targets needs bot AI, which isn't built yet.", ShowMain),
-            titleSize: 22, iconSize: 46, badge: "AI"));
-        column.AddChild(trainRow);
+            titleSize: 20, iconSize: 40, badge: "AI"));
 
-        var gun = MenuStyle.StackedCard("rifle", "CUSTOMIZE GUN", new Vector2(214, 92),
-            () => ShowSoon("CUSTOMIZE GUN", "Attachments and loadouts aren't built yet.", ShowMain));
-        MenuStyle.Place(gun, 1, 1, 1, 1, -(64 + 214), -(46 + 92), -64, -46);
-        _contentRoot.AddChild(gun);
+        // Right column: what is currently equipped. Each tile opens its own screen.
+        var right = new VBoxContainer();
+        right.AddThemeConstantOverride("separation", 10);
+        MenuStyle.Place(right, 1, 0, 1, 0, -(64 + 300), 108, -64, 108);
+        _contentRoot.AddChild(right);
+
+        Button operatorTile = MenuStyle.Tile(new Vector2(300, 118), ShowOperators, out VBoxContainer operatorBox);
+        operatorBox.AddChild(MenuStyle.Text("OPERATOR", 14, MenuStyle.Accent, MenuStyle.Bold));
+        operatorBox.AddChild(MenuStyle.Text(OperatorInfo.Callsign(op), 32, MenuStyle.TextMain, MenuStyle.Bold));
+        operatorBox.AddChild(MenuStyle.Text(
+            op == null ? "Standard issue" : $"{OperatorInfo.ClassName(op.Class)}  |  {op.SkillName}",
+            16, MenuStyle.TextDim));
+        right.AddChild(operatorTile);
+
+        Button weaponTile = MenuStyle.Tile(new Vector2(300, 118), ShowWeapons, out VBoxContainer weaponBox);
+        weaponBox.AddChild(MenuStyle.Text("STARTING WEAPON", 14, MenuStyle.Accent, MenuStyle.Bold));
+        weaponBox.AddChild(MenuStyle.Text(weapon == null ? PlayerProfile.WeaponName.ToUpperInvariant() : weapon.WeaponName.ToUpperInvariant(),
+            32, MenuStyle.TextMain, MenuStyle.Bold));
+        weaponBox.AddChild(MenuStyle.Text(
+            weapon == null ? string.Empty
+                : weapon.FireMode == WeaponData.FireModeType.Melee
+                    ? $"{weapon.BodyDamage:0} dmg  |  melee"
+                    : $"{weapon.BodyDamage:0} dmg  |  {weapon.FireRateRPM:0} rpm  |  {weapon.MagazineSize} rd",
+            16, MenuStyle.TextDim));
+        right.AddChild(weaponTile);
 
         play.GrabFocus();
+    }
+
+    private void ShowOperators()
+    {
+        if (_terminalCleanupDone) return;
+        BeginScreen(ShowMain);
+        AddHeader("CHOOSE OPERATOR", ShowMain);
+        AddTopIcons(includeSettings: true, reopen: ShowOperators);
+        new OperatorScreen().Build(_contentRoot);
+    }
+
+    private void ShowWeapons()
+    {
+        if (_terminalCleanupDone) return;
+        BeginScreen(ShowMain);
+        AddHeader("CHOOSE WEAPON", ShowMain);
+        AddTopIcons(includeSettings: true, reopen: ShowWeapons);
+        new WeaponScreen().Build(_contentRoot);
+    }
+
+    private void ShowCustomize()
+    {
+        if (_terminalCleanupDone) return;
+        BeginScreen(ShowMain);
+        AddHeader("CUSTOMIZE PLAYER", ShowMain);
+        AddTopIcons(includeSettings: true, reopen: ShowCustomize);
+        new CustomizeScreen().Build(_contentRoot);
     }
 
     private void ShowPlay()

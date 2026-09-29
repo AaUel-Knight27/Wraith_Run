@@ -53,6 +53,7 @@ public partial class WeaponSwitcher : Node
 	private PlayerAnimationController? _animation;
 	private RotationWindowTracker _rotationWindow = null!;
 	private Health? _health;
+	private CharacterLoadout? _loadout;
 	private AudioStreamPlayer? _hitMarker;
 	private readonly RandomNumberGenerator _rng = new();
 
@@ -164,6 +165,7 @@ public partial class WeaponSwitcher : Node
 		_camera = GetNode<Camera3D>("../Head/FirstPersonCamera");
 		_rotationWindow = GetNode<RotationWindowTracker>("../RotationWindow");
 		_health = GetNodeOrNull<Health>("../Health");
+		_loadout = GetNodeOrNull<CharacterLoadout>("../CharacterLoadout");
 		_animation = GetNodeOrNull<PlayerAnimationController>("../AnimationController");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
 
@@ -171,11 +173,23 @@ public partial class WeaponSwitcher : Node
 		{
 			_hitMarker = BuildHitMarker();
 			if (_health != null && KeepAmmoPerWeapon) _health.Respawned += OnRespawned;
+			// The lobby's "Choose Weapon" pick. Deferred so it goes through the replicated-index
+			// setter after the spawn snapshot, i.e. other players see it too.
+			Callable.From(EquipStartingWeapon).CallDeferred();
 		}
 
 		// Apply whatever index is already set. On the authority that is 0 (the AK); on a remote
 		// copy the synchronizer may already have delivered the real value.
 		ApplyWeaponIndex(_replicatedWeaponIndex);
+	}
+
+	/// <summary>Switches to the weapon picked in the lobby. A pick that is not in Loadout (a weapon
+	/// still being built) leaves the default slot alone.</summary>
+	private void EquipStartingWeapon()
+	{
+		if (!IsInstanceValid(this) || !_player.IsMultiplayerAuthority()) return;
+		int chosen = System.Array.IndexOf(Loadout, PlayerProfile.WeaponName);
+		if (chosen > 0) ReplicatedWeaponIndex = chosen;
 	}
 
 	public override void _ExitTree()
@@ -358,6 +372,8 @@ public partial class WeaponSwitcher : Node
 		float horizontal = _rng.RandfRange(-_currentWeapon.RecoilHorizontal, _currentWeapon.RecoilHorizontal);
 		// Aiming down sights cuts the kick roughly in half, which is the usual reason to ADS at all.
 		float multiplier = _movement.IsAiming ? 0.5f : 1.0f;
+		// Operator kit (e.g. a steady-hands buff); 1.0 when no operator or no such effect.
+		multiplier *= _loadout?.GetModifier(CharacterEffectIds.WeaponRecoilMult, 1.0f) ?? 1.0f;
 		_movement.AddRecoil(_currentWeapon.RecoilVertical * multiplier, horizontal * multiplier,
 			_currentWeapon.RecoilRecoveryMs);
 	}

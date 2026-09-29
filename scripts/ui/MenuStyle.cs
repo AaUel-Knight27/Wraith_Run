@@ -468,6 +468,196 @@ public static class MenuStyle
         return button;
     }
 
+    // ---- loadout screens (operators / weapons / colours) -------------------------------------
+
+    /// <summary>Small outlined tag: EQUIPPED, IN GAME, PLANNED...</summary>
+    public static PanelContainer Chip(string text, Color color, int size = 13, bool filled = false)
+    {
+        var chip = new PanelContainer
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+        };
+        var style = Box(filled ? color : new Color(0, 0, 0, 0), color, 1, 2);
+        style.ContentMarginLeft = 7; style.ContentMarginRight = 7;
+        style.ContentMarginTop = 1; style.ContentMarginBottom = 1;
+        chip.AddThemeStyleboxOverride("panel", style);
+        chip.AddChild(Text(text, size, filled ? Ink : color, Bold));
+        return chip;
+    }
+
+    /// <summary>Text that wraps to the width its parent gives it.</summary>
+    public static Label Wrapped(string text, int size, Color color, Font font = null)
+    {
+        var label = Text(text, size, color, font);
+        label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        label.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        return label;
+    }
+
+    public static Control Divider() => new ColorRect
+    {
+        Color = Hairline,
+        CustomMinimumSize = new Vector2(0, 2),
+        MouseFilter = Control.MouseFilterEnum.Ignore,
+    };
+
+    /// <summary>Hairline-framed dark box for the 3D stage.</summary>
+    public static PanelContainer Frame()
+    {
+        var frame = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        frame.AddThemeStyleboxOverride("panel", Box(new Color(0, 0, 0, 0.30f), Hairline));
+        return frame;
+    }
+
+    /// <summary>One list entry: icon, title + subtitle, optional colour chips and a tag.
+    /// Filled red when it is the one being previewed.</summary>
+    public static Button ListRow(string icon, int iconWidth, int iconHeight, string title, string subtitle,
+        bool selected, Action onPressed, Color[] chips = null, string tag = null, Color? tagColor = null)
+    {
+        var button = NewButton(new Vector2(0, 62), onPressed);
+        button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        StyleButton(button,
+            Box(selected ? SelectedFill : RowFill, selected ? SelectedBorder : Hairline),
+            Box(selected ? SelectedFill : HoverFill, Border),
+            Box(PressFill, BorderHot),
+            Box(RowFill, Hairline));
+
+        var pad = Padding(12, 6);
+        button.AddChild(pad);
+        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 12);
+        pad.AddChild(row);
+
+        var glyph = Icon(icon, iconWidth, iconHeight, selected ? TextMain : Accent);
+        glyph.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(glyph);
+
+        var texts = new VBoxContainer
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        texts.AddThemeConstantOverride("separation", -2);
+        var titleLabel = Text(title, 22, TextMain, Bold);
+        titleLabel.ClipText = true;
+        titleLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        texts.AddChild(titleLabel);
+        var subLabel = Text(subtitle, 15, selected ? TextDim : TextMuted, Medium);
+        subLabel.ClipText = true;
+        subLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        texts.AddChild(subLabel);
+        row.AddChild(texts);
+
+        if (chips != null && chips.Length > 0)
+        {
+            var strip = new HBoxContainer
+            {
+                SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            };
+            strip.AddThemeConstantOverride("separation", 2);
+            foreach (Color c in chips)
+                strip.AddChild(new ColorRect { Color = c, CustomMinimumSize = new Vector2(9, 24), MouseFilter = Control.MouseFilterEnum.Ignore });
+            row.AddChild(strip);
+        }
+        if (!string.IsNullOrEmpty(tag))
+            row.AddChild(Chip(tag, tagColor ?? Accent, 12, filled: false));
+        return button;
+    }
+
+    /// <summary>Small square filter tab: an icon or a short label ("ALL").</summary>
+    public static Button Tab(string icon, string label, bool selected, string tooltip, Action onPressed)
+    {
+        var button = NewButton(new Vector2(42, 40), onPressed);
+        button.TooltipText = tooltip;
+        StyleButton(button,
+            Box(selected ? SelectedFill : RowFill, selected ? SelectedBorder : Hairline),
+            Box(selected ? SelectedFill : HoverFill, Border),
+            Box(PressFill, BorderHot),
+            Box(RowFill, Hairline));
+        if (icon != null)
+        {
+            var glyph = Icon(icon, 22, 0, selected ? TextMain : Accent);
+            Place(glyph, 0, 0, 1, 1, 8, 8, -8, -8);
+            button.AddChild(glyph);
+        }
+        else
+        {
+            var text = Text(label, 16, selected ? TextMain : Accent, Bold, HorizontalAlignment.Center);
+            text.VerticalAlignment = VerticalAlignment.Center;
+            Fill(text);
+            button.AddChild(text);
+        }
+        return button;
+    }
+
+    /// <summary>Labelled thin bar: "FIRE RATE ........ 600".</summary>
+    public static Control StatBar(string label, string value, float fraction)
+    {
+        var box = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        box.AddThemeConstantOverride("separation", 3);
+
+        var top = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        var name = Text(label, 15, TextMuted, SemiBold);
+        name.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        top.AddChild(name);
+        top.AddChild(Text(value, 17, TextMain, Bold, HorizontalAlignment.Right));
+        box.AddChild(top);
+
+        var track = new Control { CustomMinimumSize = new Vector2(0, 6), MouseFilter = Control.MouseFilterEnum.Ignore };
+        var back = new ColorRect { Color = Hex(0x1d1113), MouseFilter = Control.MouseFilterEnum.Ignore };
+        Fill(back);
+        track.AddChild(back);
+        var bar = new ColorRect { Color = Accent, MouseFilter = Control.MouseFilterEnum.Ignore };
+        Place(bar, 0, 0, Mathf.Clamp(fraction, 0.0f, 1.0f), 1, 0, 0, 0, 0);
+        track.AddChild(bar);
+        box.AddChild(track);
+        return box;
+    }
+
+    /// <summary>Square colour swatch; ringed white when it is the current colour.</summary>
+    public static Button Swatch(Color color, bool selected, Action onPressed)
+    {
+        var button = NewButton(new Vector2(38, 38), onPressed);
+        StyleButton(button,
+            Box(color, selected ? TextMain : Hairline, selected ? 3 : 1, 2),
+            Box(color, BorderHot, 2, 2),
+            Box(color, BorderHot, 3, 2),
+            Box(color, Hairline, 1, 2));
+        return button;
+    }
+
+    /// <summary>A whole-tile button whose content the caller fills (main-screen loadout tiles).
+    /// Returns the button; add rows to <paramref name="content"/>.</summary>
+    public static Button Tile(Vector2 size, Action onPressed, out VBoxContainer content)
+    {
+        var button = NewButton(size, onPressed);
+        StyleButton(button, Box(Ink, Border), Box(HoverFill, BorderHot), Box(PressFill, BorderHot),
+            Box(RowFill, Hairline));
+        var pad = Padding(14, 10);
+        button.AddChild(pad);
+        content = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        content.AddThemeConstantOverride("separation", 0);
+        pad.AddChild(content);
+        return button;
+    }
+
+    /// <summary>Outlined (not filled) secondary button, e.g. RESET COLORS.</summary>
+    public static Button Outline(string text, Action onPressed)
+    {
+        var button = NewButton(new Vector2(0, 46), onPressed);
+        button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        StyleButton(button, Box(Ink, Border), Box(HoverFill, BorderHot), Box(PressFill, BorderHot),
+            Box(RowFill, Hairline));
+        var label = Text(text, 18, TextMain, Bold, HorizontalAlignment.Center);
+        label.VerticalAlignment = VerticalAlignment.Center;
+        Fill(label);
+        button.AddChild(label);
+        return button;
+    }
+
     // ---- panels -----------------------------------------------------------------------------
 
     /// <summary>Near-black panel with a red uppercase header. Returns the panel; add content to
@@ -545,8 +735,8 @@ public static class MenuStyle
     /// <summary>
     /// Dark red-smoke backdrop behind every screen: a base colour, an optional background image,
     /// a glow behind where the operator stands, low fog, a vignette and a few drifting embers.
-    /// Drop res://art/ui/menu_background.png (full screen) and/or res://art/ui/operator_menu.png
-    /// (transparent PNG of the operator) into the project and they are picked up automatically.
+    /// Drop res://art/ui/menu_background.png (full screen) into the project and it is picked up
+    /// automatically. The operator in the middle of the lobby is a live 3D OperatorStage now.
     /// </summary>
     public static void AddBackdrop(Control parent)
     {
@@ -573,23 +763,9 @@ public static class MenuStyle
         }
 
         root.AddChild(GradientLayer(Hex(0x7a1210, 0.70f), Hex(0x7a1210, 0.0f),
-            new Vector2(0.62f, 0.46f), new Vector2(1.02f, 0.46f), radial: true));
+            new Vector2(0.5f, 0.62f), new Vector2(1.02f, 0.62f), radial: true));
         root.AddChild(GradientLayer(Hex(0x3a0908, 0.0f), Hex(0x3a0908, 0.85f),
             new Vector2(0.0f, 0.5f), new Vector2(0.0f, 1.0f), radial: false));
-
-        const string operatorPath = "res://art/ui/operator_menu.png";
-        if (ResourceLoader.Exists(operatorPath))
-        {
-            var portrait = new TextureRect
-            {
-                Texture = ResourceLoader.Load<Texture2D>(operatorPath),
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-                MouseFilter = Control.MouseFilterEnum.Ignore,
-            };
-            Place(portrait, 0.36f, 0.06f, 0.78f, 1.0f, 0, 0, 0, 0);
-            root.AddChild(portrait);
-        }
 
         var vignette = new TextureRect
         {

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="100" viewBox="0 0 100 40">
+<path fill="#ffffff" fill-rule="evenodd" d="M2.00 13.00 L10.00 12.00 L26.00 15.00 L26.00 23.00 L9.00 31.00 L2.00 31.00 Z M4.60 15.40 L9.00 14.60 L9.00 26.20 L4.60 27.60 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M27.00 14.00 L46.00 14.00 L46.00 24.50 L27.00 24.50 Z M32.00 17.00 L40.00 17.00 L40.00 19.60 L32.00 19.60 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M47.00 14.40 L97.00 14.40 L97.00 17.40 L47.00 17.40 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M47.00 19.00 L90.00 19.00 L90.00 22.00 L47.00 22.00 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M58.00 18.20 L78.00 18.20 L78.00 27.00 L58.00 27.00 Z M61.00 20.60 L62.60 20.60 L62.60 24.60 L61.00 24.60 Z M65.00 20.60 L66.60 20.60 L66.60 24.60 L65.00 24.60 Z M69.00 20.60 L70.60 20.60 L70.60 24.60 L69.00 24.60 Z M73.00 20.60 L74.60 20.60 L74.60 24.60 L73.00 24.60 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M91.00 18.40 L93.40 18.40 L93.40 22.60 L91.00 22.60 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M94.00 12.00 L96.40 12.00 L96.40 14.40 L94.00 14.40 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M29.00 25.40 L35.00 25.40 L33.60 35.60 L27.40 34.40 Z"/>
+<path fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="miter" stroke-miterlimit="4" stroke-linecap="butt" d="M36.60 25.00 L36.60 29.20 L42.60 29.20 L42.60 25.00"/>
+</svg>

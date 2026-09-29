@@ -1,18 +1,8 @@
-<svg
- 
-  xmlns="http://www.w3.org/2000/svg"
-  width="96"
-  height="96"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="#ffffff"
-  stroke-width="2.25"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <circle cx="12" cy="12" r="10" />
-  <line x1="22" x2="18" y1="12" y2="12" />
-  <line x1="6" x2="2" y1="12" y2="12" />
-  <line x1="12" x2="12" y1="6" y2="2" />
-  <line x1="12" x2="12" y1="22" y2="18" />
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24">
+<path fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="miter" stroke-miterlimit="4" stroke-linecap="butt" d="M19.95 15.29 L15.29 19.95 L8.71 19.95 L4.05 15.29 L4.05 8.71 L8.71 4.05 L15.29 4.05 L19.95 8.71 Z"/>
+<path fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="miter" stroke-miterlimit="4" stroke-linecap="butt" d="M12.00 1.20 L12.00 6.40"/>
+<path fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="miter" stroke-miterlimit="4" stroke-linecap="butt" d="M12.00 17.60 L12.00 22.80"/>
+<path fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="miter" stroke-miterlimit="4" stroke-linecap="butt" d="M1.20 12.00 L6.40 12.00"/>
+<path fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="miter" stroke-miterlimit="4" stroke-linecap="butt" d="M17.60 12.00 L22.80 12.00"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M10.60 10.60 L13.40 10.60 L13.40 13.40 L10.60 13.40 Z"/>
 </svg>
