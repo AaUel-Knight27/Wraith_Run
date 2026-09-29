@@ -161,9 +161,16 @@ public partial class PlayerAnimationController : Node
 		_hasReloadLayer && IsInstanceValid(_animationTree)
 		&& _animationTree.Get($"parameters/{ReloadNodeName}/active").AsBool();
 
+	/// <summary>Mirrors IsReloadPlaying for the fire one-shot - CharacterRigTuning.
+	/// ActiveLayersHighToLow reads this to know when the "Fire" pose-override layer should win.</summary>
+	public bool IsFirePlaying =>
+		_hasFireLayer && IsInstanceValid(_animationTree)
+		&& _animationTree.Get($"parameters/{FireNodeName}/active").AsBool();
+
 	public override void _Ready()
 	{
 		AnimationTuning.EnsureLoaded();
+		CharacterRigTuning.EnsureLoaded();
 		_animationPlayer = GetNode<AnimationPlayer>("../AnimationPlayer");
 		_animationTree = GetNode<AnimationTree>("../AnimationTree");
 		_body = (Node3D)GetParent();
@@ -193,6 +200,22 @@ public partial class PlayerAnimationController : Node
 		_handIk = new LeftHandIk { Name = "LeftHandIk" };
 		AddChild(_handIk);
 		_handIk.Setup(skeleton, _body, this);
+
+		// Character Rig Editor's runtime half (scripts/player/CharacterRigApplier.cs). Added AFTER
+		// LeftHandIk's own modifiers (which Setup() just added to the skeleton above) so it runs last
+		// in the skeleton's modifier chain and has final say over any bone it has an override for -
+		// the same reasoning LeftHandAlignModifier's own placement already relies on. Always active,
+		// in every build: pasted rig overrides are shipped calibration, not a debug feature. Only the
+		// editor UI that WRITES to CharacterRigTuning (scripts/debug/CharacterRigTuner.cs, a node in
+		// Player.tscn) is debug-only.
+		var rigOverride = new CharacterRigOverrideModifier { Name = "CharacterRigOverride" };
+		skeleton.AddChild(rigOverride);
+		rigOverride.Setup((PlayerMovement)_body, this);
+
+		var rigCameraScale = new CharacterRigCameraScaleApplier { Name = "CharacterRigCameraScale" };
+		AddChild(rigCameraScale);
+		rigCameraScale.Setup(_body.GetNode<Camera3D>("Head/FirstPersonCamera"), _body.GetNode<Node3D>("Armature"),
+			(PlayerMovement)_body, this);
 
 		// Debug-only live tuner (F8). It spawns itself away in release exports and on remote players.
 		if (OS.IsDebugBuild()) AddChild(new AnimationTuner { Name = "AnimationTuner" });

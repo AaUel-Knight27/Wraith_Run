@@ -10,9 +10,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -243,7 +241,8 @@
     <MESSAGE value="sound effects and rooms sound" />
     <MESSAGE value="adding more sound effects and fixing sound effects" />
     <MESSAGE value="adding and fps model to make the game more stable" />
-    <option name="LAST_COMMIT_MESSAGE" value="adding and fps model to make the game more stable" />
+    <MESSAGE value="fix compile error" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix compile error" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

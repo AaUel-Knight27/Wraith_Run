@@ -25,6 +25,7 @@ public partial class GameWorld : Node3D
             MatchManager.Instance.AssignTeamAndBroadcast(1);
             SpawnForPeer(1);
         }
+        LoadingScreen.Instance?.Hide();
     }
 
     private void OnPeerConnected(long peerId)

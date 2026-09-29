@@ -781,6 +781,7 @@ public partial class LanMenu : Control
         // This is the sole terminal cleanup path. It completes before the deferred scene change
         // begins to remove this Control and its Timer child.
         RunTerminalCleanup();
+        LoadingScreen.Instance?.Show();
         SetProcess(false);
         CallDeferred(nameof(ChangeToGameWorld));
     }
