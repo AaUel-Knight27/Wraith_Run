@@ -28,12 +28,15 @@ public static class GameUiState
     /// <summary>True while the pause menu (or one of its modals) is on screen.</summary>
     public static bool MenuOpen { get; private set; }
 
+    /// <summary>True while the end-of-match results screen is up (the pause menu stays shut).</summary>
+    public static bool ResultsOpen { get; set; }
+
     /// <summary>What PlayerMovement and WeaponSwitcher check before reading gameplay input.</summary>
     public static bool BlocksGameplayInput => MenuOpen;
 
     public static void SetMenuOpen(bool open) => MenuOpen = open;
 
-    public static void Reset() => MenuOpen = false;
+    public static void Reset() { MenuOpen = false; ResultsOpen = false; }
 
     /// <summary>Idempotent - safe to call from every player's HUD. Adds the two actions and their
     /// default keys if they are not in the InputMap yet, and never touches an existing binding.</summary>
@@ -64,7 +67,7 @@ public static class GameUiState
     /// <summary>Same wording the kill feed already uses ("Player 1"), so a name on the scoreboard
     /// is recognisable in the feed. There is no player-name entry in the lobby yet; when there is,
     /// this is the one place to change.</summary>
-    public static string PlayerName(long peerId) => $"Player {peerId}";
+    public static string PlayerName(long peerId) => BotRoster.DisplayName(peerId);
 
     /// <summary>Kills per death. With zero deaths it is simply the kill count (a 5-0 game reads
     /// 5.00, not infinity), the usual scoreboard convention.</summary>

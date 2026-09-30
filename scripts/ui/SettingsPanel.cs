@@ -76,6 +76,7 @@ public partial class SettingsPanel : Control
 
         SettingsManager settings = SettingsManager.Instance;
         void Rebuild() { settings.Save(); Refresh(); }
+        if (!IsCategoryAvailable(_settingsCategory, settings)) _settingsCategory = SettingsCategory.Look;
 
         var layout = new HBoxContainer();
         layout.AddThemeConstantOverride("separation", 20);
@@ -89,13 +90,16 @@ public partial class SettingsPanel : Control
         void Tab(string icon, string label, SettingsCategory category) =>
             tabs.AddChild(MenuStyle.SelectRow(icon, label, _settingsCategory == category,
                 () => { _settingsCategory = category; _rebindingAction = null; Build(); }));
+        // Only the tabs that mean something on this device: a phone has no keyboard to rebind and a
+        // PC has no touch layout or gyroscope to tune. (A PC with a touchscreen, or anyone who forced
+        // touch controls on, still gets the TOUCH tab; a phone shows CONTROLLER once one is plugged in.)
         Tab("crosshair", "LOOK & AIM", SettingsCategory.Look);
-        Tab("settings", "CONTROLS", SettingsCategory.Controls);
+        if (IsCategoryAvailable(SettingsCategory.Controls, settings)) Tab("settings", "KEYBOARD", SettingsCategory.Controls);
         Tab("bot", "GAMEPLAY", SettingsCategory.Gameplay);
         Tab("map", "VIDEO", SettingsCategory.Video);
         Tab("circle", "AUDIO", SettingsCategory.Audio);
-        Tab("wifi", "CONTROLLER", SettingsCategory.Controller);
-        Tab("helmet-gear", "MOBILE", SettingsCategory.Mobile);
+        if (IsCategoryAvailable(SettingsCategory.Controller, settings)) Tab("wifi", "CONTROLLER", SettingsCategory.Controller);
+        if (IsCategoryAvailable(SettingsCategory.Mobile, settings)) Tab("helmet-gear", "TOUCH", SettingsCategory.Mobile);
 
         _scroll = new ScrollContainer
         {
@@ -120,14 +124,33 @@ public partial class SettingsPanel : Control
         }
     }
 
+    /// <summary>Is this settings category meaningful on the device the game is running on?</summary>
+    private static bool IsCategoryAvailable(SettingsCategory category, SettingsManager settings)
+    {
+        bool phone = OS.HasFeature("mobile");
+        switch (category)
+        {
+            case SettingsCategory.Controls: // key bindings
+                return !phone;
+            case SettingsCategory.Controller: // always on PC; on a phone only with a pad connected
+                return !phone || Input.GetConnectedJoypads().Count > 0;
+            case SettingsCategory.Mobile: // touch layout + gyroscope
+                return phone || DisplayServer.IsTouchscreenAvailable()
+                    || settings.TouchControlsMode != SettingsManager.TouchMode.Auto;
+            default:
+                return true;
+        }
+    }
+
     private static void BuildLookSettings(Container content, SettingsManager settings, Action rebuild)
     {
         var look = MenuStyle.Panel("LOOK & AIM", "crosshair", out var body);
         body.AddChild(MenuStyle.ToggleRow(null, "Invert Look Y", settings.InvertLookY,
             v => { settings.InvertLookY = v; rebuild(); }));
-        body.AddChild(MenuStyle.SliderRow("Mouse Sensitivity", settings.MouseSensitivity,
-            0.0008f, 0.006f, 0.0001f, "{0:0.0000}",
-            v => settings.MouseSensitivity = v, () => settings.Save()));
+        if (!OS.HasFeature("mobile"))
+            body.AddChild(MenuStyle.SliderRow("Mouse Sensitivity", settings.MouseSensitivity,
+                0.0008f, 0.006f, 0.0001f, "{0:0.0000}",
+                v => settings.MouseSensitivity = v, () => settings.Save()));
         body.AddChild(MenuStyle.SliderRow("Field of View", settings.FieldOfView,
             60f, 110f, 1f, "{0:0}\u00B0",
             v => settings.FieldOfView = v, () => settings.Save()));

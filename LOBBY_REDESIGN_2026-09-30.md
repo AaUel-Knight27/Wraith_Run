@@ -5,7 +5,7 @@ settings panel, splash, per-weapon ammo and every earlier system are untouched.
 
 ## What changed
 - Main menu: selected operator stands in the middle (live 3D, idle pose, holding the chosen weapon).
-  Top-left row = CHOOSE OPERATOR / CHOOSE WEAPON. PLAY and TRAIN (names only) bottom-left. No title, no right column.
+  Right column = current OPERATOR and STARTING WEAPON tiles (each opens its screen). PLAY and TRAIN (names only) on the left. No title, no top-left button row.
 - Drag the operator/weapon to spin it, scroll or pinch to zoom, drag while zoomed to pan (weapons: tilt),
   double-click / double-tap to reset. Works with mouse and touch.
 - CHOOSE OPERATOR: all 25 operators plus STANDARD ISSUE, class filter tabs, 3D preview, skill, buffs and
@@ -41,3 +41,16 @@ project + the lobby redesign + the bots overlay. Use it instead of the overlay (
   PlayerIdentity.IsLocalHuman instead of IsMultiplayerAuthority, because bots share the host's authority).
 - Main menu: Train stays a "coming soon" screen (bots are under PLAY > VS BOTS); the old CUSTOMIZE GUN box stays removed.
 - Not compiled or run. Merged files: LanMenu, WeaponSwitcher, PlayerMovement, GameWorld (hand-resolved); the rest merged cleanly.
+
+## Round 3: scoreboard, results, quit, settings, bots switch
+- Scoreboard (Tab): identity now uses PlayerIdentity.IdOf (bots share the host's network authority, which is why every
+  bot showed up as "Player 1 (YOU)" and the enemy team looked empty). Every player and bot gets its own row, name,
+  team and stats. Your row has a thick bright border. New shared ScoreboardData.cs.
+- MatchResults.cs (new): when a match ends (score or time limit) a full-screen ranked results board appears - every
+  player and bot, best score first, team colour stripe, your row bordered - and returns to the main menu by itself
+  after 30 s (MAIN MENU skips the wait). Snapshot taken once, so late bot kills cannot change it.
+- Pause menu: QUIT GAME is one button that asks a single YES / NO question (NO is the default; Esc/Back = NO).
+- Settings: tabs are per device. PC: KEYBOARD, no touch tab (unless a touchscreen or "Force On"). Phone: no key
+  bindings / mouse sensitivity, CONTROLLER only when a pad is connected, TOUCH tab always.
+- LAN host lobby: new ENABLE BOTS switch (off by default) right under GAME MODE; difficulty and count appear when on.
+- Note: only Team Deathmatch has an end condition today; plain Deathmatch still runs until someone leaves.

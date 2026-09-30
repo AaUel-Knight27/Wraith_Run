@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b50m8ppmokcsg"]
 
 [ext_resource type="Script" uid="uid://3gusm7ovk74h" path="res://mapkit/Outdoor/OutdoorMapBuilder.cs" id="1"]
 [ext_resource type="Script" uid="uid://cdjjc7783icx1" path="res://mapkit/Core/SurfaceLayer.cs" id="2"]
@@ -9,35 +9,15 @@ script = ExtResource("2")
 Tint = Color(0.24, 0.21, 0.15, 1)
 TileMeters = 3.0
 Roughness = 0.95
-Metallic = 0.0
 
 [sub_resource type="Resource" id="SurfaceLayer_road"]
 script = ExtResource("2")
 Tint = Color(0.1, 0.1, 0.1, 1)
-TileMeters = 2.0
 Roughness = 0.85
-Metallic = 0.0
 
 [sub_resource type="Resource" id="SurfaceLayer_border"]
 script = ExtResource("2")
 Tint = Color(0.32, 0.3, 0.27, 1)
-TileMeters = 2.0
-Roughness = 0.9
-Metallic = 0.0
-
-[sub_resource type="Resource" id="SurfaceLayer_trenchfloor"]
-script = ExtResource("2")
-Tint = Color(0.18, 0.16, 0.13, 1)
-TileMeters = 2.0
-Roughness = 0.95
-Metallic = 0.0
-
-[sub_resource type="Resource" id="SurfaceLayer_trenchwall"]
-script = ExtResource("2")
-Tint = Color(0.22, 0.19, 0.15, 1)
-TileMeters = 2.0
-Roughness = 0.95
-Metallic = 0.0
 
 [sub_resource type="Resource" id="PropDefinition_barrier"]
 script = ExtResource("3")
@@ -46,14 +26,21 @@ PrimitiveSurface = SubResource("SurfaceLayer_border")
 PrimitiveSize = Vector3(1.2, 0.8, 0.6)
 Footprint = 1.5
 RandomYaw = false
-UniformScaleJitter = 0.0
-AlignToGroundNormal = false
 SinkIntoGround = 0.05
-Collide = true
+
+[sub_resource type="Resource" id="SurfaceLayer_trenchfloor"]
+script = ExtResource("2")
+Tint = Color(0.18, 0.16, 0.13, 1)
+Roughness = 0.95
+
+[sub_resource type="Resource" id="SurfaceLayer_trenchwall"]
+script = ExtResource("2")
+Tint = Color(0.22, 0.19, 0.15, 1)
+Roughness = 0.95
 
 [sub_resource type="Curve3D" id="Curve3D_road"]
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -36, 0, -30, 0, 0, 0, 0, 0, 0, -10, 0.3, -8, 0, 0, 0, 0, 0, 0, 14, 0.5, 12, 0, 0, 0, 0, 0, 0, 36, 1.0, 32),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -36, 0, -30, 0, 0, 0, 0, 0, 0, -10, 0.3, -8, 0, 0, 0, 0, 0, 0, 14, 0.5, 12, 0, 0, 0, 0, 0, 0, 36, 1, 32),
 "tilts": PackedFloat32Array(0, 0, 0, 0)
 }
 point_count = 4
@@ -65,38 +52,27 @@ _data = {
 }
 point_count = 4
 
-[node name="Ashfields" type="Node3D"]
+[node name="Ashfields" type="Node3D" unique_id=401069462]
 script = ExtResource("1")
 SizeMeters = Vector2(80, 80)
-CellSize = 2.0
-ChunkSize = 16.0
 Ground = SubResource("SurfaceLayer_ground")
 NoiseSeed = 4471
 NoiseFrequency = 0.025
 NoiseAmplitude = 2.2
-NoiseOctaves = 3
 RoadPath = NodePath("Road")
-RoadWidth = 6.0
 RoadFlattenWidth = 5.0
 RoadSurface = SubResource("SurfaceLayer_road")
-BorderWidth = 1.0
 BorderSurface = SubResource("SurfaceLayer_border")
 RoadsideProp = SubResource("PropDefinition_barrier")
 RoadsidePropSpacing = 12.0
-RoadsidePropOffset = 1.5
-RoadsidePropBothSides = true
-TrenchPaths = Array[NodePath]([NodePath("Trench1")])
+TrenchPaths = [NodePath("Trench1")]
 TrenchWidth = 2.4
 TrenchDepth = 1.6
-TrenchWallSpan = 1.2
 TrenchFloorSurface = SubResource("SurfaceLayer_trenchfloor")
 TrenchWallSurface = SubResource("SurfaceLayer_trenchwall")
-ScatterRoadClearance = 1.5
-SpawnCount = 8
-SpawnRingFraction = 0.8
 
-[node name="Road" type="Path3D" parent="."]
+[node name="Road" type="Path3D" parent="." unique_id=1443194422]
 curve = SubResource("Curve3D_road")
 
-[node name="Trench1" type="Path3D" parent="."]
+[node name="Trench1" type="Path3D" parent="." unique_id=760991565]
 curve = SubResource("Curve3D_trench")

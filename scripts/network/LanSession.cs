@@ -41,64 +41,64 @@ public partial class LanSession : Node
 		Stop();
 		var peer = new ENetMultiplayerPeer();
 		// The C# bindings do not expose ENetMultiplayerPeer's set_bind_ip (it is a write-only
-		// engine property), so call it by name.
-		peer.Call("set_bind_ip", "127.0.0.1");
-		Error error = peer.CreateServer(GamePort, 1);
-		if (error != Error.Ok) return error;
+        // engine property), so call it by name.
+        peer.Call("set_bind_ip", "127.0.0.1");
+        Error error = peer.CreateServer(GamePort, 1);
+        if (error != Error.Ok) return error;
 
-		Multiplayer.MultiplayerPeer = peer;
-		IsHosting = false;
-		GameName = "Solo";
-		return Error.Ok;
-	}
+        Multiplayer.MultiplayerPeer = peer;
+        IsHosting = false;
+        GameName = "Solo";
+        return Error.Ok;
+    }
 
-	public Error Join(string address)
-	{
-		Stop();
-		var peer = new ENetMultiplayerPeer();
-		Error error = peer.CreateClient(address, GamePort);
-		if (error == Error.Ok) Multiplayer.MultiplayerPeer = peer;
-		return error;
-	}
+    public Error Join(string address)
+    {
+        Stop();
+        var peer = new ENetMultiplayerPeer();
+        Error error = peer.CreateClient(address, GamePort);
+        if (error == Error.Ok) Multiplayer.MultiplayerPeer = peer;
+        return error;
+    }
 
-	public void Stop()
-	{
-		_broadcastPeer?.Close();
-		_broadcastPeer = null;
-		IsHosting = false;
-		if (Multiplayer.MultiplayerPeer != null)
-			Multiplayer.MultiplayerPeer.Close();
-		Multiplayer.MultiplayerPeer = null;
-	}
+    public void Stop()
+    {
+        _broadcastPeer?.Close();
+        _broadcastPeer = null;
+        IsHosting = false;
+        if (Multiplayer.MultiplayerPeer != null)
+            Multiplayer.MultiplayerPeer.Close();
+        Multiplayer.MultiplayerPeer = null;
+    }
 
-	public override void _Process(double delta)
-	{
-		if (IsHosting && Time.GetTicksMsec() >= _nextBroadcastMs) BroadcastNow();
-	}
+    public override void _Process(double delta)
+    {
+        if (IsHosting && Time.GetTicksMsec() >= _nextBroadcastMs) BroadcastNow();
+    }
 
-	private void BroadcastNow()
-	{
-		if (_broadcastPeer == null) return;
-		string ip = GetAdvertisedAddress();
-		string json = Json.Stringify(new Godot.Collections.Dictionary
-		{
-			["name"] = GameName,
-			["host"] = ip,
-			["players"] = Multiplayer.GetPeers().Length + 1,
-		});
-		_broadcastPeer.PutPacket(Encoding.UTF8.GetBytes(json));
-		// Loopback makes Debug > Run Multiple Instances discover a local host too.
-		_broadcastPeer.SetDestAddress("127.0.0.1", DiscoveryPort);
-		_broadcastPeer.PutPacket(Encoding.UTF8.GetBytes(json));
-		_broadcastPeer.SetDestAddress("255.255.255.255", DiscoveryPort);
-		_nextBroadcastMs = Time.GetTicksMsec() + 1000;
-	}
+    private void BroadcastNow()
+    {
+        if (_broadcastPeer == null) return;
+        string ip = GetAdvertisedAddress();
+        string json = Json.Stringify(new Godot.Collections.Dictionary
+        {
+            ["name"] = GameName,
+            ["host"] = ip,
+            ["players"] = Multiplayer.GetPeers().Length + 1,
+        });
+        _broadcastPeer.PutPacket(Encoding.UTF8.GetBytes(json));
+        // Loopback makes Debug > Run Multiple Instances discover a local host too.
+        _broadcastPeer.SetDestAddress("127.0.0.1", DiscoveryPort);
+        _broadcastPeer.PutPacket(Encoding.UTF8.GetBytes(json));
+        _broadcastPeer.SetDestAddress("255.255.255.255", DiscoveryPort);
+        _nextBroadcastMs = Time.GetTicksMsec() + 1000;
+    }
 
-	private static string GetAdvertisedAddress()
-	{
-		foreach (string address in IP.GetLocalAddresses())
+    private static string GetAdvertisedAddress()
+    {
+        foreach (string address in IP.GetLocalAddresses())
 			if (!address.StartsWith("127.") && !address.StartsWith("169.254.") && address.Contains('.'))
-				return address;
-		return "127.0.0.1";
-	}
+                return address;
+        return "127.0.0.1";
+    }
 }

@@ -10,7 +10,18 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LOBBY_REDESIGN_2026-09-30.md" beforeDir="false" afterPath="$PROJECT_DIR$/LOBBY_REDESIGN_2026-09-30.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/maps/Ashfields.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Ashfields.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/network/LanMenu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/LanMenu.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/network/LanSession.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/LanSession.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerHud.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerHud.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/GameUiState.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/GameUiState.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/PauseMenu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/PauseMenu.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/Scoreboard.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/Scoreboard.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/SettingsPanel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/SettingsPanel.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -220,7 +231,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="fixing visualization throuth the models by chaning the model into glb from fbx" />
     <MESSAGE value="import files" />
     <MESSAGE value="fixing some details on the game and using the same way to fix the bug" />
     <MESSAGE value="working on simple map and making the game more stable and functationable" />
@@ -245,7 +255,8 @@
     <MESSAGE value="remaking sound systems" />
     <MESSAGE value="created loading screen, score board and pause" />
     <MESSAGE value="more professional FPS game menu" />
-    <option name="LAST_COMMIT_MESSAGE" value="more professional FPS game menu" />
+    <MESSAGE value="add bots with different skills and abilities" />
+    <option name="LAST_COMMIT_MESSAGE" value="add bots with different skills and abilities" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -20,7 +20,7 @@ using System.Collections.Generic;
 /// </summary>
 public partial class PauseMenu : CanvasLayer
 {
-    private enum Section { Objectives, Map, WeaponSet, Items, Settings, Quit }
+    private enum Section { Objectives, Map, WeaponSet, Items, Settings }
 
     /// <summary>Set by PlayerHud before the node enters the tree.</summary>
     public CharacterBody3D Player { get; set; } = null!;
@@ -93,6 +93,17 @@ public partial class PauseMenu : CanvasLayer
         bool backPressed = _open && @event.IsActionPressed("ui_cancel");
         if (!pausePressed && !backPressed) return;
 
+        // The match-results screen owns the whole screen; the pause menu must not open under it.
+        if (GameUiState.ResultsOpen) return;
+
+        // With the quit question showing, Escape / Back answers NO rather than closing everything.
+        if (_open && _modal != null && GodotObject.IsInstanceValid(_modal))
+        {
+            GetViewport().SetInputAsHandled();
+            CancelQuit();
+            return;
+        }
+
         // The F2 debug hub uses Escape to close its own list; do not also open the game menu then.
         if (!_open && DebugHub.IsOpen) return;
 
@@ -104,7 +115,11 @@ public partial class PauseMenu : CanvasLayer
     {
         // Android Back button / gesture. Needs application/config/quit_on_go_back=false in
         // project.godot, otherwise the engine quits the app before a script ever sees it.
-        if (what == (int)NotificationWMGoBackRequest) Toggle();
+        if (what == (int)NotificationWMGoBackRequest && !GameUiState.ResultsOpen)
+        {
+            if (_open && _modal != null && GodotObject.IsInstanceValid(_modal)) CancelQuit();
+            else Toggle();
+        }
     }
 
     public override void _Process(double delta)
@@ -138,7 +153,7 @@ public partial class PauseMenu : CanvasLayer
 
     private void Open()
     {
-        if (_open) return;
+        if (_open || GameUiState.ResultsOpen) return;
         _open = true;
         GameUiState.SetMenuOpen(true);
         if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
@@ -158,6 +173,7 @@ public partial class PauseMenu : CanvasLayer
     {
         if (!_open) return;
         _open = false;
+        if (!_connectionLost) CloseModal();
         GameUiState.SetMenuOpen(false);
         _root.Visible = false;
         SetProcess(false);
@@ -172,6 +188,9 @@ public partial class PauseMenu : CanvasLayer
         // The host closed the match (or the Wi-Fi dropped). There is nothing left to play, so lock
         // the menu open on a single way out instead of letting the player wander a frozen arena.
         if (_connectionLost) return;
+        // After the final whistle the host going back to its menu is normal; the results screen has
+        // its own way out, so do not bury it under a CONNECTION LOST popup.
+        if (MatchManager.Instance != null && MatchManager.Instance.IsMatchEnded) return;
         _connectionLost = true;
         if (!_open)
         {
@@ -271,7 +290,8 @@ public partial class PauseMenu : CanvasLayer
         Item("rifle", "WEAPON SET", Section.WeaponSet);
         Item("helmet-gear", "ITEMS", Section.Items);
         Item("settings", "SETTINGS", Section.Settings);
-        Item("power", "QUIT GAME", Section.Quit);
+        // One button. It does not open a page of choices: it asks a single YES / NO question.
+        _nav.AddChild(MenuStyle.SelectRow("power", "QUIT GAME", false, ShowQuitConfirm));
 
         (selected ?? resume).GrabFocus();
     }
@@ -293,7 +313,6 @@ public partial class PauseMenu : CanvasLayer
             case Section.WeaponSet: BuildScrolled(BuildWeaponSet); break;
             case Section.Items: BuildScrolled(BuildItems); break;
             case Section.Settings: BuildSettings(); break;
-            case Section.Quit: BuildScrolled(BuildQuit); break;
         }
         RunLive();
     }
@@ -759,27 +778,60 @@ public partial class PauseMenu : CanvasLayer
     }
 
     // -------------------------------------------------------------------------------------------
-    // QUIT GAME
+    // QUIT GAME - one button, one YES / NO question
     // -------------------------------------------------------------------------------------------
 
-    private void BuildQuit(VBoxContainer column)
+    private void ShowQuitConfirm()
     {
+        if (_connectionLost || !_open) return;
+        CloseModal();
+
         bool hosting = GetNodeOrNull<LanSession>("/root/LanSession")?.IsHosting ?? false;
-        bool mobile = OS.HasFeature("mobile");
+        _modal = new Control { MouseFilter = Control.MouseFilterEnum.Stop };
+        MenuStyle.Fill(_modal);
+        var dim = new ColorRect { Color = new Color(0, 0, 0, 0.82f), MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Fill(dim);
+        _modal.AddChild(dim);
+        var center = new CenterContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Fill(center);
+        _modal.AddChild(center);
 
-        var panel = MenuStyle.Panel("QUIT GAME", "power", out var body);
-        body.AddChild(Wrapped(
+        var panel = MenuStyle.Panel("QUIT GAME?", "power", out var body);
+        panel.CustomMinimumSize = new Vector2(520, 0);
+        var text = MenuStyle.Text(
             hosting
-                ? "You are hosting this match. Leaving ends it for every player connected to you."
-                : "Leave this match? Your kills, deaths and score for this match will be lost.",
-            21, hosting ? MenuStyle.Accent : MenuStyle.TextDim));
+                ? "You are hosting this match. Quitting ends it for every player connected to you."
+                : "Leave this match and go back to the main menu? Your score for this match will be lost.",
+            22, hosting ? MenuStyle.Accent : MenuStyle.TextDim, MenuStyle.Medium);
+        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        body.AddChild(text);
 
-        body.AddChild(MenuStyle.Card("arrow-left", "LEAVE MATCH", "Return to the main menu", new Vector2(0, 76),
-            () => GameSession.LeaveToMainMenu(GetTree()), titleSize: 28, iconSize: 34));
-        body.AddChild(MenuStyle.Card("power", mobile ? "EXIT GAME" : "QUIT TO DESKTOP", "Close Wraith Run", new Vector2(0, 76),
-            () => GameSession.QuitToDesktop(GetTree()), titleSize: 28, iconSize: 34));
-        body.AddChild(MenuStyle.Card("play-solid", "BACK TO GAME", null, new Vector2(0, 60), Close,
-            titleSize: 24, iconSize: 26));
-        column.AddChild(panel);
+        var buttons = new HBoxContainer();
+        buttons.AddThemeConstantOverride("separation", 14);
+        var yes = MenuStyle.Card("check", "YES", null, new Vector2(0, 64),
+            () => GameSession.LeaveToMainMenu(GetTree()), titleSize: 28, iconSize: 28);
+        yes.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        var no = MenuStyle.Card("arrow-left", "NO", null, new Vector2(0, 64), CancelQuit,
+            titleSize: 28, iconSize: 28);
+        no.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        buttons.AddChild(yes);
+        buttons.AddChild(no);
+        body.AddChild(buttons);
+
+        center.AddChild(panel);
+        _root.AddChild(_modal);
+        no.GrabFocus(); // the safe answer is the default one
+    }
+
+    private void CancelQuit()
+    {
+        CloseModal();
+        if (_open) BuildNav();
+    }
+
+    private void CloseModal()
+    {
+        if (_modal != null && GodotObject.IsInstanceValid(_modal)) _modal.QueueFree();
+        _modal = null;
     }
 }

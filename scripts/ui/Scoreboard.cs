@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using Row = ScoreboardData.Row;
 
 /// <summary>
 /// The scoreboard: hold Tab (or gamepad Back/Select) to show it, release to hide it. On a phone the
@@ -34,17 +35,6 @@ public partial class Scoreboard : CanvasLayer
     private VBoxContainer _column = null!;
     private bool _touchShown;
     private float _refreshTimer;
-
-    private sealed class Row
-    {
-        public long PeerId;
-        public int Team;
-        public bool Dead;
-        public int Points;
-        public int Kills;
-        public int Deaths;
-        public int Assists;
-    }
 
     public override void _Ready()
     {
@@ -94,49 +84,6 @@ public partial class Scoreboard : CanvasLayer
     }
 
     // -------------------------------------------------------------------------------------------
-    // Data
-    // -------------------------------------------------------------------------------------------
-
-    private List<Row> Collect()
-    {
-        var rows = new List<Row>();
-        MatchManager match = MatchManager.Instance;
-        bool teamMode = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch;
-
-        foreach (Node node in GetTree().GetNodesInGroup("players"))
-        {
-            if (node is not CharacterBody3D body || !GodotObject.IsInstanceValid(body) || body.IsQueuedForDeletion()) continue;
-            long peerId = body.GetMultiplayerAuthority();
-            MatchStats.Stats stats = MatchStats.Instance?.Get(peerId) ?? new MatchStats.Stats();
-            Health? health = body.GetNodeOrNull<Health>("Health");
-            PlayerScore? score = body.GetNodeOrNull<PlayerScore>("Score");
-            rows.Add(new Row
-            {
-                PeerId = peerId,
-                Team = teamMode ? match!.GetTeam(peerId) : -1,
-                Dead = health != null && health.IsDead,
-                Points = score?.TotalPoints ?? 0,
-                Kills = stats.Kills,
-                Deaths = stats.Deaths,
-                Assists = stats.Assists,
-            });
-        }
-
-        // Best first: score, then kills, then fewest deaths, then peer id so ties never shuffle
-        // from one refresh to the next.
-        rows.Sort((a, b) =>
-        {
-            int byPoints = b.Points.CompareTo(a.Points);
-            if (byPoints != 0) return byPoints;
-            int byKills = b.Kills.CompareTo(a.Kills);
-            if (byKills != 0) return byKills;
-            int byDeaths = a.Deaths.CompareTo(b.Deaths);
-            return byDeaths != 0 ? byDeaths : a.PeerId.CompareTo(b.PeerId);
-        });
-        return rows;
-    }
-
-    // -------------------------------------------------------------------------------------------
     // Layout
     // -------------------------------------------------------------------------------------------
 
@@ -152,8 +99,8 @@ public partial class Scoreboard : CanvasLayer
 
         MatchManager match = MatchManager.Instance;
         bool teamMode = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch;
-        long me = Player.GetMultiplayerAuthority();
-        List<Row> rows = Collect();
+        long me = PlayerIdentity.IdOf(Player);
+        List<Row> rows = ScoreboardData.Collect(GetTree());
         MatchStats.Stats mine = MatchStats.Instance?.Get(me) ?? new MatchStats.Stats();
         int myPoints = Player.GetNodeOrNull<PlayerScore>("Score")?.TotalPoints ?? 0;
 
@@ -280,9 +227,7 @@ public partial class Scoreboard : CanvasLayer
         {
             Row r = rows[i];
             bool isMe = r.PeerId == me;
-            string name = GameUiState.PlayerName(r.PeerId);
-            if (isMe) name += "  (YOU)";
-            else if (r.PeerId == 1) name += "  (HOST)";
+            string name = ScoreboardData.DisplayName(r, me);
             if (r.Dead) name += "  - dead";
             Color textColor = isMe ? MenuStyle.TextMain : MenuStyle.TextDim;
             if (r.Dead) textColor = new Color(textColor, DeadTint.A);
@@ -293,8 +238,8 @@ public partial class Scoreboard : CanvasLayer
         return panel;
     }
 
-    private static Control ColumnsRow(string rank, string name, string score, string kills, string deaths,
-        string assists, string kd, Color color, int size, Color? highlight, bool body)
+    internal static Control ColumnsRow(string rank, string name, string score, string kills, string deaths,
+        string assists, string kd, Color color, int size, Color? highlight, bool body, Color? teamStripe = null)
     {
         var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         row.AddThemeConstantOverride("separation", 6);
@@ -308,6 +253,8 @@ public partial class Scoreboard : CanvasLayer
             if (expand) label.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
             row.AddChild(label);
         }
+        if (teamStripe != null)
+            row.AddChild(new ColorRect { Color = teamStripe.Value, CustomMinimumSize = new Vector2(5, 0), MouseFilter = Control.MouseFilterEnum.Ignore });
         Cell(rank, 30, HorizontalAlignment.Center);
         Cell(name, 0, HorizontalAlignment.Left, expand: true);
         Cell(score, 74, HorizontalAlignment.Right);
@@ -322,7 +269,8 @@ public partial class Scoreboard : CanvasLayer
         StyleBox style;
         if (highlight != null)
         {
-            var filled = MenuStyle.Box(highlight.Value, MenuStyle.SelectedBorder);
+            // Thick, bright border so your own row is findable at a glance in a long list.
+            var filled = MenuStyle.Box(highlight.Value, MenuStyle.TextMain, 3, 2);
             filled.ContentMarginLeft = 6;
             filled.ContentMarginRight = 6;
             style = filled;

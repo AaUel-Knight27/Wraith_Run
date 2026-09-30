@@ -191,6 +191,23 @@ public partial class PlayerHud : CanvasLayer
         string resultText = winningTeam < 0 ? "MATCH DRAW" : $"TEAM {MatchManager.TeamName(winningTeam)} WINS";
         _matchOverLabel.Text = $"{resultText}\n({reasonText} Reached)";
         _matchOverLabel.Visible = true;
+
+        // Then the full ranked results screen, which takes over and returns to the menu by itself.
+        // Deferred one frame: MatchStats counts the winning kill from the same KillAnnounced signal
+        // that ended the match and may not have run yet, and the board is a snapshot.
+        Callable.From(() => ShowResults(winningTeam, reason)).CallDeferred();
+    }
+
+    private void ShowResults(int winningTeam, string reason)
+    {
+        if (!IsInsideTree() || GetNodeOrNull("MatchResults") != null) return;
+        AddChild(new MatchResults
+        {
+            Name = "MatchResults",
+            Player = (CharacterBody3D)GetParent(),
+            WinningTeam = winningTeam,
+            Reason = reason,
+        });
     }
 
     private void AddFeedLine(string text)
