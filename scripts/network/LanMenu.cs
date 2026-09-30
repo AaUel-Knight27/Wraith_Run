@@ -45,6 +45,7 @@ public partial class LanMenu : Control
 	private AudioStreamPlayer? _menuMusic;
 	private AudioStream[] _menuMusicTracks = Array.Empty<AudioStream>();
 	private readonly RandomNumberGenerator _menuMusicRng = new();
+	private int _menuMusicIndex = -1;
 
 	public override void _Ready()
 	{
@@ -80,7 +81,12 @@ public partial class LanMenu : Control
 	private void PlayNextMenuMusicTrack()
 	{
 		if (_menuMusic == null || _menuMusicTracks.Length == 0) return;
-		_menuMusic.Stream = _menuMusicTracks[_menuMusicRng.RandiRange(0, _menuMusicTracks.Length - 1)];
+		// Both tracks, always: start on a random one, then alternate. A plain random pick could play
+		// the same track over and over and never reach the other.
+		_menuMusicIndex = _menuMusicIndex < 0
+			? _menuMusicRng.RandiRange(0, _menuMusicTracks.Length - 1)
+			: (_menuMusicIndex + 1) % _menuMusicTracks.Length;
+		_menuMusic.Stream = _menuMusicTracks[_menuMusicIndex];
 		_menuMusic.Play();
 	}
 
@@ -106,6 +112,7 @@ public partial class LanMenu : Control
 		// and marks it handled, so it never gets here.)
 		if (_goBack == null || _leavingMenu || !@event.IsActionPressed("ui_cancel")) return;
 		GetViewport().SetInputAsHandled();
+		UiSounds.Play(UiSounds.Sound.Click);
 		_goBack();
 	}
 
@@ -115,7 +122,11 @@ public partial class LanMenu : Control
 		// pause menu can use Back; this keeps the main menu behaving as it always did: back goes up
 		// one screen, and on the main screen it quits the app.
 		if (what != (int)NotificationWMGoBackRequest || _leavingMenu) return;
-		if (_goBack != null) _goBack();
+		if (_goBack != null)
+		{
+			UiSounds.Play(UiSounds.Sound.Click);
+			_goBack();
+		}
 		else GetTree().Quit();
 	}
 
@@ -513,6 +524,7 @@ public partial class LanMenu : Control
 		var result = GetNode<LanSession>("/root/LanSession").StartSolo();
 		if (result != Error.Ok)
 		{
+			UiSounds.Play(UiSounds.Sound.Error);
 			if (IsUsable(_status))
 				_status!.Text = $"Could not start the match (port {LanSession.GamePort} may be in use): {result}";
 			return;
@@ -676,6 +688,7 @@ public partial class LanMenu : Control
 		var result = GetNode<LanSession>("/root/LanSession").StartHost(gameName);
 		if (result != Error.Ok)
 		{
+			UiSounds.Play(UiSounds.Sound.Error);
 			if (IsUsable(_status)) _status!.Text = $"Could not host on port {LanSession.GamePort}: {result}";
 			return;
 		}
@@ -692,6 +705,7 @@ public partial class LanMenu : Control
 		Error error = _listener.Bind(LanSession.DiscoveryPort, "0.0.0.0");
 		if (error != Error.Ok)
 		{
+			UiSounds.Play(UiSounds.Sound.Error);
 			if (IsUsable(_status)) _status!.Text = $"Discovery listener unavailable: {error}";
 		}
 		else _refreshTimer.Start();
@@ -730,7 +744,7 @@ public partial class LanMenu : Control
 		{
 			string host = game.Host;
 			string detail = $"{host}  ·  {game.Players} player{(game.Players == 1 ? "" : "s")}";
-			_gamesList!.AddChild(MenuStyle.Row(game.Name, detail, () => JoinGame(host)));
+			_gamesList!.AddChild(MenuStyle.Row(game.Name, detail, () => JoinGame(host), UiSounds.Sound.Start));
 		}
 		if (IsUsable(_status))
 			_status!.Text = _games.Count == 0 ? "Listening for games…" : "Select a game to join.";
@@ -743,6 +757,7 @@ public partial class LanMenu : Control
 		Error result = GetNode<LanSession>("/root/LanSession").Join(host);
 		if (result != Error.Ok)
 		{
+			UiSounds.Play(UiSounds.Sound.Error);
 			if (IsUsable(_status)) _status!.Text = $"Could not connect to {host}: {result}";
 			return;
 		}

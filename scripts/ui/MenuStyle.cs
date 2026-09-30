@@ -124,7 +124,11 @@ public static class MenuStyle
         return ring;
     }
 
-    private static Button NewButton(Vector2 minSize, Action onPressed)
+    /// <summary>The one place every menu button is built, so it is also the one place every press
+    /// makes its sound. The sound plays first, then the action - which may rebuild or leave the
+    /// screen (UiSounds is an autoload, so the sound is not cut off with it).</summary>
+    private static Button NewButton(Vector2 minSize, Action onPressed,
+        UiSounds.Sound sound = UiSounds.Sound.Click)
     {
         var button = new Button
         {
@@ -132,6 +136,7 @@ public static class MenuStyle
             FocusMode = Control.FocusModeEnum.All,
             MouseDefaultCursorShape = Control.CursorShape.PointingHand,
         };
+        button.Pressed += () => UiSounds.Play(sound);
         button.Pressed += onPressed;
         return button;
     }
@@ -238,7 +243,7 @@ public static class MenuStyle
     /// <summary>The big red PLAY button on the main menu: play triangle, huge title, subtitle.</summary>
     public static Button Hero(string title, string subtitle, Vector2 size, Action onPressed)
     {
-        var button = NewButton(size, onPressed);
+        var button = NewButton(size, onPressed, UiSounds.Sound.Start);
         StyleButton(button, Box(PlayFill, PlayBorder, 2, 2, 14),
             Box(PlayFillHover, BorderHot, 2, 2, 22), Box(PlayFillPressed, BorderHot, 2),
             Box(DisabledFill, DisabledBorder, 2));
@@ -265,9 +270,10 @@ public static class MenuStyle
     }
 
     /// <summary>The slanted red action button used inside sub-screens (PLAY / START HOSTING).</summary>
-    public static Button Primary(string text, Vector2 size, Action onPressed)
+    public static Button Primary(string text, Vector2 size, Action onPressed,
+        UiSounds.Sound sound = UiSounds.Sound.Start)
     {
-        var button = NewButton(size, onPressed);
+        var button = NewButton(size, onPressed, sound);
         StyleBoxFlat Slanted(Color fill, Color border, int glow)
         {
             var box = Box(fill, border, 2, 2, glow);
@@ -299,7 +305,7 @@ public static class MenuStyle
     /// dot on the right.</summary>
     public static Button SelectRow(string icon, string text, bool selected, Action onPressed)
     {
-        var button = NewButton(new Vector2(0, 52), onPressed);
+        var button = NewButton(new Vector2(0, 52), onPressed, UiSounds.Sound.Select);
         Color fill = selected ? SelectedFill : RowFill;
         Color border = selected ? SelectedBorder : Hairline;
         StyleButton(button, Box(fill, border), Box(selected ? SelectedFill : HoverFill, Border),
@@ -341,7 +347,7 @@ public static class MenuStyle
     /// just draws the current value and reports the flip, same division of labour as SelectRow.</summary>
     public static Button ToggleRow(string icon, string text, bool on, Action<bool> onChanged)
     {
-        var button = NewButton(new Vector2(0, 52), () => onChanged(!on));
+        var button = NewButton(new Vector2(0, 52), () => onChanged(!on), UiSounds.Sound.Select);
         StyleButton(button, Box(RowFill, Hairline), Box(HoverFill, Border),
             Box(PressFill, BorderHot), Box(RowFill, Hairline));
 
@@ -442,9 +448,10 @@ public static class MenuStyle
     }
 
     /// <summary>One entry in a list (a discovered LAN game): name, detail text, chevron.</summary>
-    public static Button Row(string title, string detail, Action onPressed)
+    public static Button Row(string title, string detail, Action onPressed,
+        UiSounds.Sound sound = UiSounds.Sound.Select)
     {
-        var button = NewButton(new Vector2(0, 58), onPressed);
+        var button = NewButton(new Vector2(0, 58), onPressed, sound);
         button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         StyleButton(button, Box(RowFill, Hairline), Box(Hex(0x2a0808), Border),
             Box(PressFill, BorderHot), Box(RowFill, Hairline));

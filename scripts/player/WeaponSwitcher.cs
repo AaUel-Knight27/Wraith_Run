@@ -27,6 +27,28 @@ public partial class WeaponSwitcher : Node
 	/// rather than a separate hitbox.</summary>
 	private const float HeadZoneRadius = 0.25f;
 
+	// --- shot audio ---------------------------------------------------------------------------
+	/// <summary>A shotgun fires 8 pellets per pull, all landing within a few metres of each other;
+	/// 8 stacked impact sounds is a smear, not realism. At most this many impact (and flesh-hit)
+	/// sounds are broadcast per trigger pull - damage is unaffected.</summary>
+	private const int MaxImpactSoundsPerShot = 2;
+
+	/// <summary>|direction . surface normal| below this is a glancing hit (roughly under 20 degrees
+	/// to the surface) - the case where a real bullet skips off hard material.</summary>
+	private const float GlancingIncidence = 0.35f;
+	private const float GlancingRicochetChance = 0.60f;
+	private const float HeadOnRicochetChanceMetal = 0.12f;
+	private const float HeadOnRicochetChanceGeneric = 0.04f;
+
+	/// <summary>How close a bullet's path has to pass to a listener for the whip-crack flyby (metres),
+	/// and the same for a rocket, which is far bigger and louder.</summary>
+	private const float FlyByRadius = 3.0f;
+	private const float RocketFlyByRadius = 9.0f;
+	/// <summary>No flyby for a shot fired point-blank at the listener, or one that ends right next
+	/// to them (that is the listener being hit, or the impact beside them, not a near miss).</summary>
+	private const float FlyByMinShooterDistance = 2.5f;
+	private const float FlyByMinImpactDistance = 1.5f;
+
 	// Kriss Vector excluded: no model until its mesh is re-sourced (lost in FBX->GLB conversion).
 	// Internal rather than private: TouchControls' weapon-switch/quick-melee buttons read this
 	// directly (length + Karambit's index) instead of hardcoding numbers that would silently go
@@ -72,6 +94,8 @@ public partial class WeaponSwitcher : Node
 	private float _cooldownRemaining;
 	private float _reloadRemaining;
 	private int _appliedWeaponIndex = -1;
+	private int _impactSoundsThisShot;
+	private int _fleshSoundsThisShot;
 
 	// Ammo of every loadout slot that is NOT the equipped one (the equipped weapon's live numbers
 	// are _currentAmmo/_currentReserve above). _hasSavedAmmo[i] is false until slot i has been
@@ -323,6 +347,8 @@ public partial class WeaponSwitcher : Node
 			if (!_currentWeapon.ShellByShellReload) return;
 			_reloadRemaining = 0.0f;
 			_animation?.CancelReload();
+			// Everyone else's copy of this reload sound is still playing - cut it off too.
+			Rpc(MethodName.RpcCancelReloadEffects);
 		}
 
 		_cooldownRemaining = _currentWeapon.FireRateRPM > 0.0f ? 60.0f / _currentWeapon.FireRateRPM : 0.5f;
@@ -330,6 +356,9 @@ public partial class WeaponSwitcher : Node
 
 		Rpc(MethodName.RpcFireEffects);
 		ApplyRecoil();
+
+		_impactSoundsThisShot = 0;
+		_fleshSoundsThisShot = 0;
 
 		int pellets = Mathf.Max(1, _currentWeapon.PelletsPerShot);
 		for (int i = 0; i < pellets; i++)
@@ -367,6 +396,11 @@ public partial class WeaponSwitcher : Node
 		_viewmodel?.PlayReload();
 	}
 
+	/// <summary>A shell-by-shell reload interrupted by firing: stop the reload sound on every peer.</summary>
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
+		TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	public void RpcCancelReloadEffects() => _attachment.StopReload();
+
 	/// <summary>
 	/// Recoil is applied to the Head pivot, not just to the visible camera, so it moves the actual
 	/// point of aim - the hitscan ray comes off the camera. It decays back to zero over
@@ -396,15 +430,29 @@ public partial class WeaponSwitcher : Node
 		var query = PhysicsRayQueryParameters3D.Create(from, to,
 			exclude: new Godot.Collections.Array<Rid> { _player.GetRid() });
 		var result = _player.GetWorld3D().DirectSpaceState.IntersectRay(query);
-		if (result.Count == 0) return;
+		bool hitSomething = result.Count > 0;
+		Vector3 impactPoint = hitSomething ? (Vector3)result["position"] : to;
 
-		var impactPoint = (Vector3)result["position"];
+		// One message per single-projectile shot, so anyone the shot passes close to hears it go by
+		// (a bullet's whip-crack, or a rocket's doppler whoosh). Skipped for a shotgun's pellets -
+		// eight of these per pull would be a wall of noise - and for melee.
+		if (!melee && _currentWeapon.PelletsPerShot <= 1)
+		{
+			bool rocket = IsRocket(_currentWeapon);
+			Rpc(MethodName.RpcShotPath, from, impactPoint, rocket);
+			// Rpc() never runs on the machine that sent it, and a bot is fired on the host - which is
+			// also where a human may be listening - so a bot's shot is handed to that listener directly.
+			if (PlayerIdentity.IsBot(_player)) HearShotPath(from, impactPoint, rocket);
+		}
 
-		if (result["collider"].As<Node>() is not CharacterBody3D body)
+		if (!hitSomething) return;
+
+		Node? collider = result["collider"].As<Node>();
+		if (collider is not CharacterBody3D body)
 		{
 			// Geometry hit: no damage, but the impact is what tells the shooter where the round
 			// actually went, which matters a lot once spread is in play.
-			_attachment.PlayImpact(impactPoint);
+			ReportGeometryImpact(melee, impactPoint, (Vector3)result["normal"], direction, collider);
 			return;
 		}
 
@@ -436,8 +484,92 @@ public partial class WeaponSwitcher : Node
 		// Broadcast, not local-only: this runs on the shooter's device (client-authoritative
 		// hitscan), but a hit landing is something everyone nearby should hear, not just the
 		// person who pulled the trigger.
-		Rpc(MethodName.RpcFleshImpact, impactPoint);
+		if (_fleshSoundsThisShot < MaxImpactSoundsPerShot)
+		{
+			_fleshSoundsThisShot++;
+			Rpc(MethodName.RpcFleshImpact, impactPoint);
+		}
 		PlayHitMarker();
+	}
+
+	private static bool IsRocket(WeaponData weapon) => weapon.WeaponClass == "Launcher";
+
+	/// <summary>A bullet hitting world geometry: work out what it hit (and whether it skips off),
+	/// then tell every peer so they all hear the same sound. Decided here, on the shooter's device,
+	/// because only it knows the shot's direction and the surface normal.</summary>
+	private void ReportGeometryImpact(bool melee, Vector3 point, Vector3 normal, Vector3 direction, Node? collider)
+	{
+		if (_currentWeapon == null) return;
+		// A knife swing into a wall is not a bullet hit - it keeps the weapon's own quiet local thud.
+		if (melee)
+		{
+			_attachment.PlayImpact(point);
+			return;
+		}
+		if (_impactSoundsThisShot >= MaxImpactSoundsPerShot) return;
+		_impactSoundsThisShot++;
+
+		SurfaceType surface = SurfaceClassifier.Classify(collider);
+		bool ricochet = RollRicochet(surface, direction, normal);
+		Rpc(MethodName.RpcGeometryImpact, point, (int)surface, ricochet);
+	}
+
+	/// <summary>Hard surfaces skip bullets, soft ones swallow them: metal and plain wall can ricochet
+	/// (far more often on a glancing hit), wood and glass never do. A shotgun's pellets and the
+	/// Bazooka never do either.</summary>
+	private bool RollRicochet(SurfaceType surface, Vector3 direction, Vector3 normal)
+	{
+		if (_currentWeapon == null || _currentWeapon.PelletsPerShot > 1 ||
+			!_currentWeapon.ImpactUsesSurfaceVariation) return false;
+		if (surface == SurfaceType.Wood || surface == SurfaceType.Glass) return false;
+
+		float incidence = Mathf.Abs(direction.Dot(normal)); // 1 = head-on, 0 = grazing
+		float chance = incidence < GlancingIncidence
+			? GlancingRicochetChance
+			: (surface == SurfaceType.Metal ? HeadOnRicochetChanceMetal : HeadOnRicochetChanceGeneric);
+		return _rng.Randf() < chance;
+	}
+
+	/// <summary>Broadcast from the shooter's geometry-hit result: every peer plays the surface
+	/// sound (and ricochet, if one was rolled) at the impact point.</summary>
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
+		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+	public void RpcGeometryImpact(Vector3 worldPosition, int surface, bool ricochet) =>
+		_attachment.PlayGeometryImpact(worldPosition, (SurfaceType)surface, ricochet);
+
+	/// <summary>
+	/// Runs on every peer EXCEPT the shooter (no CallLocal). If the shot's path passed within
+	/// earshot of this device's listener - the active camera - play the flyby at the closest point on
+	/// that path. The check is done here, on the listener's own device, so the shooter only has to
+	/// send one small message per shot instead of working out who might be near.
+	/// </summary>
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+	public void RpcShotPath(Vector3 from, Vector3 to, bool rocket) => HearShotPath(from, to, rocket);
+
+	private void HearShotPath(Vector3 from, Vector3 to, bool rocket)
+	{
+		// Never hear your own shots. (IsLocalHuman, not raw authority: a bot is 'authority' on the
+		// host too, and the host's human should hear the bot's shots go by.)
+		if (PlayerIdentity.IsLocalHuman(_player)) return;
+		Camera3D? listener = GetViewport().GetCamera3D();
+		if (listener == null) return;
+
+		Vector3 ear = listener.GlobalPosition;
+		Vector3 path = to - from;
+		float lengthSquared = path.LengthSquared();
+		if (lengthSquared < 0.01f) return;
+
+		// Where along the path is the listener nearest? Outside 0..1 the shot never went past them.
+		float t = (ear - from).Dot(path) / lengthSquared;
+		if (t <= 0.0f || t >= 1.0f) return;
+
+		Vector3 closest = from + path * t;
+		float radius = rocket ? RocketFlyByRadius : FlyByRadius;
+		if (closest.DistanceTo(ear) > radius) return;
+		if (from.DistanceTo(ear) < FlyByMinShooterDistance) return;
+		if (to.DistanceTo(ear) < FlyByMinImpactDistance) return;
+
+		_attachment.PlayFlyBy(closest, rocket);
 	}
 
 	/// <summary>The shared "hit a person" sound, broadcast from the shooter's hitscan result to
@@ -477,6 +609,10 @@ public partial class WeaponSwitcher : Node
 	private KillStyle CaptureKillStyle(bool headshot, bool melee)
 	{
 		KillStyle styles = headshot ? KillStyle.Headshot : KillStyle.None;
+		// Not scoring flags: they tell the victim's device how this death should sound - a blade
+		// kill always makes a sound, a rocket kill never does (Health.DetermineIfDeathStruggles).
+		if (melee) styles |= KillStyle.Melee;
+		if (_currentWeapon != null && IsRocket(_currentWeapon)) styles |= KillStyle.Explosive;
 		if (!melee)
 		{
 			// IsAiming, not "State == Aim". Aim stopped being a movement state when ADS was pulled

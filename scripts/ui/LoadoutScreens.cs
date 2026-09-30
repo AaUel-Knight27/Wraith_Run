@@ -249,7 +249,7 @@ public sealed class OperatorScreen
         bool equipped = _previewId == PlayerProfile.OperatorId;
         var buttons = new HBoxContainer();
         buttons.AddThemeConstantOverride("separation", 10);
-        Button equip = MenuStyle.Primary(equipped ? "EQUIPPED" : "EQUIP", new Vector2(0, 58), Equip);
+        Button equip = MenuStyle.Primary(equipped ? "EQUIPPED" : "EQUIP", new Vector2(0, 58), Equip, UiSounds.Sound.Select);
         equip.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         equip.Disabled = equipped;
         buttons.AddChild(equip);
@@ -409,7 +409,7 @@ public sealed class WeaponScreen
         }
 
         bool starting = _previewName == PlayerProfile.WeaponName;
-        Button equip = MenuStyle.Primary(starting ? "STARTING WEAPON" : "EQUIP", new Vector2(0, 58), Equip);
+        Button equip = MenuStyle.Primary(starting ? "STARTING WEAPON" : "EQUIP", new Vector2(0, 58), Equip, UiSounds.Sound.Select);
         equip.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         equip.Disabled = starting;
         _equipHost.AddChild(equip);

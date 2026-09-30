@@ -16,7 +16,11 @@ public enum KillStyle
 
     /// <summary>Not a scoring bonus (KillStyleBonus.Evaluate never checks it) - carried through
     /// styleFlags purely so Health.ReceiveDamage can tell a blade kill apart from a bullet kill when
-    /// it decides which death-audio clip the victim should play. See the note on
-    /// Health.DetermineIfDeathStruggles.</summary>
+    /// it decides whether the victim's death makes a sound. A blade to the throat always does. See
+    /// the note on Health.DetermineIfDeathStruggles.</summary>
     Melee = 1 << 4,
+
+    /// <summary>Not a scoring bonus either. Set for a Bazooka (Launcher-class) hit: an explosion
+    /// kills instantly and silently, same as a headshot. See Health.DetermineIfDeathStruggles.</summary>
+    Explosive = 1 << 5,
 }

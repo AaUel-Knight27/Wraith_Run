@@ -56,6 +56,42 @@ public partial class WeaponAttachment : Node3D
 	// supplied, and "a body got hit" reads the same whether it was a bullet or the Karambit.
 	private const string FleshImpactSound = "res://audio/Clips/Weapons/Melee/Impact/flesh_hit.mp3";
 
+	// Bullet-on-surface sounds. Which one plays comes from SurfaceClassifier (scripts/combat/
+	// SurfaceType.cs); ricochet and flyby are layered/triggered by WeaponSwitcher. The trims level
+	// the clips against each other - as supplied they span ~24 dB of peak level (the wall hit is
+	// quiet, the metal hits are hot), and one 3D player gain per clip is the cheapest fix that
+	// leaves the audio files themselves untouched.
+	private const string SurfaceDirectory = "res://audio/Clips/Weapons/Impacts/Surfaces";
+	private const string MetalHeavySound = SurfaceDirectory + "/BulletMetalHeavy.mp3";
+	private const string MetalThickSound = SurfaceDirectory + "/BulletMetalThick.mp3";
+	private const string WoodSound = SurfaceDirectory + "/BulletWood.mp3";
+	private const string GlassSound = SurfaceDirectory + "/BulletGlassHit.wav";
+	private const string WallSound = SurfaceDirectory + "/BulletWallHit.wav";
+	private const string RicochetSound = SurfaceDirectory + "/BulletRicochet.wav";
+	private const string FlyBySound = SurfaceDirectory + "/BulletFlyBy.wav";
+	private const string RocketFlyBySound = "res://audio/Clips/Weapons/RPG/Extras/rpg_doppler_effect.wav";
+
+	private const float MetalHeavyTrimDb = -6.0f;
+	private const float MetalThickTrimDb = -7.0f;
+	private const float WoodTrimDb = -6.0f;
+	private const float GlassTrimDb = -2.0f;
+	private const float WallTrimDb = 8.0f;
+	private const float RicochetTrimDb = -2.0f;
+	private const float FlyByTrimDb = 9.0f;
+	private const float RocketFlyByTrimDb = -3.0f;
+
+	/// <summary>A metal hit from a weapon whose BodyDamage is at least this plays the heavy clip
+	/// (AK-47, M4, Desert Eagle); lighter weapons (SMGs, Glock, shotgun pellets) play the thick one.</summary>
+	private const float HeavyMetalMinBodyDamage = 30.0f;
+
+	private const float SurfaceImpactUnitSize = 8.0f;
+	private const float SurfaceImpactMaxDistance = 100.0f;
+
+	/// <summary>Voices per fire player. A full-auto burst restarts the same one-shot every few
+	/// milliseconds; with polyphony 1 each shot chopped the previous shot's tail off, so a long
+	/// burst sounded like a stutter instead of overlapping reports.</summary>
+	private const int FirePolyphony = 8;
+
 	private AudioStreamPlayer3D? _fireAudio;
 	private AudioStreamPlayer3D? _reloadAudio;
 	private AudioStreamPlayer3D? _emptyAudio;
@@ -207,7 +243,12 @@ public partial class WeaponAttachment : Node3D
 		{
 			RollFireVariant();
 			_fireAudio.PitchScale = _rng.RandfRange(0.94f, 1.06f);
-			_fireAudio.Play();
+			// Through SoundManager so the shot gets real distance falloff, muzzle direction, wall
+			// occlusion and the crack-then-boom delay; straight Play() only if it is not there.
+			if (SoundManager.Instance != null && _weapon != null)
+				SoundManager.Instance.PlayWeaponFire(_fireAudio, _weapon, _muzzle?.GlobalPosition ?? GlobalPosition);
+			else
+				_fireAudio.Play();
 		}
 		if (_flashMesh == null && _flashLight == null) return;
 		SetFlashVisible(true);
@@ -218,8 +259,18 @@ public partial class WeaponAttachment : Node3D
 	public void PlayReload()
 	{
 		if (_reloadAudio == null) return;
+		// Shell-by-shell weapons (the shotgun) raise this once per shell, every ReloadTime seconds -
+		// far shorter than the clip. Restarting it each time would cut it off half a second in, over
+		// and over, so let a pass that is already playing finish instead.
+		if (_weapon != null && _weapon.ShellByShellReload && _reloadAudio.Playing) return;
 		_reloadAudio.PitchScale = _rng.RandfRange(0.97f, 1.03f);
 		_reloadAudio.Play();
+	}
+
+	/// <summary>Cuts the reload sound off - a shotgun reload interrupted by firing.</summary>
+	public void StopReload()
+	{
+		if (_reloadAudio != null && _reloadAudio.Playing) _reloadAudio.Stop();
 	}
 
 	/// <summary>Dry-fire click. Falls back to silence rather than reusing the fire sound, which
@@ -232,23 +283,85 @@ public partial class WeaponAttachment : Node3D
 	{
 		if (_weapon == null || _weapon.ImpactSounds.Length == 0) return;
 		var stream = LoadStream(_weapon.ImpactSounds[_rng.RandiRange(0, _weapon.ImpactSounds.Length - 1)]);
-		SpawnOneShotAt(stream, worldPosition, unitSize: 6.0f);
+		// A weapon that opts out of surface variation (the Bazooka) is playing its explosion here,
+		// which carries as far as the launcher's own report; everything else is a short-range thud.
+		if (!_weapon.ImpactUsesSurfaceVariation)
+			SpawnOneShotAt(stream, worldPosition, _weapon.FireAudioUnitSize, _weapon.FireMaxDistanceMeters, 0.0f);
+		else
+			SpawnOneShotAt(stream, worldPosition, 6.0f, 60.0f, 0.0f);
+	}
+
+	/// <summary>A bullet hitting world geometry: the sound of what it hit (metal / wood / glass /
+	/// plain wall), plus a ricochet whine on top when the shooter's device rolled one. Called on
+	/// every peer from WeaponSwitcher's broadcast, with the surface and ricochet already decided
+	/// on the shooter's side so everyone hears the same thing.</summary>
+	public void PlayGeometryImpact(Vector3 worldPosition, SurfaceType surface, bool ricochet)
+	{
+		if (_weapon == null) return;
+		// The Bazooka's hit is its explosion, whatever it hit.
+		if (!_weapon.ImpactUsesSurfaceVariation) { PlayImpact(worldPosition); return; }
+
+		(string path, float trimDb) = SurfaceSound(surface);
+		AudioStream? stream = LoadStream(path);
+		// New clips missing: fall back to the weapon's own impact clips rather than hitting silence.
+		if (stream == null) { PlayImpact(worldPosition); return; }
+
+		SpawnOneShotAt(stream, worldPosition, SurfaceImpactUnitSize, SurfaceImpactMaxDistance, trimDb);
+		if (ricochet)
+			SpawnOneShotAt(LoadStream(RicochetSound), worldPosition, SurfaceImpactUnitSize,
+				SurfaceImpactMaxDistance, RicochetTrimDb);
+	}
+
+	private (string Path, float TrimDb) SurfaceSound(SurfaceType surface)
+	{
+		switch (surface)
+		{
+			case SurfaceType.Metal:
+				return _weapon != null && _weapon.BodyDamage >= HeavyMetalMinBodyDamage
+					? (MetalHeavySound, MetalHeavyTrimDb)
+					: (MetalThickSound, MetalThickTrimDb);
+			case SurfaceType.Wood:
+				return (WoodSound, WoodTrimDb);
+			case SurfaceType.Glass:
+				return (GlassSound, GlassTrimDb);
+			default:
+				return (WallSound, WallTrimDb);
+		}
+	}
+
+	/// <summary>The whip-crack of a shot passing close by. WeaponSwitcher works out where along the
+	/// shot's path the local listener was closest and calls this there. A rocket gets its own
+	/// doppler whoosh instead of the bullet whiz, and is audible from much further off.</summary>
+	public void PlayFlyBy(Vector3 worldPosition, bool rocket)
+	{
+		if (rocket)
+			SpawnOneShotAt(LoadStream(RocketFlyBySound), worldPosition, 12.0f, 150.0f, RocketFlyByTrimDb);
+		else
+			SpawnOneShotAt(LoadStream(FlyBySound), worldPosition, 4.0f, 40.0f, FlyByTrimDb);
 	}
 
 	/// <summary>Plays the shared "hit a person" sound at the impact point - bullet or blade, any
 	/// weapon. Called from WeaponSwitcher over a broadcast RPC so every peer hears it, not just the
 	/// shooter.</summary>
-	public void PlayFleshImpact(Vector3 worldPosition) =>
-		SpawnOneShotAt(LoadStream(FleshImpactSound), worldPosition, unitSize: 9.0f);
+	public void PlayFleshImpact(Vector3 worldPosition)
+	{
+		// A rocket hit is an explosion, not a body-blow thud.
+		if (_weapon != null && !_weapon.ImpactUsesSurfaceVariation) { PlayImpact(worldPosition); return; }
+		SpawnOneShotAt(LoadStream(FleshImpactSound), worldPosition, 9.0f, 60.0f, 0.0f);
+	}
 
-	private void SpawnOneShotAt(AudioStream? stream, Vector3 worldPosition, float unitSize)
+	private void SpawnOneShotAt(AudioStream? stream, Vector3 worldPosition, float unitSize,
+		float maxDistance, float volumeDb)
 	{
 		if (stream == null) return;
 		var player = new AudioStreamPlayer3D
 		{
 			Stream = stream,
 			UnitSize = unitSize,
+			MaxDistance = maxDistance,
+			VolumeDb = volumeDb,
 			PitchScale = _rng.RandfRange(0.9f, 1.1f),
+			Bus = "Weapons",
 		};
 		// One-shots are added to the current scene root: a node parented under the player would be
 		// dragged along by movement, and one parented under the weapon dies on the next switch.
@@ -341,6 +454,22 @@ public partial class WeaponAttachment : Node3D
 		_fireAudio = AddAudioPlayer(host, "WeaponFireAudio", PickOne(weapon.FireSounds), weapon.FireAudioUnitSize);
 		_reloadAudio = AddAudioPlayer(grip, "WeaponReloadAudio", PickOne(weapon.ReloadSounds), 8.0f);
 		_emptyAudio = AddAudioPlayer(grip, "WeaponEmptyAudio", weapon.EmptySound, 5.0f);
+
+		// "WeaponsQuiet" skips the sidechain that ducks footsteps under gunfire (see
+		// default_bus_layout.tres) - it exists for the Karambit, which is not loud enough to mask
+		// anything. Every firearm's fire/reload/click goes to "Weapons".
+		string bus = weapon.FireCanDuckMovement ? "Weapons" : "WeaponsQuiet";
+		if (_fireAudio != null)
+		{
+			_fireAudio.Bus = bus;
+			_fireAudio.MaxPolyphony = FirePolyphony;
+			// AudioStreamPlayer3D's directional cone points down its own local -Z, but the grip's
+			// line of fire is +Y (see AddMuzzle). +90 degrees about X maps -Z onto +Y, so
+			// FireEmissionAngleDegrees actually points down the barrel. Harmless with the cone off.
+			_fireAudio.RotationDegrees = new Vector3(90.0f, 0.0f, 0.0f);
+		}
+		if (_reloadAudio != null) { _reloadAudio.Bus = bus; _reloadAudio.MaxDistance = 40.0f; }
+		if (_emptyAudio != null) { _emptyAudio.Bus = bus; _emptyAudio.MaxDistance = 25.0f; }
 
 		if (weapon.FireSounds.Length > 1)
 		{

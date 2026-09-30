@@ -24,6 +24,15 @@ public partial class Health : Node
     private const float RespawnDelaySeconds = 3.0f;
 
     /// <summary>
+    /// Team Deathmatch only: a kill that was NOT instant (see DetermineIfDeathStruggles) leaves the
+    /// player calling for a medic for this long before they are eliminated. Public because
+    /// PlayerAudio runs the same countdown on every peer to time the "I need a medic" calls and the
+    /// final struggle - both sides read this one number so they can never drift apart. The normal
+    /// respawn delay above starts counting once this window is over.
+    /// </summary>
+    public const float TeamBleedOutSeconds = 20.0f;
+
+    /// <summary>
     /// Half-extent of the area respawn points are drawn from. Deliberately matched to the current
     /// 60x60 Warzone arena - widen it together with the map. At this size the arena diagonal is
     /// about 85m, so FR-PL-06's 50m minimum is now reachable for most death positions rather than
@@ -107,41 +116,41 @@ public partial class Health : Node
         if (IsFriendlyFire(attackerId)) return;
         _damageContribution[attackerId] = GetContribution(attackerId) + amount;
 
-        // Read before the hit lands - DetermineIfDeathStruggles needs to know how close to death
-        // this player already was the moment BEFORE this shot, not after.
-        float healthBeforeHit = CurrentHealth;
         CurrentHealth -= amount;
         EmitSignal(SignalName.Damaged, amount, attackerId);
         if (!IsDead) return;
 
-        _respawnTimer = RespawnDelaySeconds;
         _deathPosition = _player.GlobalPosition;
-        bool struggles = DetermineIfDeathStruggles(amount, (KillStyle)styleFlags, healthBeforeHit);
+        bool struggles = DetermineIfDeathStruggles((KillStyle)styleFlags);
+        // Team Deathmatch: a non-instant death is a bleed-out - medic calls for
+        // TeamBleedOutSeconds, then elimination, then the usual respawn delay. Free-For-All has no
+        // medics (nobody is coming to help), and an instant death has nothing to call out, so both
+        // go straight to the normal respawn delay.
+        bool bleedsOut = struggles && MatchManager.Instance != null &&
+            MatchManager.Instance.GameMode == MatchManager.Mode.TeamDeathmatch;
+        _respawnTimer = bleedsOut ? TeamBleedOutSeconds + RespawnDelaySeconds : RespawnDelaySeconds;
         AnnounceDeath(attackerId, styleFlags, basePoints, struggles);
     }
 
-    /// <summary>A human doesn't always drop the instant they're shot - a clean headshot or an
-    /// overwhelming single hit does, but a body wound, a knife, or finishing off someone already on
-    /// the edge of death plays out slower. That distinction is what PlayerAudio's second death clip
-    /// (the "struggling" one) is for; this is the one place that decides it, using only what the
-    /// victim's own authoritative device already knows at the moment of the killing blow:
-    ///  - Headshot or a single hit for InstantKillDamage+ (MaxHealth's own value, i.e. a shot big
-    ///    enough to drop a full-health player outright) reads as instant... UNLESS:
-    ///  - It was melee. A blade kill is deliberately never "instant" here, headshot bit or not - see
-    ///    KillStyle.Melee's own note.
-    ///  - OR this player was already on the verge of death (the same threshold KillStyleBonus's
-    ///    VergeOfDeath bonus uses, just read from the victim's side instead of the shooter's): someone
-    ///    already that far gone doesn't go quietly just because the finishing shot was clean.
+    /// <summary>
+    /// Whether this death makes a sound. Returns true for a death that does ("struggles"), false
+    /// for an instant one that is completely silent - nobody hears anything, not even the victim.
+    ///
+    ///  - Melee: ALWAYS a sound. A knife to the throat is an instant kill, but there is air in the
+    ///    throat, so it is not a silent one - melee wins over everything below, headshot bit or not.
+    ///  - Headshot: instant and silent (any gun, incl. a sniper once one exists).
+    ///  - Explosive (Bazooka hit): instant and silent.
+    ///  - Anything else - a chest/body shot, even one that kills outright - the victim makes a
+    ///    sound while dying, heard by whoever is close enough.
+    ///
+    /// Decided once, here, on the victim's own authoritative device from the flags the shooter sent
+    /// with the damage, and carried to every peer through KillFeed.KillAnnounced so everyone agrees.
     /// </summary>
-    private bool DetermineIfDeathStruggles(float lethalDamage, KillStyle styles, float healthBeforeHit)
+    private static bool DetermineIfDeathStruggles(KillStyle styles)
     {
-        const float InstantKillDamage = 100.0f;
-        bool melee = (styles & KillStyle.Melee) != 0;
-        bool headshot = (styles & KillStyle.Headshot) != 0;
-        bool wasAlreadyOnVergeOfDeath = MaxHealth > 0.0f &&
-            healthBeforeHit <= MaxHealth * KillStyleBonus.VergeOfDeathHealthFraction;
-        bool instantKill = !melee && (headshot || lethalDamage >= InstantKillDamage);
-        return !instantKill || wasAlreadyOnVergeOfDeath;
+        if ((styles & KillStyle.Melee) != 0) return true;
+        bool instant = (styles & (KillStyle.Headshot | KillStyle.Explosive)) != 0;
+        return !instant;
     }
 
     /// <summary>Team Deathmatch, Friendly Fire off, and the attacker is on this player's own team -

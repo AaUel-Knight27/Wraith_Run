@@ -30,6 +30,7 @@ MatchStats="*res://scripts/autoloads/MatchStats.cs"
 SoundManager="*res://scripts/autoloads/SoundManager.cs"
 LoadingScreen="*res://scripts/autoloads/LoadingScreen.cs"
 DebugHub="*res://scripts/debug/DebugHub.cs"
+UiSounds="*res://scripts/ui/UiSounds.cs"
 
 [display]
 
