@@ -40,6 +40,11 @@ internal static class LoadoutLayout
         controls.AddChild(caption);
         controls.AddChild(MenuStyle.IconButton("chevron-right", 22, MenuStyle.TextMain, () => stage.Nudge(35.0f)));
         column.AddChild(controls);
+        var hint = MenuStyle.Text("Drag to rotate  |  scroll or pinch to zoom  |  double-tap to reset",
+            13, MenuStyle.TextMuted, MenuStyle.Medium, HorizontalAlignment.Center);
+        hint.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        hint.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        column.AddChild(hint);
         return stage;
     }
 
@@ -79,7 +84,17 @@ internal static class LoadoutLayout
 /// middle and its full kit on the right - including kit lines no system reads yet (tagged PLANNED).</summary>
 public sealed class OperatorScreen
 {
-    private string _previewId = PlayerProfile.OperatorId;
+    private string _previewId;
+    private readonly Action<string> _openCustomize;
+
+    /// <param name="previewId">Operator to have selected when the screen opens (null = the equipped one).</param>
+    /// <param name="openCustomize">Opens the colour screen for the given operator id.</param>
+    public OperatorScreen(string? previewId, Action<string> openCustomize)
+    {
+        _previewId = previewId ?? PlayerProfile.OperatorId;
+        _openCustomize = openCustomize;
+    }
+
     private int _filter = -1;
     private HBoxContainer _tabs = null!;
     private VBoxContainer _list = null!;
@@ -230,11 +245,19 @@ public sealed class OperatorScreen
             AddKit("DRAWBACKS", op.Drawbacks, "chevron-down", MenuStyle.Accent);
         }
 
+        // EQUIP and CUSTOMIZE side by side.
         bool equipped = _previewId == PlayerProfile.OperatorId;
+        var buttons = new HBoxContainer();
+        buttons.AddThemeConstantOverride("separation", 10);
         Button equip = MenuStyle.Primary(equipped ? "EQUIPPED" : "EQUIP", new Vector2(0, 58), Equip);
         equip.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         equip.Disabled = equipped;
-        _equipHost.AddChild(equip);
+        buttons.AddChild(equip);
+        string id = _previewId;
+        Button customize = MenuStyle.Outline("CUSTOMIZE", () => _openCustomize(id), "helmet-gear", 58);
+        customize.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        buttons.AddChild(customize);
+        _equipHost.AddChild(buttons);
     }
 
     private void AddKit(string header, StatModifier[] mods, string icon, Color tint)
@@ -407,8 +430,11 @@ public sealed class CustomizeScreen
         0x6b1a17, 0xa3231d, 0xc8582a, 0xb59a3c, 0x2f4a4a, 0x3d4f66, 0xd8d3c8,
     };
 
-    private readonly string _operatorId = PlayerProfile.OperatorId;
+    private readonly string _operatorId;
     private Color _jacket, _pants, _accent;
+
+    public CustomizeScreen(string operatorId) => _operatorId = operatorId ?? string.Empty;
+
     private OperatorStage _stage = null!;
     private VBoxContainer _groups = null!;
 
@@ -435,7 +461,7 @@ public sealed class CustomizeScreen
         info.AddChild(MenuStyle.Text(OperatorInfo.RealName(op), 17, MenuStyle.TextDim));
         info.AddChild(MenuStyle.Divider());
         info.AddChild(MenuStyle.Wrapped(
-            "Colours are saved per operator. Switch operator from the lobby to dress someone else.",
+            "Colours are saved per operator. Go back and pick another operator to dress someone else.",
             16, MenuStyle.TextMuted));
         info.AddChild(MenuStyle.Wrapped(
             "Other players do not see your colours yet - only you do, in the lobby and in your own matches.",

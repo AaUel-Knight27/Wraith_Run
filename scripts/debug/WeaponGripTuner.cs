@@ -101,7 +101,7 @@ public partial class WeaponGripTuner : Node, IDebugTool
 		// Never arms on a remote copy of another player (there is nothing here for it to tune, and
 		// no reason to build UI for it), and never in a release export, where a player pressing F3
 		// could otherwise reshape their weapon in everyone else's game.
-		bool enabled = OS.IsDebugBuild() && _player.IsMultiplayerAuthority();
+		bool enabled = OS.IsDebugBuild() && PlayerIdentity.IsLocalHuman(_player);
 		SetProcess(enabled);
 		if (!enabled) return;
 

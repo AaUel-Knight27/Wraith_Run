@@ -39,11 +39,27 @@ public partial class OperatorStage : SubViewportContainer
 	private float _frameHeight = 2.1f;
 	private float _frameWidth = 1.5f;
 
+	// Hands-on controls: drag to spin, wheel / pinch to zoom, double-click or double-tap to reset.
+	private const float MinZoom = 0.6f;
+	private const float MaxZoom = 2.4f;
+	private bool _dragging;
+	private bool _magnifySeen;
+	private float _zoom = 1.0f, _zoomTarget = 1.0f;
+	private float _pan, _panTarget;
+	private float _pitch, _pitchTarget;
+	private float _velocity;
+	private float _idle = 10.0f;
+	private float _swayBlend = 1.0f;
+	private float _baseDistance = 4.0f;
+	private float _lastPinch;
+	private readonly System.Collections.Generic.Dictionary<int, Vector2> _touches = new();
+
 	public OperatorStage()
 	{
 		Stretch = true;
-		MouseFilter = MouseFilterEnum.Ignore;
+		MouseFilter = MouseFilterEnum.Stop;
 		FocusMode = FocusModeEnum.None;
+		MouseDefaultCursorShape = CursorShape.Move;
 	}
 
 	public override void _Ready()
@@ -57,6 +73,100 @@ public partial class OperatorStage : SubViewportContainer
 			_pending = null;
 			run();
 		}
+	}
+
+	// -------------------------------------------------------------------------------------------
+	// Input
+	// -------------------------------------------------------------------------------------------
+
+	public override void _GuiInput(InputEvent @event)
+	{
+		switch (@event)
+		{
+			case InputEventMouseButton button:
+				if (button.ButtonIndex == MouseButton.Left)
+				{
+					_dragging = button.Pressed;
+					if (button.Pressed)
+					{
+						_velocity = 0.0f;
+						_idle = 0.0f;
+						if (button.DoubleClick) ResetView();
+					}
+					AcceptEvent();
+				}
+				else if (button.Pressed && button.ButtonIndex == MouseButton.WheelUp) { ZoomBy(1.12f); AcceptEvent(); }
+				else if (button.Pressed && button.ButtonIndex == MouseButton.WheelDown) { ZoomBy(1.0f / 1.12f); AcceptEvent(); }
+				break;
+
+			case InputEventMouseMotion motion:
+				// One finger arrives as an emulated mouse drag; with two fingers down it is a pinch.
+				if (_dragging && _touches.Count < 2) DragBy(motion.Relative);
+				break;
+
+			case InputEventMagnifyGesture magnify:
+				_magnifySeen = true;
+				ZoomBy(magnify.Factor);
+				AcceptEvent();
+				break;
+
+			case InputEventScreenTouch touch:
+				if (touch.Pressed) _touches[touch.Index] = touch.Position;
+				else _touches.Remove(touch.Index);
+				_lastPinch = PinchDistance();
+				break;
+
+			case InputEventScreenDrag drag:
+				_touches[drag.Index] = drag.Position;
+				if (_touches.Count == 2 && !_magnifySeen)
+				{
+					float now = PinchDistance();
+					if (_lastPinch > 1.0f && now > 1.0f) ZoomBy(now / _lastPinch);
+					_lastPinch = now;
+				}
+				break;
+		}
+	}
+
+	private float PinchDistance()
+	{
+		if (_touches.Count < 2) return 0.0f;
+		Vector2 a = Vector2.Zero, b = Vector2.Zero;
+		int i = 0;
+		foreach (Vector2 p in _touches.Values)
+		{
+			if (i == 0) a = p; else if (i == 1) b = p;
+			i++;
+		}
+		return a.DistanceTo(b);
+	}
+
+	private void DragBy(Vector2 relative)
+	{
+		_idle = 0.0f;
+		float yaw = relative.X * 0.55f;
+		_targetYaw += yaw;
+		_velocity = yaw;
+		if (_weaponMode)
+			_pitchTarget = Mathf.Clamp(_pitchTarget + relative.Y * 0.35f, -50.0f, 60.0f);
+		else
+			_panTarget += relative.Y * 0.004f; // clamped per frame: only possible once zoomed in
+	}
+
+	private void ZoomBy(float factor)
+	{
+		_idle = 0.0f;
+		_zoomTarget = Mathf.Clamp(_zoomTarget * factor, MinZoom, MaxZoom);
+	}
+
+	/// <summary>Back to the default framing (double-click / double-tap).</summary>
+	public void ResetView()
+	{
+		_zoomTarget = 1.0f;
+		_panTarget = 0.0f;
+		_pitchTarget = 0.0f;
+		_targetYaw = 0.0f;
+		_velocity = 0.0f;
 	}
 
 	// -------------------------------------------------------------------------------------------
@@ -283,8 +393,14 @@ public partial class OperatorStage : SubViewportContainer
 		float tanHalf = Mathf.Tan(Mathf.DegToRad(_camera.Fov * 0.5f));
 		float byHeight = (_frameHeight * 0.5f) / tanHalf;
 		float byWidth = (_frameWidth * 0.5f) / (tanHalf * aspect);
-		float distance = Mathf.Max(byHeight, byWidth);
-		_camera.LookAtFromPosition(_lookAt + new Vector3(0.0f, 0.1f, distance), _lookAt, Vector3.Up);
+		_baseDistance = Mathf.Max(byHeight, byWidth);
+		ApplyCamera();
+	}
+
+	private void ApplyCamera()
+	{
+		Vector3 target = _lookAt + new Vector3(0.0f, _pan, 0.0f);
+		_camera.LookAtFromPosition(target + new Vector3(0.0f, 0.1f, _baseDistance / _zoom), target, Vector3.Up);
 	}
 
 	public override void _Process(double delta)
@@ -299,12 +415,32 @@ public partial class OperatorStage : SubViewportContainer
 		}
 
 		float step = (float)delta;
+		float ease = 1.0f - Mathf.Exp(-10.0f * step);
 		_time += step;
+
+		// Coast after a flick, then settle.
+		if (!_dragging)
+		{
+			_targetYaw += _velocity * step * 60.0f;
+			_velocity *= Mathf.Pow(0.90f, step * 60.0f);
+			if (Mathf.Abs(_velocity) < 0.02f) _velocity = 0.0f;
+		}
+		if (_dragging || _velocity != 0.0f) _idle = 0.0f; else _idle += step;
+
+		_zoom = Mathf.Lerp(_zoom, _zoomTarget, ease);
+		float panLimit = _weaponMode ? 0.0f : 0.9f * Mathf.Max(0.0f, 1.0f - 1.0f / _zoom);
+		_panTarget = Mathf.Clamp(_panTarget, -panLimit, panLimit);
+		_pan = Mathf.Lerp(_pan, _panTarget, ease);
+		_pitch = Mathf.Lerp(_pitch, _pitchTarget, ease);
 		_yaw = Mathf.Lerp(_yaw, _targetYaw, 1.0f - Mathf.Exp(-9.0f * step));
+		ApplyCamera();
+
+		// The idle sway fades out while you are handling the figure and back in after a moment.
+		_swayBlend = Mathf.Lerp(_swayBlend, _idle > 1.5f ? 1.0f : 0.0f, 1.0f - Mathf.Exp(-3.0f * step));
 		if (_weaponMode)
-			_pivot.RotationDegrees = new Vector3(6.0f, _yaw + Mathf.Sin(_time * 0.8f) * 26.0f, 0.0f);
+			_pivot.RotationDegrees = new Vector3(6.0f + _pitch, _yaw + Mathf.Sin(_time * 0.8f) * 26.0f * _swayBlend, 0.0f);
 		else
-			_pivot.RotationDegrees = new Vector3(0.0f, OperatorBaseYaw + _yaw + Mathf.Sin(_time * 0.45f) * 6.0f, 0.0f);
+			_pivot.RotationDegrees = new Vector3(0.0f, OperatorBaseYaw + _yaw + Mathf.Sin(_time * 0.45f) * 6.0f * _swayBlend, 0.0f);
 	}
 
 	// -------------------------------------------------------------------------------------------

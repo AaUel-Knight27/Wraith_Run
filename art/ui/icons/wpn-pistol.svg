@@ -1,6 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="250" height="100" viewBox="0 0 100 40">
-<path fill="#ffffff" fill-rule="evenodd" d="M28.00 10.00 L72.00 10.00 L77.00 12.50 L77.00 19.40 L28.00 19.40 Z M31.00 12.00 L32.20 12.00 L32.20 17.40 L31.00 17.40 Z M33.60 12.00 L34.80 12.00 L34.80 17.40 L33.60 17.40 Z M36.20 12.00 L37.40 12.00 L37.40 17.40 L36.20 17.40 Z M48.00 12.40 L60.00 12.40 L60.00 15.40 L48.00 15.40 Z"/>
-<path fill="#ffffff" fill-rule="evenodd" d="M29.00 20.60 L66.00 20.60 L66.00 23.40 L48.00 23.40 L48.00 27.00 L43.40 27.00 L40.00 37.00 L27.60 35.20 Z"/>
-<path fill="#ffffff" fill-rule="evenodd" d="M30.00 7.60 L34.00 7.60 L34.00 9.60 L30.00 9.60 Z"/>
-<path fill="#ffffff" fill-rule="evenodd" d="M70.50 7.60 L74.50 7.60 L74.50 9.60 L70.50 9.60 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M6.00 10.00 L90.00 10.00 L95.00 13.00 L95.00 21.00 L6.00 21.00 Z M11.00 12.60 L12.80 12.60 L12.80 18.40 L11.00 18.40 Z M15.00 12.60 L16.80 12.60 L16.80 18.40 L15.00 18.40 Z M19.00 12.60 L20.80 12.60 L20.80 18.40 L19.00 18.40 Z M23.00 12.60 L24.80 12.60 L24.80 18.40 L23.00 18.40 Z M44.00 12.80 L66.00 12.80 L66.00 16.80 L44.00 16.80 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M7.00 7.20 L12.00 7.20 L12.00 10.00 L7.00 10.00 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M86.00 7.20 L91.00 7.20 L91.00 10.00 L86.00 10.00 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M10.00 21.60 L76.00 21.60 L76.00 25.00 L10.00 25.00 Z"/>
+<path fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linejoin="miter" stroke-miterlimit="4" stroke-linecap="butt" d="M41.60 25.00 L44.60 32.40 L58.60 32.40 L61.60 25.00"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M50.00 25.40 L53.00 25.40 L52.00 30.00 L50.00 30.00 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M22.00 24.00 L43.00 24.00 L38.60 38.00 L19.60 38.00 Z M25.60 28.60 L36.60 28.60 L36.60 29.80 L25.60 29.80 Z M24.80 32.00 L35.60 32.00 L35.60 33.20 L24.80 33.20 Z"/>
+<path fill="#ffffff" fill-rule="evenodd" d="M17.60 38.60 L39.60 38.60 L39.00 40.00 L17.00 40.00 Z"/>
 </svg>

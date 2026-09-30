@@ -119,7 +119,7 @@ public partial class WeaponSoundTuner : Node, IDebugTool
 
 		// Never arms on a remote copy of another player, and never in a release export - same
 		// guard WeaponGripTuner uses, for the same reason: this is a development instrument.
-		bool enabled = OS.IsDebugBuild() && _player.IsMultiplayerAuthority();
+		bool enabled = OS.IsDebugBuild() && PlayerIdentity.IsLocalHuman(_player);
 		SetProcess(enabled);
 		if (!enabled) return;
 

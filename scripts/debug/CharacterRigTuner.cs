@@ -128,7 +128,7 @@ public partial class CharacterRigTuner : Node, IDebugTool
 		// WeaponGripTuner follows and for the same reason (a player pressing F2 could otherwise
 		// reshape the rig in everyone else's game). Fields above are still assigned before this check
 		// so RpcSyncTarget/RpcReloadAllDefaults keep working on a non-authority copy that receives them.
-		bool enabled = OS.IsDebugBuild() && _playerBody.IsMultiplayerAuthority();
+		bool enabled = OS.IsDebugBuild() && PlayerIdentity.IsLocalHuman(_playerBody);
 		SetProcess(enabled);
 		if (!enabled) return;
 

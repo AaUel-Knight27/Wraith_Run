@@ -134,16 +134,41 @@ public partial class PlayerMovement : CharacterBody3D
 
         // FirstPersonArms used to own this; with a single always-visible body mesh there is no
         // separate view-model to toggle, but each client must still only activate its own camera.
-        _camera.Current = IsMultiplayerAuthority();
+        // A bot is 'authority' on the host too, but it must never steal the host player's camera.
+        _camera.Current = PlayerIdentity.IsLocalHuman(this);
         // Touch devices have no cursor to capture; TouchControls drives look via screen drags
         // instead (see _UnhandledInput below), so capturing here would just be a no-op on mobile.
-        if (IsMultiplayerAuthority() && !OS.HasFeature("mobile"))
+        if (PlayerIdentity.IsLocalHuman(this) && !OS.HasFeature("mobile"))
             Input.MouseMode = Input.MouseModeEnum.Captured;
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // Bot control. A bot is the same Player scene driven by a BotBrain instead of the keyboard:
+    // when Bot is set, every Input.* read below is replaced by the bot's virtual controls.
+    // ---------------------------------------------------------------------------------------------
+
+    /// <summary>Set by GameWorld on the host for bots; null for people and for remote copies.</summary>
+    public BotControls? Bot { get; set; }
+
+    /// <summary>The pitch the bot has steered to (recoil excluded), radians, positive = up.</summary>
+    public float AimPitch => _pitch;
+    public float RecoilPitchRadians => Mathf.DegToRad(_recoilPitchDegrees);
+    public float RecoilYawRadians => Mathf.DegToRad(_recoilYawDegrees);
+
+    /// <summary>Turns a bot's view. Yaw positive = left (like RotateY), pitch positive = up.</summary>
+    public void BotLook(float yawLeftRadians, float pitchUpRadians)
+    {
+        RotateY(yawLeftRadians);
+        _pitch = Mathf.Clamp(_pitch + pitchUpRadians,
+            Mathf.DegToRad(-CameraPitchLimitDegrees), Mathf.DegToRad(CameraPitchLimitDegrees));
+    }
+
+    private bool CrouchJustPressed() => Bot == null && ActionTapped("crouch");
+    private bool AimHeld() => Bot != null ? Bot.Aim : ActionHeld("aim");
+
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (!IsMultiplayerAuthority()) return;
+        if (!IsMultiplayerAuthority() || Bot != null) return;
         if (@event is InputEventMouseMotion mouseMotion && Input.MouseMode == Input.MouseModeEnum.Captured)
         {
             float sensitivity = SettingsManager.Instance?.MouseSensitivity ?? MouseSensitivity;
@@ -228,11 +253,13 @@ public partial class PlayerMovement : CharacterBody3D
         }
         float delta = (float)deltaValue;
         bool grounded = IsOnFloor() || _groundProbe.IsColliding();
-        Vector2 moveInput = GameUiState.BlocksGameplayInput
-            ? Vector2.Zero
-            : Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+        Vector2 moveInput = Bot != null
+            ? Bot.Move
+            : (GameUiState.BlocksGameplayInput
+                ? Vector2.Zero
+                : Input.GetVector("move_left", "move_right", "move_forward", "move_back"));
         Vector3 moveDirection = (Transform.Basis * new Vector3(moveInput.X, 0.0f, moveInput.Y)).Normalized();
-        bool crouchHeld = ActionHeld("crouch");
+        bool crouchHeld = Bot != null ? Bot.Crouch : ActionHeld("crouch");
 
         // Decay the shake first, before any new shake is set this frame. Decaying after the assignment
         // would zero a fresh shake in the same frame it was created and the shake would never show.
@@ -257,10 +284,10 @@ public partial class PlayerMovement : CharacterBody3D
         UpdateHeadBob(delta);
         // Sprinting and sliding cancel ADS; every other state - including crouch and airborne -
         // allows it, which is the whole point of pulling this out of the state machine.
-        IsAiming = ActionHeld("aim")
+        IsAiming = AimHeld()
             && State is not MovementState.Sprint and not MovementState.Slide;
         UpdateFov(delta);
-        ApplyControllerLook(delta);
+        if (Bot == null) ApplyControllerLook(delta);
         UpdateHeadAim(delta);
         _head.Position = new Vector3(_headOffset.X, _headBaseHeight + _headOffset.Y, _headOffset.Z)
             + _shakeOffset;
@@ -269,6 +296,7 @@ public partial class PlayerMovement : CharacterBody3D
         ReplicatedMovementState = State.ToString();
         ReplicatedAimState = IsAiming;
         _animationController.SetMovementState(State);
+        Bot?.ClearJump(); // a jump request that could not happen this frame is dropped, not banked
     }
 
     /// <summary>
@@ -368,14 +396,15 @@ public partial class PlayerMovement : CharacterBody3D
 
     private void UpdateGroundMovement(float delta, Vector2 moveInput, Vector3 moveDirection, bool crouchHeld)
     {
-        if (ActionTapped("crouch") && State == MovementState.Sprint)
+        if (CrouchJustPressed() && State == MovementState.Sprint)
         {
             StartSlide(moveDirection);
             return;
         }
 
         bool canJump = State is MovementState.Idle or MovementState.Walk or MovementState.Sprint or MovementState.Crouch or MovementState.Aim;
-        if (canJump && ActionTapped("jump"))
+        bool jumpPressed = Bot != null ? Bot.ConsumeJump() : ActionTapped("jump");
+        if (canJump && jumpPressed)
         {
             Velocity = new Vector3(Velocity.X, JumpVelocity, Velocity.Z);
             SetState(MovementState.Jump);
@@ -386,8 +415,9 @@ public partial class PlayerMovement : CharacterBody3D
         bool forwardish = moveInput.Y < -0.1f;
         // Auto Sprint (SettingsManager) mainly exists for touch, where holding a second button
         // just to run is awkward, but nothing about the check itself is touch-specific.
-        bool autoSprint = SettingsManager.Instance != null && SettingsManager.Instance.AutoSprint;
-        bool sprinting = !crouchHeld && forwardish && (autoSprint || ActionHeld("sprint"));
+        bool autoSprint = Bot == null && SettingsManager.Instance != null && SettingsManager.Instance.AutoSprint;
+        bool sprintHeld = Bot != null ? Bot.Sprint : ActionHeld("sprint");
+        bool sprinting = !crouchHeld && forwardish && (autoSprint || sprintHeld);
         float targetSpeed = crouchHeld ? CrouchSpeed : sprinting ? SprintSpeed : WalkSpeed;
         ApplyHorizontalVelocity(moveDirection * targetSpeed, delta, 1.0f);
 
@@ -399,7 +429,7 @@ public partial class PlayerMovement : CharacterBody3D
             ? (hasMovement ? MovementState.CrouchWalk : MovementState.Crouch)
             : sprinting && hasMovement ? MovementState.Sprint
             : hasMovement ? MovementState.Walk
-            : ActionHeld("aim") ? MovementState.Aim
+            : AimHeld() ? MovementState.Aim
             : MovementState.Idle);
     }
 

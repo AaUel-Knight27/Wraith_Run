@@ -10,9 +10,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -222,7 +220,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="fixing player face toward and the respawn and death animation problem, fixing other bugs" />
     <MESSAGE value="fixing visualization throuth the models by chaning the model into glb from fbx" />
     <MESSAGE value="import files" />
     <MESSAGE value="fixing some details on the game and using the same way to fix the bug" />
@@ -247,7 +244,8 @@
     <MESSAGE value="fix debugging systems and fixed control systems." />
     <MESSAGE value="remaking sound systems" />
     <MESSAGE value="created loading screen, score board and pause" />
-    <option name="LAST_COMMIT_MESSAGE" value="created loading screen, score board and pause" />
+    <MESSAGE value="more professional FPS game menu" />
+    <option name="LAST_COMMIT_MESSAGE" value="more professional FPS game menu" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

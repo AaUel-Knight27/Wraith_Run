@@ -38,7 +38,7 @@ public partial class TouchControls : CanvasLayer
     public override void _Ready()
     {
         _player = (CharacterBody3D)GetParent();
-        if (!_player.IsMultiplayerAuthority())
+        if (!PlayerIdentity.IsLocalHuman(_player))
         {
             SetProcess(false);
             return;

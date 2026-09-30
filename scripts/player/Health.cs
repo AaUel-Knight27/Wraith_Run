@@ -17,6 +17,8 @@ public partial class Health : Node
 {
     [Signal] public delegate void DiedEventHandler();
     [Signal] public delegate void RespawnedEventHandler();
+    /// <summary>Fired on the owning peer after a hit lands (used by bots to know they were shot and by whom).</summary>
+    [Signal] public delegate void DamagedEventHandler(float amount, long attackerId);
 
     /// <summary>FR-PL-07 requires the respawn delay to sit between 3 and 5 seconds.</summary>
     private const float RespawnDelaySeconds = 3.0f;
@@ -62,6 +64,7 @@ public partial class Health : Node
     /// <summary>Damage each attacker has dealt since this player last spawned. Part 6 pays the assist
     /// to the non-killing damager, so this ledger has to outlive a single hit.</summary>
     private readonly Dictionary<long, float> _damageContribution = new();
+    private readonly RandomNumberGenerator _botRng = new();
 
     private Vector3 _deathPosition;
     private bool _deathAnnounced;
@@ -73,6 +76,7 @@ public partial class Health : Node
         _animation = _player.GetNodeOrNull<PlayerAnimationController>("AnimationController");
         _loadout = _player.GetNodeOrNull<CharacterLoadout>("CharacterLoadout");
         _killFeed = KillFeed.From(this);
+        _botRng.Randomize();
 
         // Shiv's "On-foot max HP -10%" drawback and anything like it (CharacterEffectIds.
         // OnFootMaxHealthMult). No operator equipped -> GetModifier returns 1.0 -> unchanged.
@@ -107,6 +111,7 @@ public partial class Health : Node
         // this player already was the moment BEFORE this shot, not after.
         float healthBeforeHit = CurrentHealth;
         CurrentHealth -= amount;
+        EmitSignal(SignalName.Damaged, amount, attackerId);
         if (!IsDead) return;
 
         _respawnTimer = RespawnDelaySeconds;
@@ -148,7 +153,7 @@ public partial class Health : Node
     {
         MatchManager? match = MatchManager.Instance;
         if (match == null || match.FriendlyFire) return false;
-        return match.AreTeammates(attackerId, _player.GetMultiplayerAuthority());
+        return match.AreTeammates(attackerId, PlayerIdentity.IdOf(_player));
     }
 
     /// <summary>
@@ -171,7 +176,7 @@ public partial class Health : Node
 
         int totalPoints = KillStyleBonus.Evaluate(basePoints, (KillStyle)styleFlags);
         SelectAssist(killerId, out long assistPeerId, out int assistPoints);
-        _killFeed.Publish(killerId, (long)_player.GetMultiplayerAuthority(), styleFlags, basePoints,
+        _killFeed.Publish(killerId, PlayerIdentity.IdOf(_player), styleFlags, basePoints,
             totalPoints, assistPeerId, assistPoints, struggles);
     }
 
@@ -196,7 +201,11 @@ public partial class Health : Node
 
     private void Respawn()
     {
-        _player.Position = RespawnPointSelector.Select(_player, _deathPosition, SpawnAreaHalfExtent);
+        // Bots come back where the map's walkable grid says it is safe and far from everyone; people use
+        // the normal selector.
+        _player.Position = PlayerIdentity.IsBot(_player)
+            ? BotNav.PickRespawnPosition(_player, _deathPosition, SpawnAreaHalfExtent, _botRng)
+            : RespawnPointSelector.Select(_player, _deathPosition, SpawnAreaHalfExtent);
         _player.Velocity = Vector3.Zero;
         _damageContribution.Clear();
         _deathAnnounced = false;

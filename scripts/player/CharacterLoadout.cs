@@ -26,7 +26,8 @@ public partial class CharacterLoadout : Node
 
 	public override void _Ready()
 	{
-		bool isLocal = GetParent() is Node parent && parent.IsMultiplayerAuthority();
+		// IsLocalHuman, not IsMultiplayerAuthority: bots the host simulates share its authority.
+		bool isLocal = PlayerIdentity.IsLocalHuman(GetParent());
 		if (string.IsNullOrEmpty(CharacterId) && isLocal) CharacterId = PlayerProfile.OperatorId;
 
 		if (!string.IsNullOrEmpty(CharacterId))

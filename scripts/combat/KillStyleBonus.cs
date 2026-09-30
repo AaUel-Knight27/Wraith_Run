@@ -91,7 +91,7 @@ public static class KillStyleBonus
     public static string DescribeKill(long killerPeerId, long victimPeerId, KillStyle styles, int totalPoints)
     {
         string bonus = Describe(styles);
-        var text = new StringBuilder($"Player {killerPeerId} killed Player {victimPeerId}");
+        var text = new StringBuilder($"{BotRoster.DisplayName(killerPeerId)} killed {BotRoster.DisplayName(victimPeerId)}");
         if (bonus.Length > 0) text.Append(' ').Append(bonus);
         return text.Append("  +").Append(totalPoints).ToString();
     }

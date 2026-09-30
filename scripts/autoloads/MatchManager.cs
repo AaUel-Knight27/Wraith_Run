@@ -47,6 +47,13 @@ public partial class MatchManager : Node
     public int ScoreLimit = 50;
     public int TimeLimitMinutes = 10;
 
+    // ---- Bots (host-only: bots are simulated by the host and reach everyone else as ordinary players) ----
+    /// <summary>How many bots GameWorld spawns when the match starts. 0 = none. Set by LanMenu.</summary>
+    public int BotCount;
+    public BotDifficulty BotLevel = BotDifficulty.Normal;
+    /// <summary>Lets bots ease off a little if a person is being crushed (see BotDirector).</summary>
+    public bool AdaptiveBots = true;
+
     private readonly Dictionary<long, int> _peerTeams = new();
     private readonly int[] _teamScores = new int[TeamCount];
     private float _elapsedSeconds;
@@ -142,6 +149,7 @@ public partial class MatchManager : Node
         GameMode = Mode.FreeForAll;
         FriendlyFire = false;
         TeamIndicators = true;
+        BotCount = 0; // only the host ever spawns bots
         PrepareHostMatch();
     }
 
@@ -178,6 +186,11 @@ public partial class MatchManager : Node
         // when its own copy of this autoload was created (see PrepareClientMatch).
         RpcId(peerId, MethodName.ReceiveHostConfig, (int)GameMode, FriendlyFire, TeamIndicators,
             ScoreLimit, TimeLimitMinutes, _elapsedSeconds);
+        // Teach the newcomer everyone who is already here (the host, other people, bots). The broadcast
+        // below only carries the newcomer's own team, so without this a late joiner would not know who
+        // is on which side.
+        foreach (KeyValuePair<long, int> entry in _peerTeams)
+            if (entry.Key != peerId) RpcId(peerId, MethodName.ReceiveTeamAssignment, entry.Key, entry.Value);
         AssignTeamAndBroadcast(peerId);
     }
 

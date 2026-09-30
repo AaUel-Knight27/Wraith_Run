@@ -48,7 +48,8 @@ public partial class PlayerScore : Node
     private void OnKillAnnounced(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
         int totalPoints, long assistPeerId, int assistPoints, bool struggles)
     {
-        int myPeerId = GetMultiplayerAuthority();
+        // Identity, not authority: a bot is owned by the host (authority 1) but has its own id.
+        long myPeerId = PlayerIdentity.IdOf(GetParent());
         if (victimPeerId == myPeerId) Deaths++;
         if (!IsMultiplayerAuthority()) return;
 

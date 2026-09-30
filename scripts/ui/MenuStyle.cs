@@ -257,9 +257,9 @@ public static class MenuStyle
             SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
             MouseFilter = Control.MouseFilterEnum.Ignore,
         };
-        texts.AddThemeConstantOverride("separation", -8);
+        texts.AddThemeConstantOverride("separation", string.IsNullOrEmpty(subtitle) ? 0 : -8);
         texts.AddChild(Text(title, 54, TextMain, Bold));
-        texts.AddChild(Text(subtitle, 20, Hex(0xf0dcdc), Medium));
+        if (!string.IsNullOrEmpty(subtitle)) texts.AddChild(Text(subtitle, 20, Hex(0xf0dcdc), Medium));
         row.AddChild(texts);
         return button;
     }
@@ -644,17 +644,26 @@ public static class MenuStyle
         return button;
     }
 
-    /// <summary>Outlined (not filled) secondary button, e.g. RESET COLORS.</summary>
-    public static Button Outline(string text, Action onPressed)
+    /// <summary>Outlined (not filled) secondary button, e.g. RESET COLORS or CUSTOMIZE.</summary>
+    public static Button Outline(string text, Action onPressed, string icon = null, int height = 46)
     {
-        var button = NewButton(new Vector2(0, 46), onPressed);
+        var button = NewButton(new Vector2(0, height), onPressed);
         button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         StyleButton(button, Box(Ink, Border), Box(HoverFill, BorderHot), Box(PressFill, BorderHot),
             Box(RowFill, Hairline));
-        var label = Text(text, 18, TextMain, Bold, HorizontalAlignment.Center);
-        label.VerticalAlignment = VerticalAlignment.Center;
-        Fill(label);
-        button.AddChild(label);
+        var center = new CenterContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        Fill(center);
+        button.AddChild(center);
+        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 10);
+        center.AddChild(row);
+        if (icon != null)
+        {
+            var glyph = Icon(icon, 24, 0, Accent);
+            glyph.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+            row.AddChild(glyph);
+        }
+        row.AddChild(Text(text, 20, TextMain, Bold));
         return button;
     }
 

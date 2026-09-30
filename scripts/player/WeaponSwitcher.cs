@@ -169,14 +169,16 @@ public partial class WeaponSwitcher : Node
 		_animation = GetNodeOrNull<PlayerAnimationController>("../AnimationController");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
 
+		// The hit-marker tick is a non-positional UI sound: only the person at this machine gets one
+		// (a bot the host simulates is 'authority' here too and must stay silent).
+		if (PlayerIdentity.IsLocalHuman(_player)) _hitMarker = BuildHitMarker();
 		if (_player.IsMultiplayerAuthority())
 		{
-			_hitMarker = BuildHitMarker();
 			if (_health != null && KeepAmmoPerWeapon) _health.Respawned += OnRespawned;
-			// The lobby's "Choose Weapon" pick. Deferred so it goes through the replicated-index
-			// setter after the spawn snapshot, i.e. other players see it too.
-			Callable.From(EquipStartingWeapon).CallDeferred();
 		}
+		// The lobby's "Choose Weapon" pick - for the person at this machine only, never a bot.
+		// Deferred so it goes through the replicated-index setter after the spawn snapshot.
+		if (PlayerIdentity.IsLocalHuman(_player)) Callable.From(EquipStartingWeapon).CallDeferred();
 
 		// Apply whatever index is already set. On the authority that is 0 (the AK); on a remote
 		// copy the synchronizer may already have delivered the real value.
@@ -187,7 +189,7 @@ public partial class WeaponSwitcher : Node
 	/// still being built) leaves the default slot alone.</summary>
 	private void EquipStartingWeapon()
 	{
-		if (!IsInstanceValid(this) || !_player.IsMultiplayerAuthority()) return;
+		if (!IsInstanceValid(this) || !PlayerIdentity.IsLocalHuman(_player)) return;
 		int chosen = System.Array.IndexOf(Loadout, PlayerProfile.WeaponName);
 		if (chosen > 0) ReplicatedWeaponIndex = chosen;
 	}
@@ -204,8 +206,9 @@ public partial class WeaponSwitcher : Node
 		// While the pause menu is open no gameplay key or button reaches this weapon (the timers
 		// below still run, so a reload that was already under way finishes normally).
 		bool inputBlocked = GameUiState.BlocksGameplayInput;
+		BotControls? bot = _movement.Bot;
 
-		if (!inputBlocked)
+		if (bot == null && !inputBlocked)
 			for (int i = 0; i < Loadout.Length; i++)
 				if (Input.IsActionJustPressed($"weapon_{i + 1}")) ReplicatedWeaponIndex = i;
 
@@ -219,14 +222,14 @@ public partial class WeaponSwitcher : Node
 			if (_reloadRemaining <= 0.0f) FinishReload();
 		}
 
-		if (!inputBlocked && Input.IsActionJustPressed("reload")) StartReload();
+		if (bot != null ? bot.ConsumeReload() : (!inputBlocked && Input.IsActionJustPressed("reload"))) StartReload();
 
 		// Rate-limited by FireRateRPM below. Semi-auto weapons (Glock, Desert Eagle, shotgun)
 		// require a fresh press per shot - holding the trigger on them fires one round and then
 		// waits for the cooldown to drain without firing again. Full-auto keeps firing on hold.
-		bool fireRequested = !inputBlocked && (FireMode == WeaponData.FireModeType.FullAuto
-			? Input.IsActionPressed("fire")
-			: Input.IsActionJustPressed("fire"));
+		bool fireRequested = FireMode == WeaponData.FireModeType.FullAuto
+			? (bot != null ? bot.FireHeld : (!inputBlocked && Input.IsActionPressed("fire")))
+			: (bot != null ? bot.ConsumeFirePulse() : (!inputBlocked && Input.IsActionJustPressed("fire")));
 		if (fireRequested && _cooldownRemaining <= 0.0f) TryFire();
 	}
 
@@ -344,6 +347,9 @@ public partial class WeaponSwitcher : Node
 		_attachment.PlayFire();
 		_animation?.PlayFire();
 		_viewmodel?.PlayShoot();
+		// Bots (host only) hear the shot: everyone nearby learns roughly where it came from.
+		if (_currentWeapon != null && _currentWeapon.WeaponClass != "Melee")
+			BotSenses.ReportGunshot(_player.GlobalPosition, Mathf.Min(_currentWeapon.FireMaxDistanceMeters, 80.0f), _player);
 		// Flash only: SkipAudio on this attachment (set in Player.tscn) means _fireAudio is null, so
 		// this plays nothing but the muzzle flash, positioned at the viewmodel's own barrel instead
 		// of at the (now-hidden, see HiddenFromOwner) world model's.
@@ -413,10 +419,20 @@ public partial class WeaponSwitcher : Node
 			: _currentWeapon.BodyDamage;
 		KillStyle styles = CaptureKillStyle(headshot, melee);
 
-		int attackerId = _player.GetMultiplayerAuthority();
+		// Identity, not authority: a bot shares the host's authority but has its own id.
+		long attackerId = PlayerIdentity.IdOf(_player);
 		int targetId = targetHealth.GetMultiplayerAuthority();
-		targetHealth.RpcId(targetId, Health.MethodName.ReceiveDamage, damage, (long)attackerId,
-			(int)styles, KillStyleBonus.DefaultBaseKillPoints);
+		if (targetId == Multiplayer.GetUniqueId())
+		{
+			// The victim lives on THIS machine (host player or a bot): an RPC to yourself is a no-op,
+			// so apply the damage directly.
+			targetHealth.ReceiveDamage(damage, attackerId, (int)styles, KillStyleBonus.DefaultBaseKillPoints);
+		}
+		else
+		{
+			targetHealth.RpcId(targetId, Health.MethodName.ReceiveDamage, damage, attackerId,
+				(int)styles, KillStyleBonus.DefaultBaseKillPoints);
+		}
 		// Broadcast, not local-only: this runs on the shooter's device (client-authoritative
 		// hitscan), but a hit landing is something everyone nearby should hear, not just the
 		// person who pulled the trigger.
@@ -536,5 +552,15 @@ public partial class WeaponSwitcher : Node
 		var stream = ResourceLoader.Load<AudioStream>(HitMarkerSounds[_rng.RandiRange(0, HitMarkerSounds.Length - 1)]);
 		if (stream != null) _hitMarker.Stream = stream;
 		_hitMarker.Play();
+	}
+
+	/// <summary>Refills the current weapon (a bot's 'spawn loadout' on respawn).</summary>
+	public void RestockAmmo()
+	{
+		if (_currentWeapon == null) return;
+		_currentAmmo = _currentWeapon.MagazineSize;
+		_currentReserve = _currentWeapon.MaxReserveAmmo;
+		_reloadRemaining = 0.0f;
+		_animation?.CancelReload();
 	}
 }

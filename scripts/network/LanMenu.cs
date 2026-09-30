@@ -31,6 +31,13 @@ public partial class LanMenu : Control
     private LocalMode _localMode = LocalMode.Host;
     private string _hostName = DefaultGameName;
     private bool _leavingMenu;
+    // Bot settings. VS BOTS and the LAN host lobby remember their own choices, so a bot-heavy solo setup
+    // never silently adds bots to a LAN match (that one defaults to 0).
+    private int _soloBotCount = 5;
+    private BotDifficulty _soloBotLevel = BotDifficulty.Normal;
+    private int _hostBotCount;
+    private BotDifficulty _hostBotLevel = BotDifficulty.Normal;
+    private bool _adaptiveBots = true;
     private bool _terminalCleanupDone;
     private bool _sceneChangeQueued;
 
@@ -135,85 +142,56 @@ public partial class LanMenu : Control
         CharacterData? op = OperatorInfo.Find(PlayerProfile.OperatorId);
         WeaponData? weapon = OperatorInfo.FindWeapon(PlayerProfile.WeaponName);
 
-        // The selected operator, live in 3D, in the middle of the screen. Added first so every
-        // button below draws over it; the stage itself never takes mouse input.
+        // The selected operator, live in 3D, in the middle of the screen: drag to spin, scroll or
+        // pinch to zoom, double-click / double-tap to reset. Added first so every button draws
+        // over it.
         var stage = new OperatorStage();
-        MenuStyle.Place(stage, 0.335f, 0.27f, 0.665f, 0.985f, 0, 0, 0, 0);
+        MenuStyle.Place(stage, 0.335f, 0.17f, 0.665f, 0.985f, 0, 0, 0, 0);
         _contentRoot.AddChild(stage);
         stage.ShowOperator(op, weapon);
 
-        var title = new VBoxContainer();
-        title.AddThemeConstantOverride("separation", 2);
-        title.AddChild(MenuStyle.Text("WRAITH RUN", 42, MenuStyle.TextMain,
-            MenuStyle.Spaced(MenuStyle.Bold, 3)));
-        var underline = new ColorRect { Color = MenuStyle.Accent, CustomMinimumSize = new Vector2(64, 3) };
-        title.AddChild(underline);
-        MenuStyle.Place(title, 0, 0, 0, 0, 64, 22, 64, 22);
-        _contentRoot.AddChild(title);
+        var hint = MenuStyle.Text("Drag to rotate  |  scroll or pinch to zoom", 13, MenuStyle.TextMuted,
+            MenuStyle.Medium, HorizontalAlignment.Center);
+        MenuStyle.Place(hint, 0.335f, 1, 0.665f, 1, 0, -30, 0, -10);
+        _contentRoot.AddChild(hint);
+
         AddTopIcons(includeSettings: true, reopen: ShowMain);
 
-        // Top row: everything that edits the character or its gear.
+        // Top row: operator and weapon. Colours live on the operator screen (CUSTOMIZE beside EQUIP).
         var top = new HBoxContainer();
         top.AddThemeConstantOverride("separation", 10);
-        MenuStyle.Place(top, 0, 0, 0, 0, 64, 108, 64 + 3 * 196 + 20, 108);
+        MenuStyle.Place(top, 0, 0, 0, 0, 64, 28, 64 + 2 * 196 + 10, 28);
         _contentRoot.AddChild(top);
         top.AddChild(MenuStyle.Card("users", "CHOOSE\nOPERATOR", null, new Vector2(196, 68),
             ShowOperators, titleSize: 19, iconSize: 36));
         top.AddChild(MenuStyle.Card("weapon", "CHOOSE\nWEAPON", null, new Vector2(196, 68),
             ShowWeapons, titleSize: 19, iconSize: 36));
-        top.AddChild(MenuStyle.Card("helmet-gear", "CUSTOMIZE\nPLAYER", null, new Vector2(196, 68),
-            ShowCustomize, titleSize: 19, iconSize: 36));
 
-        // Left column, lower half: a smaller PLAY (the middle of the screen belongs to the
-        // operator now) and the bot range.
+        // Left column, lower half: PLAY and TRAIN, name only.
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 14);
-        MenuStyle.Place(column, 0, 0.5f, 0, 0.5f, 64, 0, 64 + 300, 0);
+        MenuStyle.Place(column, 0, 0.5f, 0, 0.5f, 64, -50, 64 + 300, -50);
         _contentRoot.AddChild(column);
 
-        var play = MenuStyle.Hero("PLAY", "Select to Start Match", new Vector2(300, 84), ShowPlay);
+        var play = MenuStyle.Hero("PLAY", null, new Vector2(300, 78), ShowPlay);
         column.AddChild(play);
-        column.AddChild(MenuStyle.Card("crosshair", "TRAIN BUTTON", "Train With Bots",
-            new Vector2(300, 72), () => ShowSoon("TRAIN",
-                "A shooting range with bot targets needs bot AI, which isn't built yet.", ShowMain),
-            titleSize: 20, iconSize: 40, badge: "AI"));
-
-        // Right column: what is currently equipped. Each tile opens its own screen.
-        var right = new VBoxContainer();
-        right.AddThemeConstantOverride("separation", 10);
-        MenuStyle.Place(right, 1, 0, 1, 0, -(64 + 300), 108, -64, 108);
-        _contentRoot.AddChild(right);
-
-        Button operatorTile = MenuStyle.Tile(new Vector2(300, 118), ShowOperators, out VBoxContainer operatorBox);
-        operatorBox.AddChild(MenuStyle.Text("OPERATOR", 14, MenuStyle.Accent, MenuStyle.Bold));
-        operatorBox.AddChild(MenuStyle.Text(OperatorInfo.Callsign(op), 32, MenuStyle.TextMain, MenuStyle.Bold));
-        operatorBox.AddChild(MenuStyle.Text(
-            op == null ? "Standard issue" : $"{OperatorInfo.ClassName(op.Class)}  |  {op.SkillName}",
-            16, MenuStyle.TextDim));
-        right.AddChild(operatorTile);
-
-        Button weaponTile = MenuStyle.Tile(new Vector2(300, 118), ShowWeapons, out VBoxContainer weaponBox);
-        weaponBox.AddChild(MenuStyle.Text("STARTING WEAPON", 14, MenuStyle.Accent, MenuStyle.Bold));
-        weaponBox.AddChild(MenuStyle.Text(weapon == null ? PlayerProfile.WeaponName.ToUpperInvariant() : weapon.WeaponName.ToUpperInvariant(),
-            32, MenuStyle.TextMain, MenuStyle.Bold));
-        weaponBox.AddChild(MenuStyle.Text(
-            weapon == null ? string.Empty
-                : weapon.FireMode == WeaponData.FireModeType.Melee
-                    ? $"{weapon.BodyDamage:0} dmg  |  melee"
-                    : $"{weapon.BodyDamage:0} dmg  |  {weapon.FireRateRPM:0} rpm  |  {weapon.MagazineSize} rd",
-            16, MenuStyle.TextDim));
-        right.AddChild(weaponTile);
+        column.AddChild(MenuStyle.Card("crosshair", "TRAIN", null, new Vector2(300, 64),
+            () => ShowSoon("TRAIN",
+                "The training range is a separate mode and isn't built yet. To fight bots in a real match, use PLAY > VS BOTS.", ShowMain),
+            titleSize: 26, iconSize: 34));
 
         play.GrabFocus();
     }
 
-    private void ShowOperators()
+    private void ShowOperators() => ShowOperators(null);
+
+    private void ShowOperators(string? previewId)
     {
         if (_terminalCleanupDone) return;
         BeginScreen(ShowMain);
         AddHeader("CHOOSE OPERATOR", ShowMain);
-        AddTopIcons(includeSettings: true, reopen: ShowOperators);
-        new OperatorScreen().Build(_contentRoot);
+        AddTopIcons(includeSettings: true, reopen: () => ShowOperators(previewId));
+        new OperatorScreen(previewId, ShowCustomize).Build(_contentRoot);
     }
 
     private void ShowWeapons()
@@ -225,13 +203,15 @@ public partial class LanMenu : Control
         new WeaponScreen().Build(_contentRoot);
     }
 
-    private void ShowCustomize()
+    /// <summary>Reached from the operator screen; going back returns there, on the same operator.</summary>
+    private void ShowCustomize(string operatorId)
     {
         if (_terminalCleanupDone) return;
-        BeginScreen(ShowMain);
-        AddHeader("CUSTOMIZE PLAYER", ShowMain);
-        AddTopIcons(includeSettings: true, reopen: ShowCustomize);
-        new CustomizeScreen().Build(_contentRoot);
+        Action back = () => ShowOperators(operatorId);
+        BeginScreen(back);
+        AddHeader("CUSTOMIZE PLAYER", back);
+        AddTopIcons(includeSettings: true, reopen: () => ShowCustomize(operatorId));
+        new CustomizeScreen(operatorId).Build(_contentRoot);
     }
 
     private void ShowPlay()
@@ -245,9 +225,7 @@ public partial class LanMenu : Control
         MenuStyle.Place(panel, 0.56f, 0, 1, 0, 0, 130, -64, 130);
         body.AddThemeConstantOverride("separation", 14);
         body.AddChild(MenuStyle.Card("bot", "VS BOTS", "Fight AI opponents on your own",
-            new Vector2(0, 104), () => ShowSoon("VS BOTS",
-                "Playing against bots needs bot AI, which isn't built yet.", ShowPlay),
-            titleSize: 30, iconSize: 50));
+            new Vector2(0, 104), ShowVsBots, titleSize: 30, iconSize: 50));
         var local = MenuStyle.Card("wifi", "PLAY LOCALLY", "Host or join a match on your Wi-Fi",
             new Vector2(0, 104), ShowLocal, titleSize: 30, iconSize: 50);
         body.AddChild(local);
@@ -310,18 +288,8 @@ public partial class LanMenu : Control
         left.AddChild(map);
 
         if (_localMode == LocalMode.Host && match.GameMode == MatchManager.Mode.TeamDeathmatch)
-        {
-            var rules = MenuStyle.Panel("MATCH SETTINGS", "crosshair", out var rulesBody);
-            rulesBody.AddChild(MenuStyle.ToggleRow(null, "Friendly Fire", match.FriendlyFire,
-                v => { match.FriendlyFire = v; ShowLocal(); }));
-            rulesBody.AddChild(MenuStyle.ToggleRow(null, "Team Indicators", match.TeamIndicators,
-                v => { match.TeamIndicators = v; ShowLocal(); }));
-            rulesBody.AddChild(MenuStyle.SliderRow("Score Limit", match.ScoreLimit, 10, 100, 5,
-                "{0:0} kills", v => match.ScoreLimit = (int)v));
-            rulesBody.AddChild(MenuStyle.SliderRow("Time Limit", match.TimeLimitMinutes, 3, 20, 1,
-                "{0:0} min", v => match.TimeLimitMinutes = (int)v));
-            left.AddChild(rules);
-        }
+            AddMatchRules(left, ShowLocal);
+        if (_localMode == LocalMode.Host) AddBotSettings(left, solo: false, rebuild: ShowLocal);
 
         // Right: what Host / Connect actually does.
         var right = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -329,6 +297,185 @@ public partial class LanMenu : Control
         layout.AddChild(right);
         if (_localMode == LocalMode.Host) BuildHostPane(right);
         else BuildConnectPane(right);
+    }
+
+
+    // -------------------------------------------------------------------------------------------
+    // Bots: VS BOTS screen + the bot panels shared with the LAN host lobby
+    // -------------------------------------------------------------------------------------------
+
+    /// <summary>Friendly Fire / Team Indicators / Score + Time limit. Shared by Play Locally (host) and VS BOTS.</summary>
+    private static void AddMatchRules(Container left, Action rebuild)
+    {
+        MatchManager match = MatchManager.Instance;
+        var rules = MenuStyle.Panel("MATCH SETTINGS", "crosshair", out var rulesBody);
+        rulesBody.AddChild(MenuStyle.ToggleRow(null, "Friendly Fire", match.FriendlyFire,
+            v => { match.FriendlyFire = v; rebuild(); }));
+        rulesBody.AddChild(MenuStyle.ToggleRow(null, "Team Indicators", match.TeamIndicators,
+            v => { match.TeamIndicators = v; rebuild(); }));
+        rulesBody.AddChild(MenuStyle.SliderRow("Score Limit", match.ScoreLimit, 10, 100, 5,
+            "{0:0} kills", v => match.ScoreLimit = (int)v));
+        rulesBody.AddChild(MenuStyle.SliderRow("Time Limit", match.TimeLimitMinutes, 3, 20, 1,
+            "{0:0} min", v => match.TimeLimitMinutes = (int)v));
+        left.AddChild(rules);
+    }
+
+    private static string DescribeBotLevel(BotDifficulty level)
+    {
+        switch (level)
+        {
+            case BotDifficulty.Easy:
+                return "Beginners. Slow to notice you, wobbly aim, overshoot their flicks, stand in the open, "
+                    + "miss hearing footsteps, and sometimes zone out for a few seconds.";
+            case BotDifficulty.Advanced:
+                return "Competitive players. Fast reactions, sharp flicks, smart angles and cover, they hear "
+                    + "you coming and call out to teammates. Rarely slip, but they are not perfect.";
+            case BotDifficulty.Mixed:
+                return "A random blend of Easy, Normal and Advanced bots in the same match.";
+            default:
+                return "Average players. Decent aim and positioning, use cover, flick and peek, but still "
+                    + "misjudge fights and make ordinary mistakes.";
+        }
+    }
+
+    private void SetBotLevel(bool solo, BotDifficulty level, Action rebuild)
+    {
+        if (solo) _soloBotLevel = level;
+        else _hostBotLevel = level;
+        rebuild();
+    }
+
+    /// <summary>Difficulty picker + bot count + adaptive toggle. solo = VS BOTS (1-10 bots), otherwise the LAN host lobby (0-10).</summary>
+    private void AddBotSettings(Container left, bool solo, Action rebuild)
+    {
+        BotDifficulty level = solo ? _soloBotLevel : _hostBotLevel;
+
+        var diff = MenuStyle.Panel("BOT DIFFICULTY", "bot", out var diffBody);
+        diffBody.AddChild(MenuStyle.SelectRow("user", "Easy", level == BotDifficulty.Easy,
+            () => SetBotLevel(solo, BotDifficulty.Easy, rebuild)));
+        diffBody.AddChild(MenuStyle.SelectRow("users", "Normal", level == BotDifficulty.Normal,
+            () => SetBotLevel(solo, BotDifficulty.Normal, rebuild)));
+        diffBody.AddChild(MenuStyle.SelectRow("crosshair", "Advanced", level == BotDifficulty.Advanced,
+            () => SetBotLevel(solo, BotDifficulty.Advanced, rebuild)));
+        diffBody.AddChild(MenuStyle.SelectRow("bot", "Mixed", level == BotDifficulty.Mixed,
+            () => SetBotLevel(solo, BotDifficulty.Mixed, rebuild)));
+        var description = MenuStyle.Text(DescribeBotLevel(level), 17, MenuStyle.TextMuted, MenuStyle.Medium);
+        description.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        diffBody.AddChild(description);
+        left.AddChild(diff);
+
+        var count = MenuStyle.Panel(solo ? "BOTS" : "ADD BOTS", "bot", out var countBody);
+        countBody.AddChild(MenuStyle.SliderRow("Number of bots", solo ? _soloBotCount : _hostBotCount,
+            solo ? 1 : 0, 10, 1, "{0:0}", v =>
+            {
+                if (solo) _soloBotCount = (int)v;
+                else _hostBotCount = (int)v;
+            }));
+        countBody.AddChild(MenuStyle.ToggleRow(null, "Adaptive Bots", _adaptiveBots, v => _adaptiveBots = v));
+        var hint = MenuStyle.Text(
+            "Bots spawn at random places. Adaptive Bots ease off slightly if you are being crushed and tighten up if you are dominating.",
+            17, MenuStyle.TextMuted, MenuStyle.Medium);
+        hint.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        countBody.AddChild(hint);
+        left.AddChild(count);
+    }
+
+    private void ShowVsBots()
+    {
+        if (_terminalCleanupDone) return;
+        BeginScreen(ShowPlay);
+        AddHeader("VS BOTS", ShowPlay);
+        AddTopIcons(includeSettings: true, reopen: ShowVsBots);
+
+        var layout = new HBoxContainer();
+        layout.AddThemeConstantOverride("separation", 20);
+        MenuStyle.Place(layout, 0, 0, 1, 1, 64, 124, -64, -60);
+        _contentRoot.AddChild(layout);
+
+        var leftScroll = new ScrollContainer
+        {
+            CustomMinimumSize = new Vector2(340, 0),
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+        };
+        layout.AddChild(leftScroll);
+        var left = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        left.AddThemeConstantOverride("separation", 14);
+        leftScroll.AddChild(left);
+
+        MatchManager match = MatchManager.Instance;
+        var mode = MenuStyle.Panel("GAME MODE", "users", out var modeBody);
+        modeBody.AddChild(MenuStyle.SelectRow("crosshair", "Deathmatch",
+            match.GameMode == MatchManager.Mode.FreeForAll,
+            () => SetVsBotsGameMode(MatchManager.Mode.FreeForAll)));
+        modeBody.AddChild(MenuStyle.SelectRow("users", "Team Deathmatch",
+            match.GameMode == MatchManager.Mode.TeamDeathmatch,
+            () => SetVsBotsGameMode(MatchManager.Mode.TeamDeathmatch)));
+        left.AddChild(mode);
+
+        AddBotSettings(left, solo: true, rebuild: ShowVsBots);
+
+        var map = MenuStyle.Panel("MAP", "map", out var mapBody);
+        mapBody.AddChild(MenuStyle.InfoRow("map", "Warzone"));
+        left.AddChild(map);
+
+        if (match.GameMode == MatchManager.Mode.TeamDeathmatch) AddMatchRules(left, ShowVsBots);
+
+        var right = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        right.AddThemeConstantOverride("separation", 14);
+        layout.AddChild(right);
+
+        var panel = MenuStyle.Panel("YOUR MATCH", "bot", out var body);
+        panel.SizeFlagsVertical = SizeFlags.ExpandFill;
+        right.AddChild(panel);
+
+        var about = MenuStyle.Text(
+            "A private match against AI opponents on Warzone. Bots see, hear and aim like players of the level "
+            + "you pick, and follow the same rules you do. Nobody else on your network can see or join it.",
+            20, MenuStyle.TextDim, MenuStyle.Medium);
+        about.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        body.AddChild(about);
+
+        var teams = MenuStyle.Text(
+            "In Team Deathmatch you and the bots are split into two even teams.",
+            18, MenuStyle.TextMuted, MenuStyle.Medium);
+        teams.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        body.AddChild(teams);
+
+        _status = MenuStyle.Text("", 18, MenuStyle.Accent, MenuStyle.SemiBold);
+        _status.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        body.AddChild(_status);
+
+        var actions = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.End };
+        var start = MenuStyle.Primary("START MATCH", new Vector2(300, 66), StartSolo);
+        actions.AddChild(start);
+        right.AddChild(actions);
+        start.GrabFocus();
+    }
+
+    private void SetVsBotsGameMode(MatchManager.Mode mode)
+    {
+        if (MatchManager.Instance.GameMode == mode) return;
+        MatchManager.Instance.GameMode = mode;
+        ShowVsBots();
+    }
+
+    private void StartSolo()
+    {
+        if (_leavingMenu) return;
+        MatchManager match = MatchManager.Instance;
+        match.BotCount = _soloBotCount;
+        match.BotLevel = _soloBotLevel;
+        match.AdaptiveBots = _adaptiveBots;
+        match.PrepareHostMatch();
+        var result = GetNode<LanSession>("/root/LanSession").StartSolo();
+        if (result != Error.Ok)
+        {
+            if (IsUsable(_status))
+                _status!.Text = $"Could not start the match (port {LanSession.GamePort} may be in use): {result}";
+            return;
+        }
+        LeaveForGame();
     }
 
     private void SetLocalMode(LocalMode mode)
@@ -479,7 +626,11 @@ public partial class LanMenu : Control
     {
         if (_leavingMenu) return;
         string gameName = string.IsNullOrWhiteSpace(name) ? DefaultGameName : name.Trim();
-        MatchManager.Instance.PrepareHostMatch();
+        MatchManager match = MatchManager.Instance;
+        match.BotCount = _hostBotCount;
+        match.BotLevel = _hostBotLevel;
+        match.AdaptiveBots = _adaptiveBots;
+        match.PrepareHostMatch();
         var result = GetNode<LanSession>("/root/LanSession").StartHost(gameName);
         if (result != Error.Ok)
         {

@@ -38,7 +38,7 @@ public partial class PlayerHud : CanvasLayer
     public override void _Ready()
     {
         var player = (CharacterBody3D)GetParent();
-        if (!player.IsMultiplayerAuthority())
+        if (!PlayerIdentity.IsLocalHuman(player))
         {
             SetProcess(false);
             return;
@@ -174,7 +174,7 @@ public partial class PlayerHud : CanvasLayer
         int totalPoints, long assistPeerId, int assistPoints, bool struggles)
     {
         string line = KillFeed.DescribeKill(killerPeerId, victimPeerId, styleFlags, totalPoints);
-        if (assistPeerId >= 0) line += $"  (assist Player {assistPeerId} +{assistPoints})";
+        if (assistPeerId >= 0) line += $"  (assist {BotRoster.DisplayName(assistPeerId)} +{assistPoints})";
         AddFeedLine(line);
     }
 

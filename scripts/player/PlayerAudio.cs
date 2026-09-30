@@ -117,7 +117,7 @@ public partial class PlayerAudio : Node3D
 
 		// Only the owning player ever needs to hear their own low-health breathing, so only their
 		// copy of this node builds the player for it at all.
-		if (_movement.IsMultiplayerAuthority())
+		if (PlayerIdentity.IsLocalHuman(_movement))
 		{
 			_lowHealthBreathing = Load(LowHealthBreathingSound);
 			_lowHealthPlayer = new AudioStreamPlayer { Name = "LowHealthBreathing", Bus = "Voice", VolumeDb = -4.0f };
@@ -152,7 +152,7 @@ public partial class PlayerAudio : Node3D
 	private void OnKillAnnounced(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
 		int totalPoints, long assistPeerId, int assistPoints, bool struggles)
 	{
-		if (victimPeerId == _movement.GetMultiplayerAuthority()) _pendingDeathStruggles = struggles;
+		if (victimPeerId == PlayerIdentity.IdOf(_movement)) _pendingDeathStruggles = struggles;
 	}
 
 	private void UpdateFootsteps(float delta)

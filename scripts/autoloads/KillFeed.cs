@@ -53,7 +53,10 @@ public partial class KillFeed : Node
     {
         long sender = Multiplayer.GetRemoteSenderId();
         // 0 means this execution is the local call_local copy, published by the victim's own device.
-        if (sender != 0 && sender != victimPeerId) return;
+        // A bot has no device of its own: the host simulates it, so the host (peer 1) is the one
+        // legitimately speaking for a bot victim.
+        bool senderOk = sender == 0 || sender == victimPeerId || (sender == 1 && BotRoster.IsBot(victimPeerId));
+        if (!senderOk) return;
 
         EmitKill(killerPeerId, victimPeerId, styleFlags, basePoints, totalPoints, assistPeerId,
             assistPoints, struggles);

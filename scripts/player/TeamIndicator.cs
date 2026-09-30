@@ -23,9 +23,9 @@ public partial class TeamIndicator : Label3D
     public override void _Ready()
     {
         var player = (CharacterBody3D)GetParent();
-        _ownerPeerId = player.GetMultiplayerAuthority();
+        _ownerPeerId = PlayerIdentity.IdOf(player);
 
-        Text = $"Player {_ownerPeerId}";
+        Text = BotRoster.DisplayName(_ownerPeerId);
         Billboard = BaseMaterial3D.BillboardModeEnum.Enabled;
         FontSize = 40;
         OutlineSize = 12;
