@@ -696,6 +696,42 @@ public static class MenuStyle
         return button;
     }
 
+    /// <summary>Selectable weapon-set card with a caller-built content column.</summary>
+    public static Button SetCard(bool selected, Action onPressed, out VBoxContainer content)
+    {
+        var button = NewButton(new Vector2(300, 0), onPressed);
+        StyleButton(button,
+            Box(selected ? SelectedFill : Ink, selected ? SelectedBorder : Border, 2),
+            Box(HoverFill, BorderHot, 2, 2, 10), Box(PressFill, BorderHot, 2), Box(Ink, Hairline));
+        content = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        content.AddThemeConstantOverride("separation", 10);
+        var pad = Padding(18, 16);
+        button.AddChild(pad);
+        pad.AddChild(content);
+        return button;
+    }
+
+    /// <summary>Compact category tab used by the weapon picker.</summary>
+    public static Button WideTab(string icon, string title, bool selected, Action onPressed)
+    {
+        var button = NewButton(new Vector2(0, 48), onPressed);
+        button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        StyleButton(button,
+            Box(selected ? SelectedFill : Ink, selected ? SelectedBorder : Hairline),
+            Box(HoverFill, BorderHot), Box(PressFill, BorderHot), Box(Ink, Hairline));
+        var row = new HBoxContainer
+        {
+            Alignment = BoxContainer.AlignmentMode.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        row.AddThemeConstantOverride("separation", 8);
+        Fill(row);
+        button.AddChild(row);
+        row.AddChild(Icon(icon, 22, 22, selected ? Accent : TextDim));
+        row.AddChild(Text(title.ToUpperInvariant(), 17, selected ? TextMain : TextDim, SemiBold));
+        return button;
+    }
+
     /// <summary>Outlined (not filled) secondary button, e.g. RESET COLORS or CUSTOMIZE.</summary>
     public static Button Outline(string text, Action onPressed, string icon = null, int height = 46)
     {

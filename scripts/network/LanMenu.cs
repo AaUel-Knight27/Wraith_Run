@@ -155,7 +155,7 @@ public partial class LanMenu : Control
 		BeginScreen(null);
 
 		CharacterData? op = OperatorInfo.Find(PlayerProfile.OperatorId);
-		WeaponData? weapon = OperatorInfo.FindWeapon(PlayerProfile.WeaponName);
+		WeaponData? weapon = OperatorInfo.FindWeapon(PlayerProfile.StartingWeaponName);
 
 		// The selected operator, live in 3D, in the middle of the screen: drag to spin, scroll or
 		// pinch to zoom, double-click / double-tap to reset. Added first so every button draws
@@ -191,7 +191,7 @@ public partial class LanMenu : Control
 		Button weaponTile = MenuStyle.Tile(new Vector2(300, 118), ShowWeapons, out VBoxContainer weaponBox);
 		weaponBox.AddChild(MenuStyle.Text("STARTING WEAPON", 14, MenuStyle.Accent, MenuStyle.Bold));
 		weaponBox.AddChild(MenuStyle.Text(
-			weapon == null ? PlayerProfile.WeaponName.ToUpperInvariant() : weapon.WeaponName.ToUpperInvariant(),
+			weapon == null ? PlayerProfile.StartingWeaponName.ToUpperInvariant() : weapon.WeaponName.ToUpperInvariant(),
 			32, MenuStyle.TextMain, MenuStyle.Bold));
 		weaponBox.AddChild(MenuStyle.Text(
 			weapon == null ? string.Empty
@@ -210,8 +210,7 @@ public partial class LanMenu : Control
 		var play = MenuStyle.Hero("PLAY", null, new Vector2(300, 78), ShowPlay);
 		column.AddChild(play);
 		column.AddChild(MenuStyle.Card("crosshair", "TRAIN", null, new Vector2(300, 64),
-			() => ShowSoon("TRAIN",
-				"The training range is a separate mode and isn't built yet. To fight bots in a real match, use PLAY > VS BOTS.", ShowMain),
+			LeaveForTraining,
 			titleSize: 26, iconSize: 34));
 
 		play.GrabFocus();
@@ -304,7 +303,25 @@ public partial class LanMenu : Control
 		BeginScreen(ShowMain);
 		AddHeader("CHOOSE WEAPON", ShowMain);
 		AddTopIcons(includeSettings: true, reopen: ShowWeapons);
-		new WeaponScreen().Build(_contentRoot);
+		new WeaponSetsScreen(set => ShowWeaponSet(set)).Build(_contentRoot);
+	}
+
+	private void ShowWeaponSet(int set, WeaponSlot? selected = null)
+	{
+		if (_terminalCleanupDone) return;
+		BeginScreen(ShowWeapons);
+		AddHeader($"WEAPON SET {set + 1}", ShowWeapons);
+		AddTopIcons(includeSettings: true, reopen: () => ShowWeaponSet(set, selected));
+		new WeaponSetScreen(set, selected, slot => ShowWeaponPicker(set, slot), ShowMain).Build(_contentRoot);
+	}
+
+	private void ShowWeaponPicker(int set, WeaponSlot slot)
+	{
+		if (_terminalCleanupDone) return;
+		BeginScreen(() => ShowWeaponSet(set, slot));
+		AddHeader("CHOOSE WEAPON", () => ShowWeaponSet(set, slot));
+		AddTopIcons(includeSettings: true, reopen: () => ShowWeaponPicker(set, slot));
+		new WeaponPickerScreen(set, slot, () => ShowWeaponSet(set, slot)).Build(_contentRoot);
 	}
 
 	/// <summary>Reached from the operator screen; going back returns there, on the same operator.</summary>
@@ -857,6 +874,20 @@ public partial class LanMenu : Control
 	}
 
 	private void ChangeToGameWorld() => GetTree().ChangeSceneToFile("res://scenes/GameWorld.tscn");
+
+	private void LeaveForTraining()
+	{
+		if (_sceneChangeQueued) return;
+		_sceneChangeQueued = true;
+		_leavingMenu = true;
+		RunTerminalCleanup();
+		LoadingScreen.Instance?.Show();
+		SetProcess(false);
+		CallDeferred(nameof(ChangeToTrainingCenter));
+	}
+
+	private void ChangeToTrainingCenter() =>
+		GetTree().ChangeSceneToFile("res://scenes/training/TrainingCenter.tscn");
 
 	private void RunTerminalCleanup()
 	{

@@ -10,7 +10,9 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -38,7 +40,9 @@
 }</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$USER_HOME$/.jetbrains/acp.json" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/data/WeaponData.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/debug/WeaponGripTuner.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/network/LanMenu.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/CharacterAppearance.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/PlayerMovement.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
@@ -49,23 +53,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0661430930183342" />
-      <entry key="MS500" value="1.822202620642008" />
-      <entry key="S2" value="4.13546380200825" />
-      <entry key="S5" value="6.937338593462849" />
-      <entry key="S10" value="10.79930664259589" />
-      <entry key="S30" value="24.95530136412454" />
-      <entry key="S60" value="38.89704807333204" />
-      <entry key="M2" value="52.13084069238079" />
-      <entry key="M5" value="63.86036680540978" />
-      <entry key="M10" value="68.77100446806462" />
-      <entry key="M15" value="71.0157408202022" />
-      <entry key="M30" value="75.8662765781059" />
-      <entry key="H1" value="82.83524522893028" />
-      <entry key="H2" value="93.39194912613411" />
-      <entry key="H4" value="122.94330394898287" />
-      <entry key="D1" value="306.6772304454933" />
-      <entry key="W1" value="397.35543624968193" />
+      <entry key="MS100" value="1.291208184911862" />
+      <entry key="MS500" value="2.7056894822072106" />
+      <entry key="S2" value="4.170349984360112" />
+      <entry key="S5" value="4.639555157119677" />
+      <entry key="S10" value="4.814618425768181" />
+      <entry key="S30" value="4.937021422503511" />
+      <entry key="S60" value="4.977264909578565" />
+      <entry key="M2" value="5.8599840028160175" />
+      <entry key="M5" value="19.16769541089666" />
+      <entry key="M10" value="41.10066427432855" />
+      <entry key="M15" value="54.60880694233585" />
+      <entry key="M30" value="75.07284843790171" />
+      <entry key="H1" value="92.12198278003939" />
+      <entry key="H2" value="108.5400365897279" />
+      <entry key="H4" value="140.88403762964495" />
+      <entry key="D1" value="327.70423665887205" />
+      <entry key="W1" value="419.993891877059" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -87,23 +91,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.4813969909400463" />
-      <entry key="MS500" value="1.6017982235080936" />
-      <entry key="S2" value="4.053653042723661" />
-      <entry key="S5" value="6.893711900187692" />
-      <entry key="S10" value="10.767562041559936" />
-      <entry key="S30" value="24.928259345713936" />
-      <entry key="S60" value="38.87460341313334" />
-      <entry key="M2" value="52.115316005148784" />
-      <entry key="M5" value="63.85262645007316" />
-      <entry key="M10" value="68.76681607494321" />
-      <entry key="M15" value="71.01285757072378" />
-      <entry key="M30" value="75.86474772117263" />
-      <entry key="H1" value="82.83442503372261" />
-      <entry key="H2" value="93.39150442817947" />
-      <entry key="H4" value="122.94304228034036" />
-      <entry key="D1" value="306.67714711893905" />
-      <entry key="W1" value="397.35542152059213" />
+      <entry key="MS100" value="1.0600827585438513" />
+      <entry key="MS500" value="2.59595102898633" />
+      <entry key="S2" value="4.122002011397934" />
+      <entry key="S5" value="4.617375781226154" />
+      <entry key="S10" value="4.802991660747544" />
+      <entry key="S30" value="4.933019948204961" />
+      <entry key="S60" value="4.975241047224827" />
+      <entry key="M2" value="5.858639282618797" />
+      <entry key="M5" value="19.165180646074205" />
+      <entry key="M10" value="41.097794499414974" />
+      <entry key="M15" value="54.606239389361285" />
+      <entry key="M30" value="75.07108660775248" />
+      <entry key="H1" value="92.12092035525066" />
+      <entry key="H2" value="108.53943421850117" />
+      <entry key="H4" value="140.88368764007353" />
+      <entry key="D1" value="327.70413709302716" />
+      <entry key="W1" value="419.99387475709153" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -220,7 +224,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="removeing un neccessary files form project" />
     <MESSAGE value="fix hud system, add sound system editor" />
     <MESSAGE value="added team death match game mode" />
     <MESSAGE value="sounds, camera, dev debug tools bug fix" />
@@ -245,7 +248,8 @@
     <MESSAGE value="added player status and account managment system" />
     <MESSAGE value="texture materials" />
     <MESSAGE value="fixed overlying bug on the menu" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed overlying bug on the menu" />
+    <MESSAGE value="cleaned respawn system and textures bug" />
+    <option name="LAST_COMMIT_MESSAGE" value="cleaned respawn system and textures bug" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

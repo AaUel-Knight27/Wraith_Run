@@ -39,8 +39,6 @@ UiSounds="*res://scripts/ui/UiSounds.cs"
 
 [display]
 
-window/size/viewport_width=845
-window/size/viewport_height=480
 window/size/initial_screen=2
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"

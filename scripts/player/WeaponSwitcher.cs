@@ -134,6 +134,42 @@ public partial class WeaponSwitcher : Node
 	public bool IsReloading => _reloadRemaining > 0.0f;
 	public WeaponData.FireModeType FireMode => _currentWeapon?.FireMode ?? WeaponData.FireModeType.FullAuto;
 
+	// Training Center hooks; regular matches do not subscribe to these events.
+	public WeaponData? CurrentWeaponData => _currentWeapon;
+	public event System.Action<WeaponData, int>? ShotFired;
+	public event System.Action<WeaponData>? ReloadStarted;
+	public event System.Action<WeaponData>? WeaponEquipped;
+
+	public void RefillAmmo()
+	{
+		if (_currentWeapon == null) return;
+		_currentAmmo = _currentWeapon.MagazineSize;
+		_currentReserve = _currentWeapon.MaxReserveAmmo;
+		_reloadRemaining = 0.0f;
+	}
+
+	public void TopUpReserve()
+	{
+		if (_currentWeapon != null) _currentReserve = _currentWeapon.MaxReserveAmmo;
+	}
+
+	public void DrainMagazine()
+	{
+		if (_currentWeapon != null && _currentWeapon.MagazineSize > 0) _currentAmmo = 0;
+	}
+
+	public void SetLoadedRounds(int rounds)
+	{
+		if (_currentWeapon != null && _currentWeapon.MagazineSize > 0)
+			_currentAmmo = Mathf.Clamp(rounds, 0, _currentWeapon.MagazineSize);
+	}
+
+	public bool EquipByName(string weaponName)
+	{
+		int index = System.Array.IndexOf(Loadout, weaponName);
+		return index >= 0 && TryEquip(index);
+	}
+
 	/// <summary>Slot in Loadout of the weapon that is actually equipped right now (-1 before the
 	/// first equip in _Ready has run).</summary>
 	public int EquippedIndex => _appliedWeaponIndex;
@@ -217,7 +253,7 @@ public partial class WeaponSwitcher : Node
 	private void EquipStartingWeapon()
 	{
 		if (!IsInstanceValid(this) || !PlayerIdentity.IsLocalHuman(_player)) return;
-		int chosen = System.Array.IndexOf(Loadout, PlayerProfile.WeaponName);
+		int chosen = System.Array.IndexOf(Loadout, PlayerProfile.StartingWeaponName);
 		if (chosen > 0) ReplicatedWeaponIndex = chosen;
 	}
 
@@ -295,6 +331,7 @@ public partial class WeaponSwitcher : Node
 			_attachment.Equip(weapon);
 			_viewmodelAttachment?.Equip(weapon);
 			_viewmodel?.PlayEquip();
+			WeaponEquipped?.Invoke(weapon);
 			return;
 		}
 		GD.PushError($"Test loadout weapon '{Loadout[index]}' is not registered.");
@@ -365,6 +402,7 @@ public partial class WeaponSwitcher : Node
 		_shotSerial++;
 
 		int pellets = Mathf.Max(1, _currentWeapon.PelletsPerShot);
+		ShotFired?.Invoke(_currentWeapon, pellets);
 		for (int i = 0; i < pellets; i++)
 			FireHitscan(spreadDegrees: pellets > 1 || _currentWeapon.SpreadDegrees > 0.0f
 				? _currentWeapon.SpreadDegrees
@@ -436,6 +474,11 @@ public partial class WeaponSwitcher : Node
 		var result = _player.GetWorld3D().DirectSpaceState.IntersectRay(query);
 		bool hitSomething = result.Count > 0;
 		Vector3 impactPoint = hitSomething ? (Vector3)result["position"] : to;
+		if (hitSomething && result["collider"].As<Node>() is IShootable shootable)
+		{
+			HandleShootableHit(shootable, impactPoint, from, direction, melee);
+			return;
+		}
 
 		// One message per single-projectile shot, so anyone the shot passes close to hears it go by
 		// (a bullet's whip-crack, or a rocket's doppler whoosh). Skipped for a shotgun's pellets -
@@ -499,6 +542,25 @@ public partial class WeaponSwitcher : Node
 			_fleshSoundsThisShot++;
 			Rpc(MethodName.RpcFleshImpact, impactPoint);
 		}
+		PlayHitMarker();
+	}
+
+	private void HandleShootableHit(IShootable target, Vector3 impactPoint, Vector3 from,
+		Vector3 direction, bool melee)
+	{
+		WeaponData weapon = _currentWeapon!;
+		bool headshot = target.IsHeadHit(impactPoint);
+		float damage = headshot && weapon.HeadshotDamage > 0.0f ? weapon.HeadshotDamage : weapon.BodyDamage;
+		KillStyle styles = CaptureKillStyle(headshot, melee);
+		target.ReceiveShot(new ShotInfo
+		{
+			Damage = damage, IsHeadshot = headshot, Styles = styles, HitPoint = impactPoint,
+			Direction = direction, Distance = from.DistanceTo(impactPoint),
+			AttackerPeerId = _player.GetMultiplayerAuthority(), WeaponName = weapon.WeaponName,
+			WeaponClass = weapon.WeaponClass,
+		});
+		if (target.IsFleshTarget) Rpc(MethodName.RpcFleshImpact, impactPoint);
+		else _attachment.PlayImpact(impactPoint);
 		PlayHitMarker();
 	}
 
@@ -650,6 +712,7 @@ public partial class WeaponSwitcher : Node
 		bool infiniteAmmo = _currentWeapon.MagazineSize <= 0;
 		if (infiniteAmmo || _currentAmmo >= _currentWeapon.MagazineSize || _currentReserve <= 0) return;
 		_reloadRemaining = _currentWeapon.ReloadTime > 0.0f ? _currentWeapon.ReloadTime : 0.1f;
+		ReloadStarted?.Invoke(_currentWeapon);
 		Rpc(MethodName.RpcReloadEffects);
 	}
 
