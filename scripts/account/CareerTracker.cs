@@ -206,7 +206,7 @@ public partial class CareerTracker : Node
         MatchManager? match = MatchManager.Instance;
         long me = LocalId();
 
-        if (match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch)
+        if (match != null && match.IsTeamMode)
         {
             int myTeam = match.GetTeam(me);
             if (myTeam < 0) return false; // never got a team: nothing to judge
@@ -397,7 +397,7 @@ public partial class CareerTracker : Node
     /// reached this machine yet.</summary>
     private bool IsTeamWipe(MatchManager? match, long me, long victimId)
     {
-        if (match == null || match.GameMode != MatchManager.Mode.TeamDeathmatch) return false;
+        if (match == null || !match.IsTeamMode) return false;
         int myTeam = match.GetTeam(me);
         if (myTeam < 0) return false;
 

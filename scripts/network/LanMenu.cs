@@ -394,14 +394,14 @@ public partial class LanMenu : Control
 		var mode = MenuStyle.Panel("GAME MODE", "users", out var modeBody);
 		if (_localMode == LocalMode.Host)
 		{
-			modeBody.AddChild(MenuStyle.SelectRow("crosshair", "Deathmatch",
-				match.GameMode == MatchManager.Mode.FreeForAll,
-				() => SetHostGameMode(MatchManager.Mode.FreeForAll)));
-			modeBody.AddChild(MenuStyle.SelectRow("users", "Team Deathmatch",
-				match.GameMode == MatchManager.Mode.TeamDeathmatch,
-				() => SetHostGameMode(MatchManager.Mode.TeamDeathmatch)));
+			foreach (MatchManager.Mode candidate in MatchManager.SelectableModes)
+			{
+				GameModeBase rules = GameModeBase.For(candidate);
+				modeBody.AddChild(MenuStyle.SelectRow("users", rules.DisplayName,
+					match.GameMode == candidate, () => SetHostGameMode(candidate)));
+			}
 		}
-		else modeBody.AddChild(MenuStyle.InfoRow("users", "Deathmatch"));
+		else modeBody.AddChild(MenuStyle.InfoRow("users", match.ModeRules.DisplayName));
 		left.AddChild(mode);
 
 		if (_localMode == LocalMode.Host) AddBotSettings(left, solo: false, rebuild: ShowLocal);
@@ -410,7 +410,7 @@ public partial class LanMenu : Control
 		mapBody.AddChild(MenuStyle.InfoRow("map", "Warzone"));
 		left.AddChild(map);
 
-		if (_localMode == LocalMode.Host && match.GameMode == MatchManager.Mode.TeamDeathmatch)
+		if (_localMode == LocalMode.Host && match.IsTeamMode)
 			AddMatchRules(left, ShowLocal);
 
 		// Right: what Host / Connect actually does.
@@ -549,12 +549,12 @@ public partial class LanMenu : Control
 
 		MatchManager match = MatchManager.Instance;
 		var mode = MenuStyle.Panel("GAME MODE", "users", out var modeBody);
-		modeBody.AddChild(MenuStyle.SelectRow("crosshair", "Deathmatch",
-			match.GameMode == MatchManager.Mode.FreeForAll,
-			() => SetVsBotsGameMode(MatchManager.Mode.FreeForAll)));
-		modeBody.AddChild(MenuStyle.SelectRow("users", "Team Deathmatch",
-			match.GameMode == MatchManager.Mode.TeamDeathmatch,
-			() => SetVsBotsGameMode(MatchManager.Mode.TeamDeathmatch)));
+		foreach (MatchManager.Mode candidate in MatchManager.SelectableModes)
+		{
+			GameModeBase rules = GameModeBase.For(candidate);
+			modeBody.AddChild(MenuStyle.SelectRow("users", rules.DisplayName,
+				match.GameMode == candidate, () => SetVsBotsGameMode(candidate)));
+		}
 		left.AddChild(mode);
 
 		AddBotSettings(left, solo: true, rebuild: ShowVsBots);
@@ -563,7 +563,7 @@ public partial class LanMenu : Control
 		mapBody.AddChild(MenuStyle.InfoRow("map", "Warzone"));
 		left.AddChild(map);
 
-		if (match.GameMode == MatchManager.Mode.TeamDeathmatch) AddMatchRules(left, ShowVsBots);
+		if (match.IsTeamMode) AddMatchRules(left, ShowVsBots);
 
 		var right = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
 		right.AddThemeConstantOverride("separation", 14);

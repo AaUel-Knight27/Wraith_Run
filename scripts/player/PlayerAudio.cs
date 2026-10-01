@@ -284,7 +284,7 @@ public partial class PlayerAudio : Node3D
 	}
 
 	private static bool IsTeamMatch() =>
-		MatchManager.Instance != null && MatchManager.Instance.GameMode == MatchManager.Mode.TeamDeathmatch;
+		MatchManager.Instance != null && MatchManager.Instance.IsTeamMode;
 
 	/// <summary>Is the player hearing this (this device's own player) on the same team as the one
 	/// calling for a medic? The caller always hears their own call.</summary>

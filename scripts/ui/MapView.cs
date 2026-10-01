@@ -261,7 +261,7 @@ public partial class MapView : Control
     {
         if (LocalPlayer == null || !GodotObject.IsInstanceValid(LocalPlayer)) return;
         MatchManager? match = MatchManager.Instance;
-        bool teamMode = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch;
+        bool teamMode = match != null && match.IsTeamMode;
         int myPeer = LocalPlayer.GetMultiplayerAuthority();
         int myTeam = teamMode ? match!.GetTeam(myPeer) : -1;
 

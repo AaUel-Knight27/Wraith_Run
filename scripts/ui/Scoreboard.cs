@@ -98,7 +98,7 @@ public partial class Scoreboard : CanvasLayer
         }
 
         MatchManager match = MatchManager.Instance;
-        bool teamMode = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch;
+        bool teamMode = match != null && match.IsTeamMode;
         long me = PlayerIdentity.IdOf(Player);
         List<Row> rows = ScoreboardData.Collect(GetTree());
         MatchStats.Stats mine = MatchStats.Instance?.Get(me) ?? new MatchStats.Stats();

@@ -128,7 +128,7 @@ public partial class Health : Node
         // medics (nobody is coming to help), and an instant death has nothing to call out, so both
         // go straight to the normal respawn delay.
         bool bleedsOut = struggles && MatchManager.Instance != null &&
-            MatchManager.Instance.GameMode == MatchManager.Mode.TeamDeathmatch;
+            MatchManager.Instance.IsTeamMode;
         _respawnTimer = bleedsOut ? TeamBleedOutSeconds + RespawnDelaySeconds : RespawnDelaySeconds;
         AnnounceDeath(attackerId, styleFlags, basePoints, struggles);
     }
@@ -236,7 +236,7 @@ public partial class Health : Node
     private Vector3 SelectHumanRespawnPoint()
     {
         MatchManager? match = MatchManager.Instance;
-        if (match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch)
+        if (match != null && match.IsTeamMode)
         {
             int team = match.GetTeam(PlayerIdentity.IdOf(_player));
             if (team >= 0 && TeamSpawnArea.TryGet(_player, team, out Vector3 center, out Vector2 halfExtent))

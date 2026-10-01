@@ -190,7 +190,7 @@ public partial class GameWorld : Node3D
     private (Vector3 Position, float Yaw) ComputeHumanSpawnTransform(int peerId)
     {
         MatchManager? match = MatchManager.Instance;
-        if (match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch)
+        if (match != null && match.IsTeamMode)
         {
             int team = match.GetTeam(peerId);
             if (team >= 0 && TeamSpawnArea.TryGet(this, team, out Vector3 center, out Vector2 halfExtent))

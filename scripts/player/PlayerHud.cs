@@ -253,7 +253,7 @@ public partial class PlayerHud : CanvasLayer
         }
 
         MatchManager? match = MatchManager.Instance;
-        bool teamDeathmatch = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch;
+        bool teamDeathmatch = match != null && match.IsTeamMode;
 
         if (_score != null)
         {

@@ -48,7 +48,7 @@ public partial class TeamIndicator : Label3D
         }
 
         MatchManager? match = MatchManager.Instance;
-        bool relevant = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch
+        bool relevant = match != null && match.IsTeamMode
             && match.TeamIndicators && _ownerPeerId != Multiplayer.GetUniqueId();
 
         int myTeam = relevant ? match!.GetTeam(Multiplayer.GetUniqueId()) : -1;

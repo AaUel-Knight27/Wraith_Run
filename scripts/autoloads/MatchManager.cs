@@ -23,7 +23,34 @@ using System.Collections.Generic;
 /// </summary>
 public partial class MatchManager : Node
 {
-    public enum Mode { FreeForAll, TeamDeathmatch }
+    public enum Mode
+    {
+        FreeForAll = 0, Default = FreeForAll, TeamDeathmatch = 1,
+        PureChase = 2, StormRespawn = 3, ClanChase = 4, CursedDeathmatch = 5,
+        ConvoyAssault = 6, DuoBuggy = 7
+    }
+
+    public static readonly Mode[] SelectableModes =
+    {
+        Mode.Default, Mode.PureChase, Mode.StormRespawn, Mode.ClanChase,
+        Mode.CursedDeathmatch, Mode.ConvoyAssault, Mode.DuoBuggy
+    };
+
+    private Mode _cachedRulesMode = (Mode)(-1);
+    private GameModeBase? _cachedRules;
+    public GameModeBase ModeRules
+    {
+        get
+        {
+            if (_cachedRules == null || _cachedRulesMode != GameMode)
+            {
+                _cachedRules = GameModeBase.For(GameMode);
+                _cachedRulesMode = GameMode;
+            }
+            return _cachedRules;
+        }
+    }
+    public bool IsTeamMode => GameMode != Mode.CursedDeathmatch && GameMode != Mode.StormRespawn;
 
     private const int TeamCount = 2;
     public static readonly string[] TeamNames = { "ALPHA", "BRAVO" };
@@ -71,8 +98,9 @@ public partial class MatchManager : Node
     /// sides show roughly the same time. Read by the Tab scoreboard and the objectives screen.</summary>
     public float ElapsedSeconds => _elapsedSeconds;
 
-    /// <summary>Only Team Deathmatch has a time limit today; Free-For-All runs until someone leaves.</summary>
-    public bool HasTimeLimit => GameMode == Mode.TeamDeathmatch && TimeLimitMinutes > 0;
+    /// <summary>Mode-specific timed resolution; open-ended modes run until the host ends them.</summary>
+    public bool HasTimeLimit => (GameMode == Mode.TeamDeathmatch || ModeRules.HasTimedResolution) &&
+        TimeLimitMinutes > 0;
 
     /// <summary>Seconds left on the clock, or -1 when this mode has no time limit.</summary>
     public float TimeRemainingSeconds =>
@@ -164,7 +192,7 @@ public partial class MatchManager : Node
     /// here.</summary>
     public void AssignTeamAndBroadcast(long peerId)
     {
-        if (GameMode != Mode.TeamDeathmatch) return;
+        if (!IsTeamMode) return;
 
         int countAlpha = 0, countBravo = 0;
         foreach (int assignedTeam in _peerTeams.Values)
@@ -181,6 +209,12 @@ public partial class MatchManager : Node
     private void OnPeerConnected(long peerId)
     {
         if (!Multiplayer.IsServer()) return;
+        if (Multiplayer.GetPeers().Length + 1 > ModeRules.MaximumPlayers)
+        {
+            GD.PushWarning($"Rejected peer {peerId}: {ModeRules.DisplayName} supports at most {ModeRules.MaximumPlayers} players.");
+            Multiplayer.MultiplayerPeer?.DisconnectPeer((int)peerId);
+            return;
+        }
         // Reliable + targeted at exactly the peer that just connected: every other peer already
         // has the right values, this one has whatever GameMode/FriendlyFire/etc. defaulted to
         // when its own copy of this autoload was created (see PrepareClientMatch).
@@ -205,7 +239,7 @@ public partial class MatchManager : Node
     public void ReceiveHostConfig(int gameMode, bool friendlyFire, bool teamIndicators, int scoreLimit,
         int timeLimitMinutes, float hostElapsedSeconds)
     {
-        GameMode = (Mode)gameMode;
+        GameMode = System.Enum.IsDefined(typeof(Mode), gameMode) ? (Mode)gameMode : Mode.Default;
         FriendlyFire = friendlyFire;
         TeamIndicators = teamIndicators;
         ScoreLimit = scoreLimit;
@@ -224,7 +258,7 @@ public partial class MatchManager : Node
     /// victim-authoritative check so the two can never disagree about who is friendly.</summary>
     public bool AreTeammates(long peerA, long peerB)
     {
-        if (GameMode != Mode.TeamDeathmatch) return false;
+        if (!IsTeamMode) return false;
         int teamA = GetTeam(peerA);
         return teamA >= 0 && teamA == GetTeam(peerB);
     }
@@ -245,7 +279,7 @@ public partial class MatchManager : Node
     private void OnKillAnnounced(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
         int totalPoints, long assistPeerId, int assistPoints, bool struggles)
     {
-        if (GameMode != Mode.TeamDeathmatch || _matchEnded) return;
+        if (!IsTeamMode || _matchEnded) return;
 
         int killerTeam = GetTeam(killerPeerId);
         // An unassigned killer shouldn't happen once a match is running; a team-kill only reaches

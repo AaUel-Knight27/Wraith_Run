@@ -164,7 +164,7 @@ public partial class BotBrain : Node
 	private static bool IsTeamMode()
 	{
 		MatchManager? m = MatchManager.Instance;
-		return m != null && m.GameMode == MatchManager.Mode.TeamDeathmatch;
+		return m != null && m.IsTeamMode;
 	}
 
 	private Node3D? FindPlayer(long id)

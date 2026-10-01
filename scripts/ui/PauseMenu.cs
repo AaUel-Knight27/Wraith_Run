@@ -146,7 +146,7 @@ public partial class PauseMenu : CanvasLayer
     {
         MatchManager? match = MatchManager.Instance;
         if (match == null) { _subtitle.Text = ""; return; }
-        string mode = match.GameMode == MatchManager.Mode.TeamDeathmatch ? "TEAM DEATHMATCH" : "DEATHMATCH";
+        string mode = match.ModeRules.DisplayName.ToUpperInvariant();
         float seconds = match.HasTimeLimit ? match.TimeRemainingSeconds : match.ElapsedSeconds;
         _subtitle.Text = $"{mode}  -  {GameUiState.FormatClock(seconds)}{(match.HasTimeLimit ? " left" : "")}";
     }
@@ -417,7 +417,7 @@ public partial class PauseMenu : CanvasLayer
     private void BuildObjectives(VBoxContainer column)
     {
         MatchManager match = MatchManager.Instance;
-        bool teamMode = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch;
+        bool teamMode = match != null && match.IsTeamMode;
 
         var panel = MenuStyle.Panel("OBJECTIVES", "check", out var body);
         body.AddChild(MenuStyle.Text(teamMode ? "TEAM DEATHMATCH" : "DEATHMATCH", 30, MenuStyle.TextMain, MenuStyle.Bold));
@@ -622,7 +622,7 @@ public partial class PauseMenu : CanvasLayer
         body.AddChild(view);
 
         MatchManager match = MatchManager.Instance;
-        bool teamMode = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch;
+        bool teamMode = match != null && match.IsTeamMode;
         var legend = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         legend.AddThemeConstantOverride("separation", 24);
         legend.AddChild(LegendChip(Colors.White, "YOU"));

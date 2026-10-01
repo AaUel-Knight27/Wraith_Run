@@ -29,7 +29,7 @@ public static class ScoreboardData
         var rows = new List<Row>();
         var seen = new HashSet<long>();
         MatchManager match = MatchManager.Instance;
-        bool teamMode = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch;
+        bool teamMode = match != null && match.IsTeamMode;
 
         foreach (Node node in tree.GetNodesInGroup("players"))
         {

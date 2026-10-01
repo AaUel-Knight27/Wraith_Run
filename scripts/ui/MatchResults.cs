@@ -66,7 +66,7 @@ public partial class MatchResults : CanvasLayer
     private void Build()
     {
         MatchManager match = MatchManager.Instance;
-        bool teamMode = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch;
+        bool teamMode = match != null && match.IsTeamMode;
         long me = PlayerIdentity.IdOf(Player);
         var rows = ScoreboardData.Collect(GetTree());
         int myTeam = teamMode ? match!.GetTeam(me) : -1;
