@@ -50,7 +50,8 @@ public partial class SettingsManager : Node
     {
         "move_forward", "move_back", "move_left", "move_right",
         "jump", "crouch", "sprint", "reload",
-        "weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5",
+        "weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6",
+        "weapon_7", "weapon_8", "weapon_9",
     };
 
     public static readonly Vector2I[] ResolutionPresets =

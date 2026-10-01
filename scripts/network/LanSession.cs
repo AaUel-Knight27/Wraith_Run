@@ -7,7 +7,7 @@ public partial class LanSession : Node
 {
 	public const int GamePort = 7777;
 	public const int DiscoveryPort = 7778;
-	private const int MaxPlayers = 8;
+	private const int MaxPlayers = 15;
 
 	public bool IsHosting { get; private set; }
 	public string GameName { get; private set; } = string.Empty;
@@ -85,6 +85,8 @@ public partial class LanSession : Node
             ["name"] = GameName,
             ["host"] = ip,
             ["players"] = Multiplayer.GetPeers().Length + 1,
+            ["map"] = MatchManager.Instance.MapDisplayName,
+            ["mode"] = MatchManager.Instance.ModeRules.DisplayName,
         });
         _broadcastPeer.PutPacket(Encoding.UTF8.GetBytes(json));
         // Loopback makes Debug > Run Multiple Instances discover a local host too.

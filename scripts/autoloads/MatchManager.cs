@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 /// <summary>
@@ -30,6 +31,36 @@ public partial class MatchManager : Node
         ConvoyAssault = 6, DuoBuggy = 7
     }
 
+    public enum ArenaMap { Warzone = 0, Ashfields = 1, Depot = 2, Lab = 3 }
+
+    public static readonly ArenaMap[] SelectableMaps =
+    {
+        ArenaMap.Warzone, ArenaMap.Ashfields, ArenaMap.Depot, ArenaMap.Lab
+    };
+
+    public ArenaMap SelectedMap = ArenaMap.Warzone;
+    public string MapScenePath => SelectedMap switch
+    {
+        ArenaMap.Ashfields => "res://scenes/maps/Ashfields.tscn",
+        ArenaMap.Depot => "res://scenes/maps/Depot.tscn",
+        ArenaMap.Lab => "res://scenes/maps/Lab.tscn",
+        _ => "res://scenes/maps/Warzone.tscn",
+    };
+    public string MapDisplayName => SelectedMap switch
+    {
+        ArenaMap.Ashfields => "Ashfields",
+        ArenaMap.Depot => "Depot",
+        ArenaMap.Lab => "Lab",
+        _ => "Warzone",
+    };
+    public static string MapName(ArenaMap map) => map switch
+    {
+        ArenaMap.Ashfields => "Ashfields",
+        ArenaMap.Depot => "Depot",
+        ArenaMap.Lab => "Lab",
+        _ => "Warzone",
+    };
+
     public static readonly Mode[] SelectableModes =
     {
         Mode.Default, Mode.PureChase, Mode.StormRespawn, Mode.ClanChase,
@@ -50,7 +81,7 @@ public partial class MatchManager : Node
             return _cachedRules;
         }
     }
-    public bool IsTeamMode => GameMode != Mode.CursedDeathmatch && GameMode != Mode.StormRespawn;
+    public bool IsTeamMode => GameMode == Mode.TeamDeathmatch || ModeRules.UsesTeams;
 
     private const int TeamCount = 2;
     public static readonly string[] TeamNames = { "ALPHA", "BRAVO" };
@@ -61,6 +92,8 @@ public partial class MatchManager : Node
     };
 
     [Signal] public delegate void MatchEndedEventHandler(int winningTeam, string reason);
+    [Signal] public delegate void LobbyChangedEventHandler();
+    [Signal] public delegate void MatchStartingEventHandler();
 
     public static MatchManager Instance { get; private set; } = null!;
 
@@ -77,14 +110,18 @@ public partial class MatchManager : Node
     // ---- Bots (host-only: bots are simulated by the host and reach everyone else as ordinary players) ----
     /// <summary>How many bots GameWorld spawns when the match starts. 0 = none. Set by LanMenu.</summary>
     public int BotCount;
+    /// <summary>Selected total match roster, including the local host/player.</summary>
+    public int LobbyPlayerCount = 6;
     public BotDifficulty BotLevel = BotDifficulty.Normal;
     /// <summary>Lets bots ease off a little if a person is being crushed (see BotDirector).</summary>
     public bool AdaptiveBots = true;
 
     private readonly Dictionary<long, int> _peerTeams = new();
+    private readonly Dictionary<long, bool> _lobbyReady = new();
     private readonly int[] _teamScores = new int[TeamCount];
     private float _elapsedSeconds;
     private bool _matchEnded;
+    public bool HostConfigReceived { get; private set; }
     // True from PrepareHostMatch/PrepareClientMatch (the lobby -> match handoff) until EndSession
     // (leaving to the main menu). The clock only runs while this is true, so it never counts up
     // while the player is sitting in a menu.
@@ -92,6 +129,39 @@ public partial class MatchManager : Node
 
     public bool IsMatchEnded => _matchEnded;
     public int WinningTeam { get; private set; } = -1;
+
+    public bool LocalPlayerReady => _lobbyReady.TryGetValue(Multiplayer.GetUniqueId(), out bool ready) && ready;
+    public bool CanHostStartMatch
+    {
+        get
+        {
+            if (!Multiplayer.IsServer()) return false;
+            int humans = Multiplayer.GetPeers().Length + 1;
+            if (humans + BotCount < ModeRules.MinimumPlayers) return false;
+            if (GameMode == Mode.DuoBuggy && humans + BotCount != ModeRules.MaximumPlayers) return false;
+            foreach (int peerId in Multiplayer.GetPeers())
+                if (!_lobbyReady.TryGetValue(peerId, out bool ready) || !ready) return false;
+            return true;
+        }
+    }
+
+    public string LobbyReadySummary
+    {
+        get
+        {
+            if (_lobbyReady.Count == 0) return "Waiting for lobby connection…";
+            var peerIds = new List<long>(_lobbyReady.Keys);
+            peerIds.Sort();
+            var lines = new List<string>(peerIds.Count);
+            foreach (long peerId in peerIds)
+            {
+                string who = peerId == 1 ? "HOST" : $"PLAYER {peerId}";
+                bool ready = _lobbyReady[peerId];
+                lines.Add($"{who}   {(ready ? "READY" : "NOT READY")}");
+            }
+            return string.Join("\n", lines);
+        }
+    }
 
     /// <summary>Seconds since this match began, in every game mode (Free-For-All used to have no clock
     /// at all). On a joining client it starts from the host's clock (see ReceiveHostConfig), so both
@@ -111,6 +181,7 @@ public partial class MatchManager : Node
         Instance = this;
         Multiplayer.PeerConnected += OnPeerConnected;
         Multiplayer.PeerDisconnected += OnPeerDisconnected;
+        Multiplayer.ConnectedToServer += OnConnectedToServer;
         KillFeed? killFeed = GetNodeOrNull<KillFeed>("/root/KillFeed");
         if (killFeed != null) killFeed.KillAnnounced += OnKillAnnounced;
     }
@@ -119,6 +190,7 @@ public partial class MatchManager : Node
     {
         Multiplayer.PeerConnected -= OnPeerConnected;
         Multiplayer.PeerDisconnected -= OnPeerDisconnected;
+        Multiplayer.ConnectedToServer -= OnConnectedToServer;
     }
 
     public override void _Process(double delta)
@@ -146,12 +218,14 @@ public partial class MatchManager : Node
     public void PrepareHostMatch()
     {
         _peerTeams.Clear();
+        _lobbyReady.Clear();
         _teamScores[0] = 0;
         _teamScores[1] = 0;
         _elapsedSeconds = 0.0f;
         _matchEnded = false;
         WinningTeam = -1;
         _sessionActive = true;
+        HostConfigReceived = true;
         MatchStats.Instance?.Reset();
     }
 
@@ -166,7 +240,9 @@ public partial class MatchManager : Node
     public void EndSession()
     {
         _sessionActive = false;
+        HostConfigReceived = false;
         _peerTeams.Clear();
+        _lobbyReady.Clear();
     }
 
     /// <summary>Called by LanMenu right before LanSession.Join. The real rules arrive moments later
@@ -179,7 +255,101 @@ public partial class MatchManager : Node
         TeamIndicators = true;
         BotCount = 0; // only the host ever spawns bots
         PrepareHostMatch();
+        HostConfigReceived = false;
+        _sessionActive = false;
     }
+
+    public void BeginHostLobby()
+    {
+        _sessionActive = false;
+        _elapsedSeconds = 0.0f;
+        _lobbyReady.Clear();
+        _lobbyReady[1] = true;
+        foreach (int peerId in Multiplayer.GetPeers()) _lobbyReady[peerId] = false;
+        BroadcastLobbyState();
+    }
+
+    public void SetLocalReady(bool ready)
+    {
+        if (!Multiplayer.HasMultiplayerPeer()) return;
+        if (Multiplayer.IsServer())
+        {
+            _lobbyReady[Multiplayer.GetUniqueId()] = true;
+            BroadcastLobbyState();
+        }
+        else RpcId(1, MethodName.SubmitReadyState, ready);
+    }
+
+    public void StartMatchWhenReady()
+    {
+        if (!CanHostStartMatch || IsMatchEnded) return;
+        Rpc(MethodName.ReceiveMatchStart);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    public void SubmitReadyState(bool ready)
+    {
+        if (!Multiplayer.IsServer()) return;
+        long sender = Multiplayer.GetRemoteSenderId();
+        if (sender <= 1 || !_lobbyReady.ContainsKey(sender)) return;
+        _lobbyReady[sender] = ready;
+        BroadcastLobbyState();
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    public void RequestLobbySnapshot()
+    {
+        if (!Multiplayer.IsServer()) return;
+        long sender = Multiplayer.GetRemoteSenderId();
+        SendLobbyStateTo((int)sender);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    public void ReceiveLobbySnapshot(long[] peerIds, int[] readyStates)
+    {
+        _lobbyReady.Clear();
+        int count = Math.Min(peerIds.Length, readyStates.Length);
+        for (int i = 0; i < count; i++) _lobbyReady[peerIds[i]] = readyStates[i] != 0;
+        EmitSignal(SignalName.LobbyChanged);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    public void ReceiveMatchStart()
+    {
+        if (!Multiplayer.IsServer() && !HostConfigReceived) return;
+        PrepareHostMatch();
+        EmitSignal(SignalName.MatchStarting);
+    }
+
+    private void BroadcastLobbyState()
+    {
+        var peerIds = new long[_lobbyReady.Count];
+        var readyStates = new int[_lobbyReady.Count];
+        int index = 0;
+        foreach (KeyValuePair<long, bool> entry in _lobbyReady)
+        {
+            peerIds[index] = entry.Key;
+            readyStates[index] = entry.Value ? 1 : 0;
+            index++;
+        }
+        Rpc(new StringName(nameof(ReceiveLobbySnapshot)), peerIds, readyStates);
+    }
+
+    private void SendLobbyStateTo(int peerId)
+    {
+        var peerIds = new long[_lobbyReady.Count];
+        var readyStates = new int[_lobbyReady.Count];
+        int index = 0;
+        foreach (KeyValuePair<long, bool> entry in _lobbyReady)
+        {
+            peerIds[index] = entry.Key;
+            readyStates[index] = entry.Value ? 1 : 0;
+            index++;
+        }
+        RpcId(peerId, new StringName(nameof(ReceiveLobbySnapshot)), peerIds, readyStates);
+    }
+
+    private void OnConnectedToServer() => RpcId(1, MethodName.RequestLobbySnapshot);
 
     // -------------------------------------------------------------------------------------------
     // Team assignment - the server decides, everyone receives the same broadcast
@@ -215,20 +385,26 @@ public partial class MatchManager : Node
             Multiplayer.MultiplayerPeer?.DisconnectPeer((int)peerId);
             return;
         }
+        _lobbyReady[peerId] = false;
         // Reliable + targeted at exactly the peer that just connected: every other peer already
         // has the right values, this one has whatever GameMode/FriendlyFire/etc. defaulted to
         // when its own copy of this autoload was created (see PrepareClientMatch).
         RpcId(peerId, MethodName.ReceiveHostConfig, (int)GameMode, FriendlyFire, TeamIndicators,
-            ScoreLimit, TimeLimitMinutes, _elapsedSeconds);
+            ScoreLimit, TimeLimitMinutes, (int)SelectedMap, LobbyPlayerCount, _elapsedSeconds);
         // Teach the newcomer everyone who is already here (the host, other people, bots). The broadcast
         // below only carries the newcomer's own team, so without this a late joiner would not know who
         // is on which side.
         foreach (KeyValuePair<long, int> entry in _peerTeams)
             if (entry.Key != peerId) RpcId(peerId, MethodName.ReceiveTeamAssignment, entry.Key, entry.Value);
         AssignTeamAndBroadcast(peerId);
+        BroadcastLobbyState();
     }
 
-    private void OnPeerDisconnected(long peerId) => _peerTeams.Remove(peerId);
+    private void OnPeerDisconnected(long peerId)
+    {
+        _peerTeams.Remove(peerId);
+        if (Multiplayer.IsServer() && _lobbyReady.Remove(peerId)) BroadcastLobbyState();
+    }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     public void ReceiveTeamAssignment(long peerId, int team) => ApplyTeamAssignment(peerId, team);
@@ -237,14 +413,17 @@ public partial class MatchManager : Node
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     public void ReceiveHostConfig(int gameMode, bool friendlyFire, bool teamIndicators, int scoreLimit,
-        int timeLimitMinutes, float hostElapsedSeconds)
+        int timeLimitMinutes, int arenaMap, int lobbyPlayerCount, float hostElapsedSeconds)
     {
         GameMode = System.Enum.IsDefined(typeof(Mode), gameMode) ? (Mode)gameMode : Mode.Default;
         FriendlyFire = friendlyFire;
         TeamIndicators = teamIndicators;
         ScoreLimit = scoreLimit;
         TimeLimitMinutes = timeLimitMinutes;
+        SelectedMap = System.Enum.IsDefined(typeof(ArenaMap), arenaMap) ? (ArenaMap)arenaMap : ArenaMap.Warzone;
+        LobbyPlayerCount = Math.Clamp(lobbyPlayerCount, ModeRules.MinimumPlayers, ModeRules.MaximumPlayers);
         _elapsedSeconds = hostElapsedSeconds;
+        HostConfigReceived = true;
         _matchEnded = false;
         WinningTeam = -1;
     }

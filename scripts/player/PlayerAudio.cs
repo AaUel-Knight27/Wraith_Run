@@ -2,7 +2,7 @@ using Godot;
 
 /// <summary>
 /// Everything the player's body makes noise about: walking, running, jumping, crouching, taking a
-/// hit, dying (or not making a sound about it), calling for a medic, respawning and - for the local
+/// hit, dying (or not making a sound about it), respawning and - for the local
 /// player only - breathing hard at low health. All of it 3D and positional except the low-health
 /// breathing, and all of it running on EVERY peer rather than just the owner - hearing someone
 /// sprint up behind you is the whole point.
@@ -15,9 +15,9 @@ using Godot;
 ///  - Instant death (headshot, Bazooka hit): NO sound, for anyone.
 ///  - Every other death (a body shot, any melee kill): the victim makes a struggling sound that
 ///    whoever is close enough hears - it is a positional sound, so "close enough" is just distance.
-///  - Team Deathmatch only: a non-instant death is a bleed-out. For Health.TeamBleedOutSeconds the
-///    victim calls "I need a medic" (teammates hear it), then they are eliminated and the struggle
-///    plays. Deathmatch (free-for-all) never plays the medic call - nobody is coming to help.
+///  - Team Deathmatch only: a non-instant death has a silent bleed-out for
+///    Health.TeamBleedOutSeconds, then the struggle plays. The medic voice recording is reserved
+///    for future use and is not loaded or played by this script.
 /// </summary>
 public partial class PlayerAudio : Node3D
 {
@@ -25,11 +25,11 @@ public partial class PlayerAudio : Node3D
 	private const string HitDeadRespawnDirectory = "res://audio/Clips/Player/Hit Dead And Respawn";
 	private const string HitSound = HitDeadRespawnDirectory + "/PlayerHit.wav";
 	private const string StruggleSound = HitDeadRespawnDirectory + "/PlayerDeathFinisher.wav";
-	private const string MedicSound = HitDeadRespawnDirectory + "/PlayerMedicNeeded.wav";
 	private const string RespawnSound = HitDeadRespawnDirectory + "/PlayerRespawn.wav";
 
 	private const string MovementDirectory = "res://audio/Clips/Player/Movement";
 	private const string JumpSound = MovementDirectory + "/PlayerJump.wav";
+	private const string LandingSound = MovementDirectory + "/jump_landing.mp3";
 	private const string CrouchSound = MovementDirectory + "/PlayerCrouch.wav";
 	private const string WalkSound = MovementDirectory + "/PlayerWalkLoop.wav";
 	private const string SprintSound = MovementDirectory + "/PlayerSprintLoop.wav";
@@ -49,10 +49,10 @@ public partial class PlayerAudio : Node3D
 	private const float CrouchWalkVolumeDb = -16.0f;
 	private const float CrouchWalkPitch = 0.85f;
 	private const float JumpVolumeDb = -3.0f;
+	private const float LandingVolumeDb = -4.0f;
 	private const float CrouchVolumeDb = 14.0f;
 	private const float HitVolumeDb = -2.0f;
 	private const float StruggleVolumeDb = 0.0f;
-	private const float MedicVolumeDb = -3.0f;
 	private const float LowHealthVolumeDb = 0.0f;
 
 	// --- locomotion loops ---------------------------------------------------------------------
@@ -69,22 +69,12 @@ public partial class PlayerAudio : Node3D
 	private const float SprintStepSeconds = 0.34f;
 	private const float CrouchStepSeconds = 0.72f;
 
-	// --- team-match bleed-out -----------------------------------------------------------------
-	/// <summary>Seconds between "I need a medic" calls: the 1.1 s clip plus a pause.</summary>
-	private const float MedicRepeatSeconds = 2.6f;
-
-	/// <summary>Where the struggle falls in a Team Deathmatch bleed-out. True: when the medic window
-	/// runs out and the player is eliminated (the medic calls come first). False: the moment they go
-	/// down, with the medic calls following it.</summary>
-	private static readonly bool StruggleWhenBleedOutEnds = true;
-
 	private PlayerMovement _movement = null!;
 	private Health? _health;
 	private KillFeed? _killFeed;
 	private AudioStreamPlayer3D _footstepPlayer = null!;
 	private AudioStreamPlayer3D? _voicePlayer;
 	private AudioStreamPlayer3D? _deathPlayer;
-	private AudioStreamPlayer3D? _medicPlayer;
 	private AudioStreamPlayer3D? _actionPlayer;
 	private AudioStreamPlayer3D? _locomotionLoopPlayer;
 	// Local-only (non-positional, no AudioStreamPlayer3D): this represents the player's own
@@ -96,9 +86,9 @@ public partial class PlayerAudio : Node3D
 	private AudioStream[] _footsteps = System.Array.Empty<AudioStream>();
 	private AudioStream[] _hits = System.Array.Empty<AudioStream>();
 	private AudioStream? _struggle;
-	private AudioStream? _medic;
 	private AudioStream? _respawn;
 	private AudioStream? _jump;
+	private AudioStream? _landing;
 	private AudioStream? _crouch;
 	private AudioStream? _walkLoop;
 	private AudioStream? _sprintLoop;
@@ -117,7 +107,6 @@ public partial class PlayerAudio : Node3D
 	private float _bleedOutRemaining;
 	private float _bleedOutElapsed;
 	private bool _bleedOutSawDead;
-	private float _medicTimer;
 
 	public override void _Ready()
 	{
@@ -130,9 +119,9 @@ public partial class PlayerAudio : Node3D
 		_footsteps = LoadFootsteps();
 		_hits = LoadExisting(HitSound);
 		_struggle = Load(StruggleSound);
-		_medic = Load(MedicSound);
 		_respawn = Load(RespawnSound);
 		_jump = Load(JumpSound);
+		_landing = Load(LandingSound);
 		_crouch = Load(CrouchSound);
 		_walkLoop = Load(WalkSound);
 		_sprintLoop = Load(SprintSound);
@@ -150,10 +139,6 @@ public partial class PlayerAudio : Node3D
 		// shared Voice player can never cut it off partway through.
 		_deathPlayer = new AudioStreamPlayer3D { Name = "DeathStruggle", UnitSize = 6.0f, VolumeDb = StruggleVolumeDb, MaxDistance = 25.0f, Bus = "Voice" };
 		AddChild(_deathPlayer);
-
-		// A shout for help carries further than a struggle - but it is still a positional sound.
-		_medicPlayer = new AudioStreamPlayer3D { Name = "MedicCall", UnitSize = 10.0f, VolumeDb = MedicVolumeDb, MaxDistance = 50.0f, Bus = "Voice" };
-		AddChild(_medicPlayer);
 
 		// Jump/crouch get their own player rather than sharing Footsteps or Voice: both of those
 		// already restart on a schedule this script doesn't control, and stealing either one's
@@ -231,14 +216,12 @@ public partial class PlayerAudio : Node3D
 			return;
 		}
 
-		// Team Deathmatch: medic calls for Health.TeamBleedOutSeconds (UpdateBleedOut), with the
-		// struggle either at the start or at the end of that window.
+		// Team Deathmatch: keep the bleed-out delay, but play no medic call. The struggle starts
+		// when the bleed-out expires.
 		_bleedingOut = true;
 		_bleedOutRemaining = Health.TeamBleedOutSeconds;
 		_bleedOutElapsed = 0.0f;
 		_bleedOutSawDead = false;
-		_medicTimer = 0.0f;
-		if (!StruggleWhenBleedOutEnds) PlayDeathStruggle();
 	}
 
 	private void UpdateBleedOut(float delta)
@@ -262,39 +245,20 @@ public partial class PlayerAudio : Node3D
 		_bleedOutRemaining -= delta;
 		if (_bleedOutRemaining <= 0.0f)
 		{
-			// Out of time: eliminated.
+			// Out of time: the silent bleed-out ends and the struggle begins.
 			_bleedingOut = false;
-			if (_medicPlayer != null) _medicPlayer.Stop();
-			if (StruggleWhenBleedOutEnds) PlayDeathStruggle();
-			return;
+			PlayDeathStruggle();
 		}
-
-		_medicTimer -= delta;
-		if (_medicTimer > 0.0f) return;
-		_medicTimer = MedicRepeatSeconds;
-		// A medic call is for the dying player's own team.
-		if (ListenerIsOnMyTeam()) PlayMedicCall();
 	}
 
 	private void CancelDeathAudio()
 	{
 		_bleedingOut = false;
-		if (_medicPlayer != null && _medicPlayer.Playing) _medicPlayer.Stop();
 		if (_deathPlayer != null && _deathPlayer.Playing) _deathPlayer.Stop();
 	}
 
 	private static bool IsTeamMatch() =>
 		MatchManager.Instance != null && MatchManager.Instance.IsTeamMode;
-
-	/// <summary>Is the player hearing this (this device's own player) on the same team as the one
-	/// calling for a medic? The caller always hears their own call.</summary>
-	private bool ListenerIsOnMyTeam()
-	{
-		if (PlayerIdentity.IsLocalHuman(_movement)) return true;
-		MatchManager? match = MatchManager.Instance;
-		if (match == null) return false;
-		return match.AreTeammates(Multiplayer.GetUniqueId(), PlayerIdentity.IdOf(_movement));
-	}
 
 	private void PlayDeathStruggle()
 	{
@@ -302,14 +266,6 @@ public partial class PlayerAudio : Node3D
 		_deathPlayer.Stream = _struggle;
 		_deathPlayer.PitchScale = _rng.RandfRange(0.96f, 1.04f);
 		_deathPlayer.Play();
-	}
-
-	private void PlayMedicCall()
-	{
-		if (_medic == null || _medicPlayer == null) return;
-		_medicPlayer.Stream = _medic;
-		_medicPlayer.PitchScale = _rng.RandfRange(0.97f, 1.03f);
-		_medicPlayer.Play();
 	}
 
 	// -------------------------------------------------------------------------------------------
@@ -365,6 +321,8 @@ public partial class PlayerAudio : Node3D
 		{
 			if (state == PlayerMovement.MovementState.Jump && _previousState != PlayerMovement.MovementState.Jump)
 				PlayAction(_jump, JumpVolumeDb);
+			else if (IsAirborne(_previousState) && !IsAirborne(state))
+				PlayAction(_landing, LandingVolumeDb);
 
 			bool enteringCrouch = state is PlayerMovement.MovementState.Crouch or PlayerMovement.MovementState.CrouchWalk;
 			bool wasCrouching = _previousState is PlayerMovement.MovementState.Crouch or PlayerMovement.MovementState.CrouchWalk;
@@ -384,6 +342,9 @@ public partial class PlayerAudio : Node3D
 		_actionPlayer.PitchScale = _rng.RandfRange(0.95f, 1.05f);
 		_actionPlayer.Play();
 	}
+
+	private static bool IsAirborne(PlayerMovement.MovementState state) =>
+		state is PlayerMovement.MovementState.Jump or PlayerMovement.MovementState.Fall;
 
 	/// <summary>Walk / crouch-walk / sprint steps. Walk and crouch-walk share the walk clip
 	/// (crouch-walk is quieter and slower); sprint has its own. Any other state stops the sound.</summary>

@@ -3,3 +3,5 @@
 /android/
 *.zip
 *.gen
+!scenes/maps/*.gen/
+!scenes/maps/*.gen/*.res

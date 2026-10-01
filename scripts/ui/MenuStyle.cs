@@ -421,6 +421,48 @@ public static class MenuStyle
         return box;
     }
 
+    /// <summary>Mode-specific choice row for discrete lobby settings.</summary>
+    public static Control DropdownRow(string label, int[] values, int selectedValue, Action<int> onSelected)
+    {
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 10);
+        var title = Text(label, 18, TextDim, Medium);
+        title.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        title.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(title);
+
+        var dropdown = new OptionButton
+        {
+            CustomMinimumSize = new Vector2(145, 46),
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+        };
+        dropdown.AddThemeFontSizeOverride("font_size", 19);
+        dropdown.AddThemeColorOverride("font_color", TextMain);
+        dropdown.AddThemeColorOverride("font_hover_color", TextMain);
+        dropdown.AddThemeStyleboxOverride("normal", Box(RowFill, Hairline, 1, 4));
+        dropdown.AddThemeStyleboxOverride("hover", Box(HoverFill, BorderHot, 1, 4));
+        dropdown.AddThemeStyleboxOverride("pressed", Box(PressFill, BorderHot, 1, 4));
+        PopupMenu popup = dropdown.GetPopup();
+        popup.AddThemeStyleboxOverride("panel", Box(PanelFill, Hairline, 1, 4));
+        popup.AddThemeColorOverride("font_color", TextMain);
+        popup.AddThemeColorOverride("font_hover_color", TextMain);
+        popup.AddThemeColorOverride("font_selected_color", TextMain);
+        popup.AddThemeFontSizeOverride("font_size", 19);
+        int selectedIndex = 0;
+        for (int i = 0; i < values.Length; i++)
+        {
+            dropdown.AddItem($"{values[i]} bots");
+            if (values[i] == selectedValue) selectedIndex = i;
+        }
+        dropdown.Select(selectedIndex);
+        dropdown.ItemSelected += index =>
+        {
+            if (index >= 0 && index < values.Length) onSelected(values[index]);
+        };
+        row.AddChild(dropdown);
+        return row;
+    }
+
     /// <summary>A rebindable key row: a label on the left, a pill-shaped key button on the right.
     /// `listening` swaps the pill's text/colour to "PRESS A KEY..." while the caller is capturing
     /// the next keypress - the row itself does not know how that capture works, only how to draw

@@ -21,21 +21,28 @@ public partial class LanMenu : Control
 
 	private const string DefaultGameName = "Wraith Run LAN";
 
-	private readonly Dictionary<string, (string Name, string Host, int Players, ulong Seen)> _games = new();
+	private readonly Dictionary<string, (string Name, string Host, int Players, string Map, string Mode, ulong Seen)> _games = new();
 	private PacketPeerUdp? _listener;
 	private Timer _refreshTimer = null!;
 	private Control _contentRoot = null!;
 	private VBoxContainer? _gamesList;
 	private Label? _status;
+	private Label? _lobbyRoster;
+	private Label? _lobbyHint;
+	private Label? _lobbyDetails;
+	private Label? _soloBotSummary;
+	private Button? _lobbyAction;
+	private bool _lobbyIsHost;
+	private bool _lobbyUiPolling;
 	private Action? _goBack;
 	private LocalMode _localMode = LocalMode.Host;
 	private string _hostName = DefaultGameName;
 	private bool _leavingMenu;
 	// Bot settings. VS BOTS and the LAN host lobby remember their own choices, so a bot-heavy solo setup
 	// never silently adds bots to a LAN match (that one defaults to 0).
-	private int _soloBotCount = 5;
+	private int _soloPlayerCount = 6;
 	private BotDifficulty _soloBotLevel = BotDifficulty.Normal;
-	private int _hostBotCount = 3;
+	private int _hostPlayerCount = 6;
 	private bool _hostBotsEnabled;
 	private BotDifficulty _hostBotLevel = BotDifficulty.Normal;
 	private bool _adaptiveBots = true;
@@ -57,6 +64,7 @@ public partial class LanMenu : Control
 		_contentRoot.SetAnchorsPreset(LayoutPreset.FullRect);
 		AddChild(_contentRoot);
 		StartMenuMusic();
+		MatchManager.Instance.MatchStarting += OnMatchStarting;
 		// A brand-new install starts by choosing a name and avatar; every launch after that goes
 		// straight to the main menu.
 		if (PlayerAccount.SetupDone) ShowMain();
@@ -146,6 +154,7 @@ public partial class LanMenu : Control
 		_goBack = back;
 		_gamesList = null;
 		_status = null;
+		_soloBotSummary = null;
 		QueueFreeChildren(_contentRoot);
 	}
 
@@ -401,13 +410,23 @@ public partial class LanMenu : Control
 					match.GameMode == candidate, () => SetHostGameMode(candidate)));
 			}
 		}
-		else modeBody.AddChild(MenuStyle.InfoRow("users", match.ModeRules.DisplayName));
+		else modeBody.AddChild(MenuStyle.InfoRow("users", "Chosen by host (shown in game list)"));
 		left.AddChild(mode);
 
 		if (_localMode == LocalMode.Host) AddBotSettings(left, solo: false, rebuild: ShowLocal);
 
 		var map = MenuStyle.Panel("MAP", "map", out var mapBody);
-		mapBody.AddChild(MenuStyle.InfoRow("map", "Warzone"));
+		if (_localMode == LocalMode.Host)
+		{
+			foreach (MatchManager.ArenaMap candidate in MatchManager.SelectableMaps)
+			{
+				MatchManager.ArenaMap selected = candidate;
+				string mapName = MatchManager.MapName(selected);
+				mapBody.AddChild(MenuStyle.SelectRow("map", mapName,
+					match.SelectedMap == selected, () => SetHostMap(selected)));
+			}
+		}
+		else mapBody.AddChild(MenuStyle.InfoRow("map", "Chosen by host (shown in game list)"));
 		left.AddChild(map);
 
 		if (_localMode == LocalMode.Host && match.IsTeamMode)
@@ -467,7 +486,7 @@ public partial class LanMenu : Control
 		rebuild();
 	}
 
-	/// <summary>Difficulty picker + bot count + adaptive toggle. solo = VS BOTS (1-10 bots), otherwise the LAN host lobby (0-10).</summary>
+	/// <summary>Difficulty and total player-count picker. Player count includes the host/player; bots fill remaining slots.</summary>
 	private void AddBotSettings(Container left, bool solo, Action rebuild)
 	{
 		BotDifficulty level = solo ? _soloBotLevel : _hostBotLevel;
@@ -480,12 +499,12 @@ public partial class LanMenu : Control
 			masterBody.AddChild(MenuStyle.ToggleRow(null, "Enable Bots", _hostBotsEnabled, v =>
 			{
 				_hostBotsEnabled = v;
-				if (v && _hostBotCount < 1) _hostBotCount = 3;
+				if (v && _hostPlayerCount < 4) _hostPlayerCount = 6;
 				rebuild();
 			}));
 			var state = MenuStyle.Text(
 				_hostBotsEnabled
-					? "Bots are ON. Pick their difficulty and how many below."
+					? "Bots are ON. Choose the total players; bots fill the remaining slots."
 					: "Bots are OFF - only real players will be in the match.",
 				17, _hostBotsEnabled ? MenuStyle.TextMain : MenuStyle.TextMuted, MenuStyle.Medium);
 			state.AutowrapMode = TextServer.AutowrapMode.WordSmart;
@@ -508,20 +527,52 @@ public partial class LanMenu : Control
 		diffBody.AddChild(description);
 		left.AddChild(diff);
 
-		var count = MenuStyle.Panel(solo ? "BOTS" : "HOW MANY", "bot", out var countBody);
-		countBody.AddChild(MenuStyle.SliderRow("Number of bots", solo ? _soloBotCount : _hostBotCount,
-			1, 10, 1, "{0:0}", v =>
+		var count = MenuStyle.Panel("MATCH SIZE", "users", out var countBody);
+		int[] playerCounts = PlayerCountOptions(MatchManager.Instance.GameMode);
+		int currentCount = solo ? _soloPlayerCount : _hostPlayerCount;
+		if (Array.IndexOf(playerCounts, currentCount) < 0)
+		{
+			currentCount = playerCounts[0];
+			if (solo) _soloPlayerCount = currentCount;
+			else _hostPlayerCount = currentCount;
+		}
+		countBody.AddChild(MenuStyle.DropdownRow("Total players (including you)", playerCounts, currentCount, value =>
+		{
+			if (solo)
 			{
-				if (solo) _soloBotCount = (int)v;
-				else _hostBotCount = (int)v;
-			}));
+				_soloPlayerCount = value;
+				MatchManager.Instance.LobbyPlayerCount = value;
+				if (IsUsable(_soloBotSummary))
+					_soloBotSummary!.Text = $"{MatchManager.Instance.ModeRules.PlayerFormat}   ·   {MatchManager.MapName(MatchManager.Instance.SelectedMap)}   ·   {value} players (you + {value - 1} bots)";
+			}
+			else
+			{
+				_hostPlayerCount = value;
+				MatchManager.Instance.LobbyPlayerCount = value;
+			}
+		}));
 		countBody.AddChild(MenuStyle.ToggleRow(null, "Adaptive Bots", _adaptiveBots, v => _adaptiveBots = v));
 		var hint = MenuStyle.Text(
-			"Bots spawn at random places. Adaptive Bots ease off slightly if you are being crushed and tighten up if you are dominating.",
+			"Player count includes you. In VS Bots, bots fill the remaining slots. Adaptive Bots ease off slightly if you are being crushed and tighten up if you are dominating.",
 			17, MenuStyle.TextMuted, MenuStyle.Medium);
 		hint.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 		countBody.AddChild(hint);
 		left.AddChild(count);
+	}
+
+	private static int[] PlayerCountOptions(MatchManager.Mode mode) => mode switch
+	{
+		MatchManager.Mode.StormRespawn or MatchManager.Mode.CursedDeathmatch => new[] { 6, 10, 12 },
+		MatchManager.Mode.ClanChase or MatchManager.Mode.ConvoyAssault => new[] { 6, 8, 10, 12 },
+		MatchManager.Mode.DuoBuggy => new[] { 4 },
+		_ => new[] { 4, 6, 8, 10, 12 },
+	};
+
+	private void NormalizeBotCountsForMode()
+	{
+		int[] choices = PlayerCountOptions(MatchManager.Instance.GameMode);
+		if (Array.IndexOf(choices, _soloPlayerCount) < 0) _soloPlayerCount = choices[0];
+		if (Array.IndexOf(choices, _hostPlayerCount) < 0) _hostPlayerCount = choices[0];
 	}
 
 	private void ShowVsBots()
@@ -560,7 +611,13 @@ public partial class LanMenu : Control
 		AddBotSettings(left, solo: true, rebuild: ShowVsBots);
 
 		var map = MenuStyle.Panel("MAP", "map", out var mapBody);
-		mapBody.AddChild(MenuStyle.InfoRow("map", "Warzone"));
+		foreach (MatchManager.ArenaMap candidate in MatchManager.SelectableMaps)
+		{
+			MatchManager.ArenaMap selected = candidate;
+			string mapName = MatchManager.MapName(selected);
+			mapBody.AddChild(MenuStyle.SelectRow("map", mapName,
+				match.SelectedMap == selected, () => SetVsBotsMap(selected)));
+		}
 		left.AddChild(map);
 
 		if (match.IsTeamMode) AddMatchRules(left, ShowVsBots);
@@ -573,16 +630,15 @@ public partial class LanMenu : Control
 		panel.SizeFlagsVertical = SizeFlags.ExpandFill;
 		right.AddChild(panel);
 
-		var about = MenuStyle.Text(
-            "A private match against AI opponents on Warzone. Bots see, hear and aim like players of the level "
-			+ "you pick, and follow the same rules you do. Nobody else on your network can see or join it.",
+		var about = MenuStyle.Text(match.ModeRules.LobbyDescription,
 			20, MenuStyle.TextDim, MenuStyle.Medium);
 		about.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 		body.AddChild(about);
 
 		var teams = MenuStyle.Text(
-			"In Team Deathmatch you and the bots are split into two even teams.",
+			$"{match.ModeRules.PlayerFormat}   ·   {MatchManager.MapName(match.SelectedMap)}   ·   {_soloPlayerCount} players (you + {_soloPlayerCount - 1} bots)",
 			18, MenuStyle.TextMuted, MenuStyle.Medium);
+		_soloBotSummary = teams;
 		teams.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 		body.AddChild(teams);
 
@@ -601,6 +657,14 @@ public partial class LanMenu : Control
 	{
 		if (MatchManager.Instance.GameMode == mode) return;
 		MatchManager.Instance.GameMode = mode;
+		NormalizeBotCountsForMode();
+		ShowVsBots();
+	}
+
+	private void SetVsBotsMap(MatchManager.ArenaMap map)
+	{
+		if (MatchManager.Instance.SelectedMap == map) return;
+		MatchManager.Instance.SelectedMap = map;
 		ShowVsBots();
 	}
 
@@ -608,7 +672,8 @@ public partial class LanMenu : Control
 	{
 		if (_leavingMenu) return;
 		MatchManager match = MatchManager.Instance;
-		match.BotCount = _soloBotCount;
+		match.BotCount = _soloPlayerCount - 1;
+		match.LobbyPlayerCount = _soloPlayerCount;
 		match.BotLevel = _soloBotLevel;
 		match.AdaptiveBots = _adaptiveBots;
 		match.PrepareHostMatch();
@@ -634,6 +699,14 @@ public partial class LanMenu : Control
 	{
 		if (MatchManager.Instance.GameMode == mode) return;
 		MatchManager.Instance.GameMode = mode;
+		NormalizeBotCountsForMode();
+		ShowLocal();
+	}
+
+	private void SetHostMap(MatchManager.ArenaMap map)
+	{
+		if (MatchManager.Instance.SelectedMap == map) return;
+		MatchManager.Instance.SelectedMap = map;
 		ShowLocal();
 	}
 
@@ -644,6 +717,12 @@ public partial class LanMenu : Control
 		var panel = MenuStyle.Panel("HOST A GAME", "server", out var body);
 		panel.SizeFlagsVertical = SizeFlags.ExpandFill;
 		right.AddChild(panel);
+		var rules = MatchManager.Instance.ModeRules;
+		var matchDetails = MenuStyle.Text(
+			$"{rules.DisplayName}  ·  {rules.PlayerFormat}\n{MatchManager.Instance.MapDisplayName}\n{(_hostBotsEnabled ? $"Up to {_hostPlayerCount} total players" : "Bots off · humans only")}\n\n{rules.LobbyDescription}",
+			18, MenuStyle.TextDim, MenuStyle.Medium);
+		matchDetails.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+		body.AddChild(matchDetails);
 
 		body.AddChild(MenuStyle.Text("GAME NAME", 16, MenuStyle.TextDim, MenuStyle.SemiBold));
 		var name = new LineEdit
@@ -658,7 +737,7 @@ public partial class LanMenu : Control
 		body.AddChild(name);
 
 		var hint = MenuStyle.Text(
-			"Players on the same Wi-Fi will see this game under Connect and can join it.",
+			"Create a private Wi-Fi lobby. Joined players appear in the ready list; the match starts only after everyone is ready.",
 			18, MenuStyle.TextMuted, MenuStyle.Medium);
 		hint.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 		body.AddChild(hint);
@@ -668,7 +747,7 @@ public partial class LanMenu : Control
 		body.AddChild(_status);
 
 		var actions = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.End };
-		actions.AddChild(MenuStyle.Primary("START HOSTING", new Vector2(300, 66),
+		actions.AddChild(MenuStyle.Primary("CREATE LOBBY", new Vector2(300, 66),
 			() => StartHost(name.Text)));
 		right.AddChild(actions);
 		name.GrabFocus();
@@ -777,7 +856,8 @@ public partial class LanMenu : Control
 		if (_leavingMenu) return;
 		string gameName = string.IsNullOrWhiteSpace(name) ? DefaultGameName : name.Trim();
 		MatchManager match = MatchManager.Instance;
-		match.BotCount = _hostBotsEnabled ? _hostBotCount : 0;
+		match.LobbyPlayerCount = _hostPlayerCount;
+		match.BotCount = _hostBotsEnabled ? _hostPlayerCount - 1 : 0;
 		match.BotLevel = _hostBotLevel;
 		match.AdaptiveBots = _adaptiveBots;
 		match.PrepareHostMatch();
@@ -788,13 +868,16 @@ public partial class LanMenu : Control
 			if (IsUsable(_status)) _status!.Text = $"Could not host on port {LanSession.GamePort}: {result}";
 			return;
 		}
-		LeaveForGame();
+		match.BeginHostLobby();
+		ShowReadyLobby(isHost: true);
 	}
 
 	private void StartBrowsing()
 	{
 		if (_terminalCleanupDone) return;
 		StopLobbyBrowser();
+		UseDiscoveryPolling();
+		_refreshTimer.WaitTime = 0.5;
 		_games.Clear();
 		_leavingMenu = false;
 		_listener = new PacketPeerUdp();
@@ -819,10 +902,13 @@ public partial class LanMenu : Control
 			string host = packet.GetValueOrDefault("host", "").AsString();
 			string name = packet.GetValueOrDefault("name", DefaultGameName).AsString();
 			int players = (int)packet.GetValueOrDefault("players", 1).AsInt64();
+			string mapName = packet.GetValueOrDefault("map", "Map not reported").AsString();
+			string modeName = packet.GetValueOrDefault("mode", "Mode not reported").AsString();
 			if (!string.IsNullOrEmpty(host))
 			{
-				var advertised = (name, host, players, Time.GetTicksMsec());
-				if (!_games.TryGetValue(host, out var prior) || prior.Name != name || prior.Players != players)
+				var advertised = (name, host, players, mapName, modeName, Time.GetTicksMsec());
+				if (!_games.TryGetValue(host, out var prior) || prior.Name != name || prior.Players != players ||
+					prior.Map != mapName || prior.Mode != modeName)
 					changed = true;
 				_games[host] = advertised;
 			}
@@ -839,7 +925,7 @@ public partial class LanMenu : Control
 		foreach (var game in _games.Values)
 		{
 			string host = game.Host;
-			string detail = $"{host}  ·  {game.Players} player{(game.Players == 1 ? "" : "s")}";
+			string detail = $"{game.Map}  ·  {game.Mode}  ·  {host}  ·  {game.Players} player{(game.Players == 1 ? "" : "s")}";
 			_gamesList!.AddChild(MenuStyle.Row(game.Name, detail, () => JoinGame(host), UiSounds.Sound.Start));
 		}
 		if (IsUsable(_status))
@@ -857,7 +943,7 @@ public partial class LanMenu : Control
 			if (IsUsable(_status)) _status!.Text = $"Could not connect to {host}: {result}";
 			return;
 		}
-		LeaveForGame();
+		ShowReadyLobby(isHost: false);
 	}
 
 	private void LeaveForGame()
@@ -897,18 +983,135 @@ public partial class LanMenu : Control
 		StopLobbyBrowser();
 		// The signal is explicitly disconnected only during final teardown. Normal browser
 		// close/reopen keeps the Timer reusable.
-		if (IsUsable(_refreshTimer)) _refreshTimer.Timeout -= PollDiscovery;
+		if (IsUsable(_refreshTimer))
+		{
+			if (_lobbyUiPolling) _refreshTimer.Timeout -= PollLobbyUi;
+			else _refreshTimer.Timeout -= PollDiscovery;
+			_lobbyUiPolling = false;
+		}
 		_games.Clear();
 		// Sole terminal cleanup path (LeaveForGame and application shutdown both funnel through
 		// here), so this is the one place the menu music needs to be stopped from.
 		if (IsUsable(_menuMusic)) _menuMusic!.Stop();
 	}
 
+	private void ShowReadyLobby(bool isHost)
+	{
+		if (_terminalCleanupDone) return;
+		_lobbyIsHost = isHost;
+		BeginScreen(CancelReadyLobby);
+		AddHeader(isHost ? "HOST LOBBY" : "JOINED LOBBY", CancelReadyLobby);
+		AddTopIcons(includeSettings: false, reopen: null);
+
+		var layout = new HBoxContainer();
+		layout.AddThemeConstantOverride("separation", 20);
+		MenuStyle.Place(layout, 0, 0, 1, 1, 64, 132, -64, -64);
+		_contentRoot.AddChild(layout);
+
+		var detailsPanel = MenuStyle.Panel("MATCH RULES", "users", out var detailsBody);
+		detailsPanel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		detailsPanel.SizeFlagsVertical = SizeFlags.ExpandFill;
+		layout.AddChild(detailsPanel);
+		_lobbyDetails = MenuStyle.Text("", 20, MenuStyle.TextDim, MenuStyle.Medium);
+		_lobbyDetails.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+		detailsBody.AddChild(_lobbyDetails);
+
+		var playersPanel = MenuStyle.Panel("PLAYERS", "wifi", out var playersBody);
+		playersPanel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		playersPanel.SizeFlagsVertical = SizeFlags.ExpandFill;
+		layout.AddChild(playersPanel);
+		_lobbyRoster = MenuStyle.Text("", 22, MenuStyle.TextMain, MenuStyle.SemiBold);
+		playersBody.AddChild(_lobbyRoster);
+		_lobbyHint = MenuStyle.Text("", 17, MenuStyle.TextMuted, MenuStyle.Medium);
+		_lobbyHint.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+		playersBody.AddChild(_lobbyHint);
+		_lobbyAction = MenuStyle.Primary(isHost ? "START MATCH" : "READY", new Vector2(300, 66),
+			isHost ? MatchManager.Instance.StartMatchWhenReady : ToggleLocalReady);
+		_lobbyAction.Disabled = !isHost;
+		playersBody.AddChild(_lobbyAction);
+
+		UseLobbyPolling();
+		_refreshTimer.WaitTime = 0.35;
+		_refreshTimer.Start();
+		PollLobbyUi();
+		if (isHost) _lobbyAction.GrabFocus();
+	}
+
+	private void ToggleLocalReady() => MatchManager.Instance.SetLocalReady(!MatchManager.Instance.LocalPlayerReady);
+
+	private void PollLobbyUi()
+	{
+		if (!IsUsable(_lobbyRoster) || !IsUsable(_lobbyHint) || !IsUsable(_lobbyAction)) return;
+		MatchManager match = MatchManager.Instance;
+		_lobbyRoster!.Text = match.LobbyReadySummary;
+		GameModeBase rules = match.ModeRules;
+		_lobbyDetails!.Text = $"{rules.DisplayName}\n{rules.PlayerFormat}\n{match.MapDisplayName} · {match.LobbyPlayerCount} total players\n\n{rules.LobbyDescription}";
+		if (_lobbyIsHost)
+		{
+			int connected = Multiplayer.GetPeers().Length + 1;
+			match.BotCount = _hostBotsEnabled ? Math.Max(0, _hostPlayerCount - connected) : 0;
+			bool selectedRosterExceeded = _hostBotsEnabled && connected > _hostPlayerCount;
+			_lobbyAction!.Disabled = !match.CanHostStartMatch || selectedRosterExceeded;
+			if (selectedRosterExceeded)
+			{
+				_lobbyHint!.Text = $"There are {connected} connected players, more than the selected {_hostPlayerCount}. Increase the total player count.";
+				return;
+			}
+			if (connected + match.BotCount < rules.MinimumPlayers)
+				_lobbyHint!.Text = $"Need {rules.MinimumPlayers - connected - match.BotCount} more player(s) or bots to meet this mode's minimum.";
+			else if (!match.CanHostStartMatch)
+				_lobbyHint!.Text = "Waiting for every connected player to press READY. The match starts only when all players are ready.";
+			else
+				_lobbyHint!.Text = $"Everyone is ready for {connected + match.BotCount} total players ({connected} connected, {match.BotCount} bots). Start when you are ready.";
+		}
+		else
+		{
+			MultiplayerPeer.ConnectionStatus connection = Multiplayer.MultiplayerPeer?.GetConnectionStatus()
+				?? MultiplayerPeer.ConnectionStatus.Disconnected;
+			bool connected = connection == MultiplayerPeer.ConnectionStatus.Connected && match.HostConfigReceived;
+			_lobbyAction!.Disabled = !connected;
+			_lobbyAction.GetChild<Label>(0).Text = match.LocalPlayerReady ? "CANCEL READY" : "READY";
+			_lobbyHint!.Text = connected
+				? "Press READY when you are set. The host will start after every connected player is ready."
+				: connection == MultiplayerPeer.ConnectionStatus.Disconnected
+					? "Connection failed. Go back and select the host again to retry."
+					: "Connecting to the host and receiving match settings…";
+		}
+	}
+
+	private void CancelReadyLobby()
+	{
+		GetNode<LanSession>("/root/LanSession").Stop();
+		MatchManager.Instance.EndSession();
+		if (!_lobbyIsHost) _localMode = LocalMode.Connect;
+		ShowLocal();
+	}
+
+	private void OnMatchStarting() => LeaveForGame();
+
 	private void StopLobbyBrowser()
 	{
 		if (IsUsable(_refreshTimer)) _refreshTimer.Stop();
 		if (IsUsable(_listener)) _listener!.Close();
 		_listener = null;
+	}
+
+	private void UseDiscoveryPolling()
+	{
+		if (_lobbyUiPolling)
+		{
+			_refreshTimer.Timeout -= PollLobbyUi;
+			_refreshTimer.Timeout += PollDiscovery;
+			_lobbyUiPolling = false;
+		}
+	}
+
+	private void UseLobbyPolling()
+	{
+		if (_lobbyUiPolling) return;
+		_refreshTimer.Timeout -= PollDiscovery;
+		_refreshTimer.Timeout += PollLobbyUi;
+		_lobbyUiPolling = true;
 	}
 
 	private static bool IsUsable(GodotObject? node) => node != null && GodotObject.IsInstanceValid(node) && !node.IsQueuedForDeletion();
@@ -926,5 +1129,6 @@ public partial class LanMenu : Control
 		// Usually already complete via LeaveForGame. This covers application shutdown or an
 		// external scene change without ever attempting a second cleanup.
 		RunTerminalCleanup();
+		if (MatchManager.Instance != null) MatchManager.Instance.MatchStarting -= OnMatchStarting;
 	}
 }

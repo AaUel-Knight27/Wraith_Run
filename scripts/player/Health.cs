@@ -25,10 +25,10 @@ public partial class Health : Node
 
     /// <summary>
     /// Team Deathmatch only: a kill that was NOT instant (see DetermineIfDeathStruggles) leaves the
-    /// player calling for a medic for this long before they are eliminated. Public because
-    /// PlayerAudio runs the same countdown on every peer to time the "I need a medic" calls and the
-    /// final struggle - both sides read this one number so they can never drift apart. The normal
-    /// respawn delay above starts counting once this window is over.
+    /// player has a silent bleed-out for this long before the final struggle. Public because
+    /// PlayerAudio runs the same countdown on every peer so the struggle timing stays synchronized.
+    /// The medic voice recording is reserved for future use. The normal respawn delay above starts
+    /// counting once this window is over.
     /// </summary>
     public const float TeamBleedOutSeconds = 20.0f;
 
@@ -123,10 +123,9 @@ public partial class Health : Node
 
         _deathPosition = _player.GlobalPosition;
         bool struggles = DetermineIfDeathStruggles((KillStyle)styleFlags);
-        // Team Deathmatch: a non-instant death is a bleed-out - medic calls for
-        // TeamBleedOutSeconds, then elimination, then the usual respawn delay. Free-For-All has no
-        // medics (nobody is coming to help), and an instant death has nothing to call out, so both
-        // go straight to the normal respawn delay.
+        // Team Deathmatch: a non-instant death has a quiet bleed-out for TeamBleedOutSeconds,
+        // then the usual respawn delay. Free-For-All and instant deaths go straight to the normal
+        // respawn delay.
         bool bleedsOut = struggles && MatchManager.Instance != null &&
             MatchManager.Instance.IsTeamMode;
         _respawnTimer = bleedsOut ? TeamBleedOutSeconds + RespawnDelaySeconds : RespawnDelaySeconds;

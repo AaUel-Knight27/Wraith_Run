@@ -2,13 +2,10 @@
 
 [ext_resource type="Script" path="res://scripts/network/GameWorld.cs" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/maps/Warzone.tscn" id="3"]
 
 [node name="GameWorld" type="Node3D"]
 script = ExtResource("1")
 PlayerScene = ExtResource("2")
-
-[node name="Map" parent="." instance=ExtResource("3")]
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 

@@ -11,9 +11,11 @@ public partial class GameWorld : Node3D
     [Export] public PackedScene PlayerScene { get; set; } = null!;
     private MultiplayerSpawner _spawner = null!;
 
-    private const int MaxBots = 10;
+	private const int MaxBots = 11;
     private const float NavCell = 0.5f;
     private readonly RandomNumberGenerator _botRng = new();
+    private bool _mapReady;
+    private readonly HashSet<long> _pendingPeerSpawns = new();
 
     public override void _Ready()
     {
@@ -24,6 +26,48 @@ public partial class GameWorld : Node3D
         Multiplayer.PeerDisconnected += OnPeerDisconnected;
         MatchManager.Instance?.EnsureSessionActive();
         CareerTracker.Instance?.BeginMatch();
+        InitializeMatchWorldAsync();
+    }
+
+    private void LoadModeMap()
+    {
+        MatchManager? match = MatchManager.Instance;
+        GameModeBase rules = match?.ModeRules ?? GameModeBase.For(MatchManager.Mode.Default);
+        string mapScenePath = match?.MapScenePath ?? "res://scenes/maps/Warzone.tscn";
+        var packed = ResourceLoader.Load<PackedScene>(mapScenePath);
+        if (packed == null)
+        {
+            GD.PushError($"Could not load {match?.MapDisplayName ?? "Warzone"} for {rules.DisplayName}: {mapScenePath}");
+            return;
+        }
+        var map = packed.Instantiate<Node3D>();
+        map.Name = "Map";
+        AddChild(map);
+    }
+
+    private async void InitializeMatchWorldAsync()
+    {
+        MatchManager? match = MatchManager.Instance;
+        if (Multiplayer.HasMultiplayerPeer() && !Multiplayer.IsServer() && match != null)
+        {
+            // A joining player can enter GameWorld before the host's lobby config RPC arrives.
+            // Hold map loading and spawn initialization until the chosen map and mode are known.
+            float waitSeconds = 0.0f;
+            while (!match.HostConfigReceived && waitSeconds < 5.0f && IsInsideTree())
+            {
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                waitSeconds += (float)GetProcessDeltaTime();
+            }
+            if (!match.HostConfigReceived)
+                GD.PushWarning("Host match settings did not arrive before map loading; using the local fallback selection.");
+        }
+        LoadModeMap();
+        // Map choice is applied at runtime; wait for its static collision bodies to register before
+        // doing ground/obstruction checks for the initial spawn points.
+        await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        if (!IsInsideTree()) return;
+        _mapReady = true;
         bool wantBots = false;
         if (Multiplayer.IsServer())
         {
@@ -32,6 +76,8 @@ public partial class GameWorld : Node3D
             // below is also called explicitly here instead of waiting for OnPeerConnected.
             MatchManager.Instance.AssignTeamAndBroadcast(1);
             SpawnForPeer(1);
+            foreach (long peerId in _pendingPeerSpawns) SpawnForPeer((int)peerId);
+            _pendingPeerSpawns.Clear();
             wantBots = MatchManager.Instance.BotCount > 0;
         }
         // With bots, keep the loading screen up until the navigation grid is built and they exist.
@@ -146,10 +192,13 @@ public partial class GameWorld : Node3D
 
     private void OnPeerConnected(long peerId)
     {
-        if (Multiplayer.IsServer()) SpawnForPeer((int)peerId);
+        if (!Multiplayer.IsServer()) return;
+        if (_mapReady) SpawnForPeer((int)peerId);
+        else _pendingPeerSpawns.Add(peerId);
     }
     private void OnPeerDisconnected(long peerId)
     {
+        _pendingPeerSpawns.Remove(peerId);
         var player = GetNodeOrNull<Node>($"Players/Player_{peerId}");
         player?.QueueFree();
     }

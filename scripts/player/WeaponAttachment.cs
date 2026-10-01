@@ -54,7 +54,7 @@ public partial class WeaponAttachment : Node3D
 
 	// Shared across every weapon rather than a per-weapon WeaponData field: only one recording was
 	// supplied, and "a body got hit" reads the same whether it was a bullet or the Karambit.
-	private const string FleshImpactSound = "res://audio/Clips/Weapons/Melee/Impact/flesh_hit.mp3";
+	private const string FleshImpactSound = "res://audio/Clips/Weapons/Impacts/Feedback/flesh_hit.wav";
 
 	// Bullet-on-surface sounds. Which one plays comes from SurfaceClassifier (scripts/combat/
 	// SurfaceType.cs); ricochet and flyby are layered/triggered by WeaponSwitcher. The trims level
@@ -68,7 +68,7 @@ public partial class WeaponAttachment : Node3D
 	private const string GlassSound = SurfaceDirectory + "/BulletGlassHit.wav";
 	private const string WallSound = SurfaceDirectory + "/BulletWallHit.wav";
 	private const string RicochetSound = SurfaceDirectory + "/BulletRicochet.wav";
-	private const string FlyBySound = SurfaceDirectory + "/BulletFlyBy.wav";
+	private const string FlyBySound = SurfaceDirectory + "/bullet_flyby.wav";
 	private const string RocketFlyBySound = "res://audio/Clips/Weapons/RPG/Extras/rpg_doppler_effect.wav";
 
 	private const float MetalHeavyTrimDb = -6.0f;

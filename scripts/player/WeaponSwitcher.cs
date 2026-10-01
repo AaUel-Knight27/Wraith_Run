@@ -49,20 +49,15 @@ public partial class WeaponSwitcher : Node
 	private const float FlyByMinShooterDistance = 2.5f;
 	private const float FlyByMinImpactDistance = 1.5f;
 
-	// Kriss Vector excluded: no model until its mesh is re-sourced (lost in FBX->GLB conversion).
 	// Internal rather than private: TouchControls' weapon-switch/quick-melee buttons read this
 	// directly (length + Karambit's index) instead of hardcoding numbers that would silently go
 	// stale if this list is ever reordered or extended.
 	internal static readonly string[] Loadout =
-		{ "AK-47", "M4", "P90", "Glock 19", "Desert Eagle", "Shotgun", "Karambit", "Bazooka" };
+		{ "AK-47", "M4", "P90", "Kriss Vector", "Glock 19", "Desert Eagle", "Shotgun", "Karambit", "Bazooka" };
 
 	private static readonly string[] HitMarkerSounds =
 	{
-		"res://audio/Clips/Target Hit/TargetHit-001.wav",
-		"res://audio/Clips/Target Hit/TargetHit-002.wav",
-		"res://audio/Clips/Target Hit/TargetHit-003.wav",
-		"res://audio/Clips/Target Hit/TargetHit-004.wav",
-		"res://audio/Clips/Target Hit/TargetHit-005.wav",
+		"res://audio/Clips/Weapons/Impacts/Feedback/hit_marker.mp3",
 	};
 
 	private WeaponAttachment _attachment = null!;
@@ -273,7 +268,14 @@ public partial class WeaponSwitcher : Node
 
 		if (bot == null && !inputBlocked)
 			for (int i = 0; i < Loadout.Length; i++)
-				if (Input.IsActionJustPressed($"weapon_{i + 1}")) ReplicatedWeaponIndex = i;
+			{
+				string action = $"weapon_{i + 1}";
+				// Loadouts can contain more slots than an older/custom project InputMap. Godot logs
+				// an error on every frame for a missing action, which floods the debugger on every
+				// local and replicated player and can make a multiplayer match appear frozen.
+				if (InputMap.HasAction(action) && Input.IsActionJustPressed(action))
+					ReplicatedWeaponIndex = i;
+			}
 
 		if (_health != null && _health.IsDead) return;
 
@@ -745,7 +747,7 @@ public partial class WeaponSwitcher : Node
 	{
 		var stream = ResourceLoader.Load<AudioStream>(path);
 		if (stream == null) return null;
-		var player = new AudioStreamPlayer { Name = "HitMarker", Stream = stream, VolumeDb = -4.0f };
+		var player = new AudioStreamPlayer { Name = "HitMarker", Stream = stream, VolumeDb = -14.0f };
 		parent.AddChild(player);
 		return player;
 	}
