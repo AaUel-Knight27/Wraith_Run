@@ -96,7 +96,7 @@ public partial class Health : Node
 
     public override void _PhysicsProcess(double delta)
     {
-        if (!IsMultiplayerAuthority() || !IsDead) return;
+        if (!PlayerIdentity.HasAuthority(this) || !IsDead) return;
         _respawnTimer -= (float)delta;
         if (_respawnTimer <= 0.0f) Respawn();
     }
@@ -113,7 +113,7 @@ public partial class Health : Node
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     public void ReceiveDamage(float amount, long attackerId, int styleFlags, int basePoints)
     {
-        if (!IsMultiplayerAuthority() || IsDead || amount <= 0.0f) return;
+        if (!PlayerIdentity.HasAuthority(this) || IsDead || amount <= 0.0f) return;
         if (IsFriendlyFire(attackerId)) return;
         _damageContribution[attackerId] = GetContribution(attackerId) + amount;
 

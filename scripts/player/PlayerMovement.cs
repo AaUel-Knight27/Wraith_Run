@@ -168,7 +168,7 @@ public partial class PlayerMovement : CharacterBody3D
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (!IsMultiplayerAuthority() || Bot != null) return;
+        if (!PlayerIdentity.HasAuthority(this) || Bot != null) return;
         if (@event is InputEventMouseMotion mouseMotion && Input.MouseMode == Input.MouseModeEnum.Captured)
         {
             float sensitivity = SettingsManager.Instance?.MouseSensitivity ?? MouseSensitivity;
@@ -240,7 +240,7 @@ public partial class PlayerMovement : CharacterBody3D
 
     public override void _PhysicsProcess(double deltaValue)
     {
-        if (!IsMultiplayerAuthority())
+        if (!PlayerIdentity.HasAuthority(this))
         {
             if (Enum.TryParse(ReplicatedMovementState, out MovementState remoteState))
                 _animationController.SetMovementState(remoteState);

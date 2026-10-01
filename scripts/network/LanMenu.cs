@@ -899,7 +899,13 @@ public partial class LanMenu : Control
 			var parsed = Json.ParseString(Encoding.UTF8.GetString(_listener.GetPacket()));
 			if (parsed.VariantType != Variant.Type.Dictionary) continue;
 			var packet = parsed.AsGodotDictionary();
-			string host = packet.GetValueOrDefault("host", "").AsString();
+			// The advertised address may be a VPN/container interface when the host has several
+			// adapters. Use the address this beacon actually arrived from so ENet connects over
+			// the same reachable route (and the loopback beacon resolves to 127.0.0.1 locally).
+			string advertisedHost = packet.GetValueOrDefault("host", "").AsString();
+			string sourceHost = _listener.GetPacketIP();
+			string host = string.IsNullOrWhiteSpace(sourceHost) ? advertisedHost : sourceHost;
+			string sessionId = packet.GetValueOrDefault("session", host).AsString();
 			string name = packet.GetValueOrDefault("name", DefaultGameName).AsString();
 			int players = (int)packet.GetValueOrDefault("players", 1).AsInt64();
 			string mapName = packet.GetValueOrDefault("map", "Map not reported").AsString();
@@ -907,10 +913,10 @@ public partial class LanMenu : Control
 			if (!string.IsNullOrEmpty(host))
 			{
 				var advertised = (name, host, players, mapName, modeName, Time.GetTicksMsec());
-				if (!_games.TryGetValue(host, out var prior) || prior.Name != name || prior.Players != players ||
+				if (!_games.TryGetValue(sessionId, out var prior) || prior.Name != name || prior.Host != host || prior.Players != players ||
 					prior.Map != mapName || prior.Mode != modeName)
 					changed = true;
-				_games[host] = advertised;
+				_games[sessionId] = advertised;
 			}
 		}
 		foreach (string key in new List<string>(_games.Keys))

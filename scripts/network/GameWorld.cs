@@ -16,6 +16,7 @@ public partial class GameWorld : Node3D
     private readonly RandomNumberGenerator _botRng = new();
     private bool _mapReady;
     private readonly HashSet<long> _pendingPeerSpawns = new();
+    private readonly HashSet<int> _spawnedPeers = new();
 
     public override void _Ready()
     {
@@ -71,13 +72,15 @@ public partial class GameWorld : Node3D
         bool wantBots = false;
         if (Multiplayer.IsServer())
         {
-            // MatchManager's own PeerConnected hook assigns a team to everyone who joins later;
-            // peer 1 (the host) never raises that signal for itself, the same reason SpawnForPeer
-            // below is also called explicitly here instead of waiting for OnPeerConnected.
+            // Lobby peers connected before GameWorld existed, so GameWorld never saw their
+            // PeerConnected signals. Spawn the current roster explicitly on the first world load;
+            // later arrivals are handled by OnPeerConnected. Clear the queued ids first because
+            // the current peer snapshot below includes peers that joined during map loading.
+            _pendingPeerSpawns.Clear();
             MatchManager.Instance.AssignTeamAndBroadcast(1);
             SpawnForPeer(1);
-            foreach (long peerId in _pendingPeerSpawns) SpawnForPeer((int)peerId);
-            _pendingPeerSpawns.Clear();
+            foreach (long peerId in Multiplayer.GetPeers())
+                SpawnForPeer((int)peerId);
             wantBots = MatchManager.Instance.BotCount > 0;
         }
         // With bots, keep the loading screen up until the navigation grid is built and they exist.
@@ -199,6 +202,7 @@ public partial class GameWorld : Node3D
     private void OnPeerDisconnected(long peerId)
     {
         _pendingPeerSpawns.Remove(peerId);
+        _spawnedPeers.Remove((int)peerId);
         var player = GetNodeOrNull<Node>($"Players/Player_{peerId}");
         player?.QueueFree();
     }
@@ -216,6 +220,7 @@ public partial class GameWorld : Node3D
     /// </summary>
     private void SpawnForPeer(int peerId)
     {
+        if (!_spawnedPeers.Add(peerId)) return;
         (Vector3 pos, float yaw) = ComputeHumanSpawnTransform(peerId);
         var data = new Godot.Collections.Dictionary
         {
@@ -223,7 +228,11 @@ public partial class GameWorld : Node3D
             ["pos"] = pos,
             ["yaw"] = yaw,
         };
-        _spawner.Spawn(data);
+        if (_spawner.Spawn(data) == null)
+        {
+            _spawnedPeers.Remove(peerId);
+            GD.PushError($"Failed to spawn player for peer {peerId}.");
+        }
     }
 
     /// <summary>

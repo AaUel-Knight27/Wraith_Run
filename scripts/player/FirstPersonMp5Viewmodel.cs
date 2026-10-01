@@ -55,7 +55,7 @@ public partial class FirstPersonMp5Viewmodel : Node3D
 
 	public override void _Ready()
 	{
-		_isLocal = IsMultiplayerAuthority();
+		_isLocal = PlayerIdentity.HasAuthority(this);
 		Visible = _isLocal;
 		if (!_isLocal) return;
 

@@ -176,7 +176,7 @@ public static class CharacterRigTuning
 		if (controller.IsFirePlaying) yield return PoseMode.Fire;
 		if (controller.IsReloadPlaying) yield return PoseMode.Reload;
 
-		bool authority = movement.IsMultiplayerAuthority();
+		bool authority = PlayerIdentity.HasAuthority(movement);
 		bool aiming = authority ? movement.IsAiming : movement.ReplicatedAimState;
 		if (aiming) yield return PoseMode.Aim;
 

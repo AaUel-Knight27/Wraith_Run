@@ -143,7 +143,16 @@ public partial class CareerTracker : Node
 
     /// <summary>This machine's peer id. With no network peer (running GameWorld straight from the
     /// editor) everything is peer 1, which is also what PlayerIdentity reports there.</summary>
-    private long LocalId() => Multiplayer.HasMultiplayerPeer() ? Multiplayer.GetUniqueId() : 1;
+    private long LocalId()
+    {
+        // HasMultiplayerPeer() is also true while an ENet client is still connecting (and briefly
+        // while a peer is being torn down). ENet.GetUniqueId() is invalid in that state and logs
+        // an error every frame from _Process; only ask for the id once the peer is active.
+        MultiplayerPeer? peer = Multiplayer.MultiplayerPeer;
+        if (peer == null || peer.GetConnectionStatus() != MultiplayerPeer.ConnectionStatus.Connected)
+            return 1;
+        return Multiplayer.GetUniqueId();
+    }
 
     private void SaveNow()
     {

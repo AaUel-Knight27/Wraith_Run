@@ -493,7 +493,7 @@ public partial class PlayerAudio : Node3D
 
 	private PlayerMovement.MovementState CurrentState()
 	{
-		if (_movement.IsMultiplayerAuthority()) return _movement.State;
+		if (PlayerIdentity.HasAuthority(_movement)) return _movement.State;
 		return System.Enum.TryParse(_movement.ReplicatedMovementState,
 			out PlayerMovement.MovementState remote)
 			? remote

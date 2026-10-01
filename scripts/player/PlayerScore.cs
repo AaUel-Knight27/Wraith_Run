@@ -51,7 +51,7 @@ public partial class PlayerScore : Node
         // Identity, not authority: a bot is owned by the host (authority 1) but has its own id.
         long myPeerId = PlayerIdentity.IdOf(GetParent());
         if (victimPeerId == myPeerId) Deaths++;
-        if (!IsMultiplayerAuthority()) return;
+        if (!PlayerIdentity.HasAuthority(this)) return;
 
         if (killerPeerId == myPeerId) AwardKill(totalPoints);
         else if (assistPeerId == myPeerId) AwardPoints(assistPoints, "assist");

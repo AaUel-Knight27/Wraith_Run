@@ -19,7 +19,20 @@ public static class PlayerIdentity
 		return player.GetMultiplayerAuthority();
 	}
 
+	/// <summary>Authority check that tolerates an ENet peer while it is connecting or has been
+	/// disconnected. Node.IsMultiplayerAuthority() asks ENet for its local peer id and logs an error
+	/// when ENet is inactive, which can otherwise happen every frame on a player node.</summary>
+	public static bool HasAuthority(Node? node)
+	{
+		if (node == null) return false;
+		MultiplayerPeer? peer = node.Multiplayer.MultiplayerPeer;
+		if (peer is ENetMultiplayerPeer &&
+			peer.GetConnectionStatus() != MultiplayerPeer.ConnectionStatus.Connected)
+			return false;
+		return node.IsMultiplayerAuthority();
+	}
+
 	/// <summary>True only for the person sitting at this machine (never for a bot the host simulates).</summary>
 	public static bool IsLocalHuman(Node? player) =>
-		player != null && player.IsMultiplayerAuthority() && !player.HasMeta(BotMeta);
+		player != null && HasAuthority(player) && !player.HasMeta(BotMeta);
 }

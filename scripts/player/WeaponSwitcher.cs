@@ -202,7 +202,7 @@ public partial class WeaponSwitcher : Node
 	/// are ignored then too).</summary>
 	public bool TryEquip(int index)
 	{
-		if (!_player.IsMultiplayerAuthority()) return false;
+		if (!PlayerIdentity.HasAuthority(_player)) return false;
 		if (index < 0 || index >= Loadout.Length) return false;
 		if (_health != null && _health.IsDead) return false;
 		ReplicatedWeaponIndex = index;
@@ -230,7 +230,7 @@ public partial class WeaponSwitcher : Node
 		// The hit-marker tick is a non-positional UI sound: only the person at this machine gets one
 		// (a bot the host simulates is 'authority' here too and must stay silent).
 		if (PlayerIdentity.IsLocalHuman(_player)) _hitMarker = BuildHitMarker();
-		if (_player.IsMultiplayerAuthority())
+		if (PlayerIdentity.HasAuthority(_player))
 		{
 			if (_health != null && KeepAmmoPerWeapon) _health.Respawned += OnRespawned;
 		}
@@ -259,7 +259,7 @@ public partial class WeaponSwitcher : Node
 
 	public override void _Process(double delta)
 	{
-		if (!_player.IsMultiplayerAuthority()) return;
+		if (!PlayerIdentity.HasAuthority(_player)) return;
 
 		// While the pause menu is open no gameplay key or button reaches this weapon (the timers
 		// below still run, so a reload that was already under way finishes normally).

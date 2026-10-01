@@ -11,6 +11,7 @@ public partial class LanSession : Node
 
 	public bool IsHosting { get; private set; }
 	public string GameName { get; private set; } = string.Empty;
+	private string _sessionId = string.Empty;
 	private PacketPeerUdp? _broadcastPeer;
 	private ulong _nextBroadcastMs;
 
@@ -23,6 +24,7 @@ public partial class LanSession : Node
 
 		Multiplayer.MultiplayerPeer = peer;
 		IsHosting = true;
+		_sessionId = Guid.NewGuid().ToString("N");
 		GameName = string.IsNullOrWhiteSpace(gameName) ? "Wraith Run LAN" : gameName.Trim();
 		_broadcastPeer = new PacketPeerUdp();
 		_broadcastPeer.SetBroadcastEnabled(true);
@@ -82,6 +84,7 @@ public partial class LanSession : Node
         string ip = GetAdvertisedAddress();
         string json = Json.Stringify(new Godot.Collections.Dictionary
         {
+            ["session"] = _sessionId,
             ["name"] = GameName,
             ["host"] = ip,
             ["players"] = Multiplayer.GetPeers().Length + 1,

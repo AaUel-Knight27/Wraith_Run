@@ -192,7 +192,7 @@ public partial class WeaponAttachment : Node3D
 		// muzzle position, tuners etc. all still work) but stay invisible on the device that owns
 		// this player. IsMultiplayerAuthority() is per-machine, so a remote peer's copy of this same
 		// node/property always evaluates false and renders this player's weapon normally.
-		_hideVisuals = HiddenFromOwner && IsMultiplayerAuthority();
+		_hideVisuals = HiddenFromOwner && PlayerIdentity.HasAuthority(this);
 
 		var attachment = new BoneAttachment3D
 		{

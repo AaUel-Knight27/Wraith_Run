@@ -224,8 +224,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="fix hud system, add sound system editor" />
-    <MESSAGE value="added team death match game mode" />
     <MESSAGE value="sounds, camera, dev debug tools bug fix" />
     <MESSAGE value="sound effects and rooms sound" />
     <MESSAGE value="adding more sound effects and fixing sound effects" />
@@ -249,7 +247,9 @@
     <MESSAGE value="texture materials" />
     <MESSAGE value="fixed overlying bug on the menu" />
     <MESSAGE value="cleaned respawn system and textures bug" />
-    <option name="LAST_COMMIT_MESSAGE" value="cleaned respawn system and textures bug" />
+    <MESSAGE value="created all the 7 modes and edit the bots" />
+    <MESSAGE value="audio and mesh fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="audio and mesh fix" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
