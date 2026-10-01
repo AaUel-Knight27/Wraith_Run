@@ -38,7 +38,8 @@ public static class BotRoster
 		_nextId = IdBase;
 	}
 
-	/// <summary>"Vex [A]" for a bot (E/N/A = level), "Player 12345" for a person.</summary>
+	/// <summary>"Vex [A]" for a bot (E/N/A = level), the account name for a person ("Player 12345"
+	/// until their card has arrived).</summary>
 	public static string DisplayName(long id)
 	{
 		if (Names.TryGetValue(id, out string? name))
@@ -48,6 +49,7 @@ public static class BotRoster
 				tag = level == (int)BotDifficulty.Easy ? "E" : level == (int)BotDifficulty.Advanced ? "A" : "N";
 			return $"{name} [{tag}]";
 		}
-		return $"Player {id}";
+		// A person: their account name once their card has reached this machine.
+		return PlayerDirectory.NameOf(id) ?? $"Player {id}";
 	}
 }

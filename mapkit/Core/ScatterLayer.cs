@@ -3,18 +3,6 @@ using Godot;
 
 namespace WraithRun.MapKit;
 
-/// <summary>One entry in a ScatterLayer's weighted pool.</summary>
-[Tool]
-[GlobalClass]
-public partial class ScatterEntry : Resource
-{
-    [Export] public PropDefinition? Prop { get; set; }
-
-    /// <summary>Relative chance of this entry vs the layer's other entries.</summary>
-    [Export(PropertyHint.Range, "0.01,10,0.01,or_greater")]
-    public float Weight { get; set; } = 1.0f;
-}
-
 /// <summary>
 /// Scatters a mix of props across ground. Used for rubble/rocks/dead trees on war-torn ground, crates
 /// in a yard, grass clumps — any "many small things" layer. Density is per square metre so the same

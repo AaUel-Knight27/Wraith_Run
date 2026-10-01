@@ -16,6 +16,7 @@ using Godot;
 public partial class TeamIndicator : Label3D
 {
     private long _ownerPeerId;
+    private int _nameVersion = -1;
     private bool _stateKnown;
     private bool _lastVisible;
     private bool _lastAlly;
@@ -38,6 +39,14 @@ public partial class TeamIndicator : Label3D
 
     public override void _Process(double delta)
     {
+        // A player's account name arrives over the network a moment after they spawn (and can
+        // change), so refresh the text whenever the directory changes - not just once in _Ready.
+        if (_nameVersion != PlayerDirectory.Version)
+        {
+            _nameVersion = PlayerDirectory.Version;
+            Text = BotRoster.DisplayName(_ownerPeerId);
+        }
+
         MatchManager? match = MatchManager.Instance;
         bool relevant = match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch
             && match.TeamIndicators && _ownerPeerId != Multiplayer.GetUniqueId();

@@ -47,8 +47,18 @@ public partial class LanMenu : Control
 	private readonly RandomNumberGenerator _menuMusicRng = new();
 	private int _menuMusicIndex = -1;
 
+	/// <summary>The menus are laid out for a 1280x720 canvas (64px margins, 300px tiles, 54pt buttons).
+	/// The project's base viewport is smaller (it is sized for the HUD), which squeezed the side panels
+	/// over the 3D stage. While a menu is on screen the window's content scale is set to the size the
+	/// menus were drawn for, and put back when the menu scene is left so the HUD is unaffected.</summary>
+	private static readonly Vector2I MenuDesignSize = new(1280, 720);
+	private Window? _menuWindow;
+
 	public override void _Ready()
 	{
+		_menuWindow = GetWindow();
+		_menuWindow.ContentScaleSize = MenuDesignSize;
+
 		_refreshTimer = new Timer { WaitTime = 0.5, OneShot = false };
 		_refreshTimer.Timeout += PollDiscovery;
 		AddChild(_refreshTimer);
@@ -152,20 +162,14 @@ public partial class LanMenu : Control
 		BeginScreen(null);
 
 		CharacterData? op = OperatorInfo.Find(PlayerProfile.OperatorId);
-		WeaponData? weapon = OperatorInfo.FindWeapon(PlayerProfile.WeaponName);
+		WeaponData? weapon = OperatorInfo.FindWeapon(PlayerProfile.StartingWeaponName);
 
-		// The selected operator, live in 3D, in the middle of the screen: drag to spin, scroll or
-		// pinch to zoom, double-click / double-tap to reset. Added first so every button draws
-		// over it.
+		// The selected operator, live in 3D, in the middle of the screen, holding the starting
+		// weapon. Added first so every button draws over it.
 		var stage = new OperatorStage();
 		MenuStyle.Place(stage, 0.335f, 0.10f, 0.665f, 0.985f, 0, 0, 0, 0);
 		_contentRoot.AddChild(stage);
 		stage.ShowOperator(op, weapon);
-
-		var hint = MenuStyle.Text("Drag to rotate  |  scroll or pinch to zoom", 13, MenuStyle.TextMuted,
-			MenuStyle.Medium, HorizontalAlignment.Center);
-		MenuStyle.Place(hint, 0.335f, 1, 0.665f, 1, 0, -30, 0, -10);
-		_contentRoot.AddChild(hint);
 
 		AddTopIcons(includeSettings: true, reopen: ShowMain);
 
@@ -184,17 +188,20 @@ public partial class LanMenu : Control
 			16, MenuStyle.TextDim));
 		right.AddChild(operatorTile);
 
-		Button weaponTile = MenuStyle.Tile(new Vector2(300, 118), ShowWeapons, out VBoxContainer weaponBox);
+		// Opens the weapon sets. The tile shows what the active set starts you with.
+		Button weaponTile = MenuStyle.Tile(new Vector2(300, 118), ShowWeaponSets, out VBoxContainer weaponBox);
 		weaponBox.AddChild(MenuStyle.Text("STARTING WEAPON", 14, MenuStyle.Accent, MenuStyle.Bold));
-		weaponBox.AddChild(MenuStyle.Text(
-			weapon == null ? PlayerProfile.WeaponName.ToUpperInvariant() : weapon.WeaponName.ToUpperInvariant(),
-			32, MenuStyle.TextMain, MenuStyle.Bold));
-		weaponBox.AddChild(MenuStyle.Text(
-			weapon == null ? string.Empty
-				: weapon.FireMode == WeaponData.FireModeType.Melee
-					? $"{weapon.BodyDamage:0} dmg  |  melee"
-					: $"{weapon.BodyDamage:0} dmg  |  {weapon.FireRateRPM:0} rpm  |  {weapon.MagazineSize} rd",
-			16, MenuStyle.TextDim));
+		var weaponName = MenuStyle.Text(
+			weapon == null ? PlayerProfile.StartingWeaponName.ToUpperInvariant() : weapon.WeaponName.ToUpperInvariant(),
+			32, MenuStyle.TextMain, MenuStyle.Bold);
+		weaponName.ClipText = true;
+		weaponBox.AddChild(weaponName);
+		var setLine = MenuStyle.Text(
+			$"{PlayerProfile.GetSetName(PlayerProfile.ActiveWeaponSet).ToUpperInvariant()}"
+				+ (weapon == null ? string.Empty : $"  |  {weapon.BodyDamage:0} dmg"),
+			16, MenuStyle.TextDim);
+		setLine.ClipText = true;
+		weaponBox.AddChild(setLine);
 		right.AddChild(weaponTile);
 
 		// Left column: PLAY and TRAIN, name only.
@@ -224,13 +231,41 @@ public partial class LanMenu : Control
 		new OperatorScreen(previewId, ShowCustomize).Build(_contentRoot);
 	}
 
-	private void ShowWeapons()
+	// Weapons, three steps: the three sets -> one set (name + its weapons) -> the weapon for one slot.
+	// Back goes up one step; CONTINUE on the set screen goes straight back to the main menu.
+
+	private void ShowWeaponSets()
 	{
 		if (_terminalCleanupDone) return;
 		BeginScreen(ShowMain);
-		AddHeader("CHOOSE WEAPON", ShowMain);
-		AddTopIcons(includeSettings: true, reopen: ShowWeapons);
-		new WeaponScreen().Build(_contentRoot);
+		AddHeader("WEAPON SETS", ShowMain);
+		AddTopIcons(includeSettings: true, reopen: ShowWeaponSets);
+		new WeaponSetsScreen(set => ShowWeaponSet(set, null)).Build(_contentRoot);
+	}
+
+	private void ShowWeaponSet(int set, WeaponSlot? selected)
+	{
+		if (_terminalCleanupDone) return;
+		var screen = new WeaponSetScreen(set, selected,
+			slot => ShowWeaponPicker(set, slot),
+			ShowMain);
+		// Back keeps a half-typed name, then goes up to the three sets.
+		Action back = () => { screen.Leave(); ShowWeaponSets(); };
+		BeginScreen(back);
+		AddHeader("WEAPON SET", back);
+		AddTopIcons(includeSettings: true, reopen: () => ShowWeaponSet(set, screen.SelectedSlot));
+		screen.Build(_contentRoot);
+	}
+
+	private void ShowWeaponPicker(int set, WeaponSlot slot)
+	{
+		if (_terminalCleanupDone) return;
+		var screen = new WeaponPickerScreen(set, slot, () => ShowWeaponSet(set, slot));
+		// Back closes the "coming soon" popup first, then returns to the set.
+		BeginScreen(screen.Back);
+		AddHeader("CHOOSE WEAPON", screen.Back);
+		AddTopIcons(includeSettings: true, reopen: () => ShowWeaponPicker(set, slot));
+		screen.Build(_contentRoot);
 	}
 
 	/// <summary>Reached from the operator screen; going back returns there, on the same operator.</summary>
@@ -813,6 +848,15 @@ public partial class LanMenu : Control
 
 	public override void _ExitTree()
 	{
+		if (_menuWindow != null && GodotObject.IsInstanceValid(_menuWindow))
+		{
+			// Back to the size the project (and so the HUD) is authored for.
+			_menuWindow.ContentScaleSize = new Vector2I(
+				ProjectSettings.GetSetting("display/window/size/viewport_width", 845).AsInt32(),
+				ProjectSettings.GetSetting("display/window/size/viewport_height", 480).AsInt32());
+			_menuWindow = null;
+		}
+
 		// Usually already complete via LeaveForGame. This covers application shutdown or an
 		// external scene change without ever attempting a second cleanup.
 		RunTerminalCleanup();

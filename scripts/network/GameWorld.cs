@@ -24,6 +24,7 @@ public partial class GameWorld : Node3D
         Multiplayer.PeerConnected += OnPeerConnected;
         Multiplayer.PeerDisconnected += OnPeerDisconnected;
         MatchManager.Instance?.EnsureSessionActive();
+        CareerTracker.Instance?.BeginMatch();
         bool wantBots = false;
         if (Multiplayer.IsServer())
         {

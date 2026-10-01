@@ -23,6 +23,10 @@ public partial class WeaponData : Resource
 	[Export] public float RecoilHorizontal { get; set; }
 	[Export] public float RecoilRecoveryMs { get; set; }
 	[Export] public string WeaponClass { get; set; } = string.Empty;
+
+	/// <summary>Two short sentences for the lobby's weapon description panel: what the weapon is
+	/// for and what to expect from it. Plain text; numbers come from the stats, not from here.</summary>
+	[Export(PropertyHint.MultilineText)] public string Description { get; set; } = string.Empty;
 	[Export(PropertyHint.File, "*.glb,*.gltf,*.tscn")] public string ModelScenePath { get; set; } = string.Empty;
 
 	// ---------------------------------------------------------------------------------------

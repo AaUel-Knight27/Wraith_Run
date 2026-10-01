@@ -10,7 +10,12 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mapkit/Core/ScatterLayer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/mapkit/Core/ScatterLayer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mapkit/Outdoor/OutdoorMapBuilder.cs" beforeDir="false" afterPath="$PROJECT_DIR$/mapkit/Outdoor/OutdoorMapBuilder.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/project.godot" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -220,9 +225,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="working on simple map and making the game more stable and functationable" />
-    <MESSAGE value="weapon animation and sound fix &amp; godot loop animation fix" />
-    <MESSAGE value="camera position and player delay logging system fixed" />
     <MESSAGE value="removing debloated files." />
     <MESSAGE value="adding key to the gameplay so I can check every weapons systems." />
     <MESSAGE value="fix weapon holding problem&#10;add menu screen&#10;fix sound stabilization and character animation" />
@@ -245,7 +247,10 @@
     <MESSAGE value="add bots with different skills and abilities" />
     <MESSAGE value="rebuild match Result" />
     <MESSAGE value="remove unneccessary files" />
-    <option name="LAST_COMMIT_MESSAGE" value="remove unneccessary files" />
+    <MESSAGE value="edited bots and entire game to add sound system" />
+    <MESSAGE value="added materials to the maps." />
+    <MESSAGE value="add Player account and Status board system" />
+    <option name="LAST_COMMIT_MESSAGE" value="add Player account and Status board system" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

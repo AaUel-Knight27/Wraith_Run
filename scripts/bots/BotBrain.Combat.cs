@@ -15,7 +15,8 @@ public partial class BotBrain
 		}
 	}
 
-	// Indexed like WeaponSwitcher.Loadout: AK-47, M4, P90, Glock 19, Desert Eagle, Shotgun, Karambit, Bazooka.
+	// Indexed like WeaponSwitcher.Loadout: AK-47, M4, P90, Glock 19, Desert Eagle, Shotgun, Karambit, Bazooka,
+	// Kriss Vector.
 	private static readonly WeaponInfo[] WeaponTable =
 	{
 		new WeaponInfo(6.0f, 45.0f),
@@ -26,6 +27,7 @@ public partial class BotBrain
 		new WeaponInfo(0.0f, 9.0f),
 		new WeaponInfo(0.0f, 2.0f),
 		new WeaponInfo(0.0f, 1.0f),
+		new WeaponInfo(3.0f, 28.0f),
 	};
 
 	private const int GlockIndex = 3;
@@ -62,13 +64,14 @@ public partial class BotBrain
 	/// <summary>Picks what this bot carries this life. Weak bots choose more oddly, like beginners do.</summary>
 	private void PickLoadout()
 	{
-		// weights over: AK-47, M4, P90, Glock, Desert Eagle, Shotgun
+		// weights over the Loadout indices: AK-47, M4, P90, Glock, Desert Eagle, Shotgun, (Karambit and
+		// Bazooka are never a bot's main weapon), Kriss Vector
 		float[] weights;
 		switch (Level)
 		{
-			case BotDifficulty.Easy: weights = new float[] { 20, 15, 20, 15, 10, 20 }; break;
-			case BotDifficulty.Advanced: weights = new float[] { 42, 42, 10, 0, 0, 6 }; break;
-			default: weights = new float[] { 30, 30, 20, 5, 5, 10 }; break;
+			case BotDifficulty.Easy: weights = new float[] { 20, 15, 20, 15, 10, 20, 0, 0, 12 }; break;
+			case BotDifficulty.Advanced: weights = new float[] { 42, 42, 10, 0, 0, 6, 0, 0, 10 }; break;
+			default: weights = new float[] { 30, 30, 20, 5, 5, 10, 0, 0, 15 }; break;
 		}
 		_primary = WeightedIndex(weights);
 		_secondary = _primary == GlockIndex ? 0 : GlockIndex;

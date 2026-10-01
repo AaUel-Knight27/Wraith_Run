@@ -19,6 +19,7 @@ public static class RespawnPointSelector
 	private const float GroundRayStartHeight = 50.0f;
 	private const float GroundRayLength = 100.0f;
 	private const float SpawnGroundClearance = 0.1f;
+	private const float MaxGroundHeight = 1.0f;
 	private const int DefaultCandidateCount = 32;
 
 	public static Vector3 Select(CharacterBody3D player, Vector3 deathPosition, float halfExtent,
@@ -99,6 +100,9 @@ public static class RespawnPointSelector
 		if (result.Count == 0) return false;
 
 		var hit = (Vector3)result["position"];
+		// The ray comes from high above, so over a wall, pillar or container it lands on the TOP of it.
+		// Ground in every map is within about a metre of y = 0; anything higher is not somewhere to respawn.
+		if (hit.Y > MaxGroundHeight) return false;
 		grounded = new Vector3(hit.X, hit.Y + SpawnGroundClearance, hit.Z);
 		return true;
 	}

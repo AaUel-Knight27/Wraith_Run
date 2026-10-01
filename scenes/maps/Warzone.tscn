@@ -1,5 +1,42 @@
 [gd_scene format=3 uid="uid://7mdq3uo7gkyc"]
 
+[ext_resource type="Texture2D" uid="uid://21bs1lluw2vn" path="res://art/materials/tex/Concrete044B_Color.jpg" id="wz_Concrete044B_c"]
+[ext_resource type="Texture2D" uid="uid://boqhcrx0n5vsv" path="res://art/materials/tex/Concrete044B_Normal.jpg" id="wz_Concrete044B_n"]
+[ext_resource type="Texture2D" uid="uid://bf0dqqv14ws70" path="res://art/materials/tex/Concrete044B_ORM.jpg" id="wz_Concrete044B_o"]
+[ext_resource type="Texture2D" uid="uid://ciko2mipu6ruu" path="res://art/materials/tex/Concrete044C_Color.jpg" id="wz_Concrete044C_c"]
+[ext_resource type="Texture2D" uid="uid://cx0w6irsytsx2" path="res://art/materials/tex/Concrete044C_Normal.jpg" id="wz_Concrete044C_n"]
+[ext_resource type="Texture2D" uid="uid://djtga0nu7gi7q" path="res://art/materials/tex/Concrete044C_ORM.jpg" id="wz_Concrete044C_o"]
+[ext_resource type="Texture2D" uid="uid://bylkkavmw4tnh" path="res://art/materials/tex/CorrugatedSteel002_Color.jpg" id="wz_CorrugatedSteel002_c"]
+[ext_resource type="Texture2D" uid="uid://ci6ww7qc30pl3" path="res://art/materials/tex/CorrugatedSteel002_Normal.jpg" id="wz_CorrugatedSteel002_n"]
+[ext_resource type="Texture2D" uid="uid://de5o5hgwtt1xu" path="res://art/materials/tex/CorrugatedSteel002_ORM.jpg" id="wz_CorrugatedSteel002_o"]
+[ext_resource type="Texture2D" uid="uid://sktc56hvcwu" path="res://art/materials/tex/CorrugatedSteel006C_Color.jpg" id="wz_CorrugatedSteel006C_c"]
+[ext_resource type="Texture2D" uid="uid://cw7ts5a6nwexg" path="res://art/materials/tex/CorrugatedSteel006C_Normal.jpg" id="wz_CorrugatedSteel006C_n"]
+[ext_resource type="Texture2D" uid="uid://cyc3dte421fp3" path="res://art/materials/tex/CorrugatedSteel006C_ORM.jpg" id="wz_CorrugatedSteel006C_o"]
+[ext_resource type="Texture2D" uid="uid://do2tuuev6fpys" path="res://art/materials/tex/CorrugatedSteel007B_Color.jpg" id="wz_CorrugatedSteel007B_c"]
+[ext_resource type="Texture2D" uid="uid://b3m0wifw26n2h" path="res://art/materials/tex/CorrugatedSteel007B_Normal.jpg" id="wz_CorrugatedSteel007B_n"]
+[ext_resource type="Texture2D" uid="uid://b8hmlwh4605w6" path="res://art/materials/tex/CorrugatedSteel007B_ORM.jpg" id="wz_CorrugatedSteel007B_o"]
+[ext_resource type="Texture2D" uid="uid://d3ieuernytrqh" path="res://art/materials/tex/CorrugatedSteel007C_Color.jpg" id="wz_CorrugatedSteel007C_c"]
+[ext_resource type="Texture2D" uid="uid://cejexhery4ya4" path="res://art/materials/tex/CorrugatedSteel007C_Normal.jpg" id="wz_CorrugatedSteel007C_n"]
+[ext_resource type="Texture2D" uid="uid://bnis3nym088u1" path="res://art/materials/tex/CorrugatedSteel007C_ORM.jpg" id="wz_CorrugatedSteel007C_o"]
+[ext_resource type="Texture2D" uid="uid://cw67myvdgc2bq" path="res://art/materials/tex/CorrugatedSteel008C_Color.jpg" id="wz_CorrugatedSteel008C_c"]
+[ext_resource type="Texture2D" uid="uid://xuuyeqwk6ijp" path="res://art/materials/tex/CorrugatedSteel008C_Normal.jpg" id="wz_CorrugatedSteel008C_n"]
+[ext_resource type="Texture2D" uid="uid://464wrn4vceud" path="res://art/materials/tex/CorrugatedSteel008C_ORM.jpg" id="wz_CorrugatedSteel008C_o"]
+[ext_resource type="Texture2D" uid="uid://c8y6b6uoeiphe" path="res://art/materials/tex/Ground054_Color.jpg" id="wz_Ground054_c"]
+[ext_resource type="Texture2D" uid="uid://nfr7skvfxduw" path="res://art/materials/tex/Ground054_Normal.jpg" id="wz_Ground054_n"]
+[ext_resource type="Texture2D" uid="uid://cn4ky4mrargn7" path="res://art/materials/tex/Ground054_ORM.jpg" id="wz_Ground054_o"]
+[ext_resource type="Texture2D" uid="uid://cqrw65co1a0ni" path="res://art/materials/tex/Ground085_Color.jpg" id="wz_Ground085_c"]
+[ext_resource type="Texture2D" uid="uid://dbtqbcjh51p2h" path="res://art/materials/tex/Ground085_Normal.jpg" id="wz_Ground085_n"]
+[ext_resource type="Texture2D" uid="uid://uu20b5nusvf5" path="res://art/materials/tex/Ground085_ORM.jpg" id="wz_Ground085_o"]
+[ext_resource type="Texture2D" uid="uid://bt3aub1wbmlkd" path="res://art/materials/tex/Ground106_Color.jpg" id="wz_Ground106_c"]
+[ext_resource type="Texture2D" uid="uid://d15dls74v750j" path="res://art/materials/tex/Ground106_Normal.jpg" id="wz_Ground106_n"]
+[ext_resource type="Texture2D" uid="uid://day533q85cl8q" path="res://art/materials/tex/Ground106_ORM.jpg" id="wz_Ground106_o"]
+[ext_resource type="Texture2D" uid="uid://cr7qax3g84g4h" path="res://art/materials/tex/Metal022_Color.jpg" id="wz_Metal022_c"]
+[ext_resource type="Texture2D" uid="uid://cd6xft2as5vyc" path="res://art/materials/tex/Metal022_Normal.jpg" id="wz_Metal022_n"]
+[ext_resource type="Texture2D" uid="uid://b82xhc1mvdpc" path="res://art/materials/tex/Metal022_ORM.jpg" id="wz_Metal022_o"]
+[ext_resource type="Texture2D" uid="uid://boh5m4wyqqeii" path="res://art/materials/tex/Metal041C_Color.jpg" id="wz_Metal041C_c"]
+[ext_resource type="Texture2D" uid="uid://dtjakgqj0jglj" path="res://art/materials/tex/Metal041C_Normal.jpg" id="wz_Metal041C_n"]
+[ext_resource type="Texture2D" uid="uid://dmgnab5v8xvjb" path="res://art/materials/tex/Metal041C_ORM.jpg" id="wz_Metal041C_o"]
+
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.3, 0.27, 0.26, 1)
 sky_horizon_color = Color(0.62, 0.47, 0.32, 1)
@@ -26,8 +63,21 @@ fog_density = 0.012
 fog_sky_affect = 0.4
 
 [sub_resource type="StandardMaterial3D" id="sr_0"]
-albedo_color = Color(0.115, 0.105, 0.092, 1)
-roughness = 0.95
+albedo_color = Color(0.8, 0.76, 0.72, 1)
+albedo_texture = ExtResource("wz_Ground085_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_Ground085_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_Ground085_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_Ground085_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_Ground085_o")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="BoxMesh" id="sr_11"]
 size = Vector3(62, 0.4, 62)
@@ -36,8 +86,21 @@ size = Vector3(62, 0.4, 62)
 size = Vector3(62, 0.4, 62)
 
 [sub_resource type="StandardMaterial3D" id="sr_2"]
-albedo_color = Color(0.2, 0.195, 0.185, 1)
-roughness = 0.9
+albedo_color = Color(0.7, 0.68, 0.66, 1)
+albedo_texture = ExtResource("wz_Concrete044C_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_Concrete044C_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_Concrete044C_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_Concrete044C_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_Concrete044C_o")
+uv1_scale = Vector3(0.3333, 0.3333, 0.3333)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="BoxMesh" id="sr_14"]
 size = Vector3(62, 7, 1)
@@ -52,8 +115,21 @@ size = Vector3(1, 7, 60)
 size = Vector3(1, 7, 60)
 
 [sub_resource type="StandardMaterial3D" id="sr_1"]
-albedo_color = Color(0.32, 0.31, 0.29, 1)
-roughness = 0.88
+albedo_color = Color(0.85, 0.82, 0.78, 1)
+albedo_texture = ExtResource("wz_Concrete044B_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_Concrete044B_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_Concrete044B_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_Concrete044B_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_Concrete044B_o")
+uv1_scale = Vector3(0.3333, 0.3333, 0.3333)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="BoxMesh" id="sr_18"]
 size = Vector3(0.6, 6.3, 0.8)
@@ -68,9 +144,21 @@ size = Vector3(0.8, 6.3, 0.6)
 size = Vector3(0.8, 6.3, 0.6)
 
 [sub_resource type="StandardMaterial3D" id="sr_3"]
-albedo_color = Color(0.42, 0.19, 0.1, 1)
-metallic = 0.25
-roughness = 0.7
+albedo_color = Color(0.85, 0.82, 0.78, 1)
+albedo_texture = ExtResource("wz_CorrugatedSteel002_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_CorrugatedSteel002_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_CorrugatedSteel002_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_CorrugatedSteel002_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_CorrugatedSteel002_o")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="BoxMesh" id="sr_22"]
 size = Vector3(6.06, 2.59, 2.44)
@@ -79,19 +167,55 @@ size = Vector3(6.06, 2.59, 2.44)
 size = Vector3(6.06, 2.59, 2.44)
 
 [sub_resource type="StandardMaterial3D" id="sr_4"]
-albedo_color = Color(0.22, 0.25, 0.17, 1)
-metallic = 0.2
-roughness = 0.72
+albedo_color = Color(0.85, 0.82, 0.78, 1)
+albedo_texture = ExtResource("wz_CorrugatedSteel006C_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_CorrugatedSteel006C_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_CorrugatedSteel006C_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_CorrugatedSteel006C_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_CorrugatedSteel006C_o")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="StandardMaterial3D" id="sr_5"]
-albedo_color = Color(0.13, 0.22, 0.3, 1)
-metallic = 0.25
-roughness = 0.7
+albedo_color = Color(0.85, 0.82, 0.78, 1)
+albedo_texture = ExtResource("wz_CorrugatedSteel007B_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_CorrugatedSteel007B_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_CorrugatedSteel007B_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_CorrugatedSteel007B_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_CorrugatedSteel007B_o")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="StandardMaterial3D" id="sr_6"]
-albedo_color = Color(0.44, 0.37, 0.24, 1)
-metallic = 0.22
-roughness = 0.72
+albedo_color = Color(0.85, 0.82, 0.78, 1)
+albedo_texture = ExtResource("wz_CorrugatedSteel008C_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_CorrugatedSteel008C_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_CorrugatedSteel008C_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_CorrugatedSteel008C_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_CorrugatedSteel008C_o")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="BoxMesh" id="sr_24"]
 size = Vector3(14, 0.45, 12)
@@ -160,9 +284,21 @@ size = Vector3(3.2, 0.6, 1.4)
 size = Vector3(3.2, 0.6, 1.4)
 
 [sub_resource type="StandardMaterial3D" id="sr_8"]
-albedo_color = Color(0.26, 0.26, 0.27, 1)
-metallic = 0.55
-roughness = 0.55
+albedo_color = Color(0.75, 0.75, 0.78, 1)
+albedo_texture = ExtResource("wz_Metal022_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_Metal022_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_Metal022_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_Metal022_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_Metal022_o")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="BoxMesh" id="sr_46"]
 size = Vector3(0.35, 5.6, 0.35)
@@ -195,8 +331,21 @@ size = Vector3(3, 1.05, 0.65)
 size = Vector3(3, 1.05, 0.65)
 
 [sub_resource type="StandardMaterial3D" id="sr_7"]
-albedo_color = Color(0.38, 0.34, 0.24, 1)
-roughness = 0.95
+albedo_color = Color(0.9, 0.84, 0.72, 1)
+albedo_texture = ExtResource("wz_Ground054_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_Ground054_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_Ground054_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_Ground054_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_Ground054_o")
+uv1_scale = Vector3(0.8333, 0.8333, 0.8333)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="BoxMesh" id="sr_56"]
 size = Vector3(3.4, 0.95, 0.75)
@@ -211,9 +360,21 @@ size = Vector3(0.75, 0.95, 2.4)
 size = Vector3(0.75, 0.95, 2.4)
 
 [sub_resource type="StandardMaterial3D" id="sr_9"]
-albedo_color = Color(0.075, 0.07, 0.068, 1)
-metallic = 0.3
-roughness = 0.65
+albedo_color = Color(0.78, 0.74, 0.7, 1)
+albedo_texture = ExtResource("wz_CorrugatedSteel007C_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_CorrugatedSteel007C_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_CorrugatedSteel007C_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_CorrugatedSteel007C_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_CorrugatedSteel007C_o")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="BoxMesh" id="sr_60"]
 size = Vector3(4.3, 1.05, 1.85)
@@ -227,6 +388,22 @@ size = Vector3(2, 0.85, 1.7)
 [sub_resource type="BoxShape3D" id="sr_63"]
 size = Vector3(2, 0.85, 1.7)
 
+[sub_resource type="StandardMaterial3D" id="wz_drum_red"]
+albedo_color = Color(0.85, 0.4, 0.28, 1)
+albedo_texture = ExtResource("wz_Metal041C_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_Metal041C_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_Metal041C_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_Metal041C_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_Metal041C_o")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
+
 [sub_resource type="CylinderMesh" id="sr_64"]
 top_radius = 0.3
 bottom_radius = 0.3
@@ -239,9 +416,20 @@ height = 0.9
 radius = 0.3
 
 [sub_resource type="StandardMaterial3D" id="sr_10"]
-albedo_color = Color(0.55, 0.26, 0.06, 1)
-metallic = 0.1
-roughness = 0.7
+albedo_color = Color(1, 0.62, 0.35, 1)
+albedo_texture = ExtResource("wz_Metal041C_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_Metal041C_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_Metal041C_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_Metal041C_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_Metal041C_o")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="CylinderMesh" id="sr_66"]
 top_radius = 0.55
@@ -264,6 +452,23 @@ rings = 1
 [sub_resource type="CylinderShape3D" id="sr_69"]
 height = 5.0
 radius = 0.6
+
+[sub_resource type="StandardMaterial3D" id="wz_crater"]
+albedo_color = Color(0.55, 0.5, 0.46, 1)
+albedo_texture = ExtResource("wz_Ground106_c")
+metallic = 1.0
+metallic_texture = ExtResource("wz_Ground106_o")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("wz_Ground106_o")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("wz_Ground106_n")
+ao_enabled = true
+ao_texture = ExtResource("wz_Ground106_o")
+uv1_scale = Vector3(0.3333, 0.3333, 0.3333)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
 
 [sub_resource type="CylinderMesh" id="sr_70"]
 top_radius = 2.2
@@ -1765,7 +1970,7 @@ shape = SubResource("sr_63")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.5, 0.45, -22)
 
 [node name="Mesh" type="MeshInstance3D" parent="Props/Drum0" unique_id=641269548]
-material_override = SubResource("sr_3")
+material_override = SubResource("wz_drum_red")
 mesh = SubResource("sr_64")
 
 [node name="Collision" type="CollisionShape3D" parent="Props/Drum0" unique_id=983500330]
@@ -1795,7 +2000,7 @@ shape = SubResource("sr_65")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 0.45, -14)
 
 [node name="Mesh" type="MeshInstance3D" parent="Props/Drum3" unique_id=1333397216]
-material_override = SubResource("sr_3")
+material_override = SubResource("wz_drum_red")
 mesh = SubResource("sr_64")
 
 [node name="Collision" type="CollisionShape3D" parent="Props/Drum3" unique_id=432176225]
@@ -1825,7 +2030,7 @@ shape = SubResource("sr_65")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.2, 0.45, 16.7)
 
 [node name="Mesh" type="MeshInstance3D" parent="Props/Drum6" unique_id=1337782000]
-material_override = SubResource("sr_3")
+material_override = SubResource("wz_drum_red")
 mesh = SubResource("sr_64")
 
 [node name="Collision" type="CollisionShape3D" parent="Props/Drum6" unique_id=1415981244]
@@ -1855,7 +2060,7 @@ shape = SubResource("sr_65")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.45, -9)
 
 [node name="Mesh" type="MeshInstance3D" parent="Props/Drum9" unique_id=612853083]
-material_override = SubResource("sr_3")
+material_override = SubResource("wz_drum_red")
 mesh = SubResource("sr_64")
 
 [node name="Collision" type="CollisionShape3D" parent="Props/Drum9" unique_id=1302443817]
@@ -1893,27 +2098,27 @@ shape = SubResource("sr_69")
 
 [node name="Crater0" type="MeshInstance3D" parent="Props" unique_id=1834771914]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.05, -3)
-material_override = SubResource("sr_2")
+material_override = SubResource("wz_crater")
 mesh = SubResource("sr_70")
 
 [node name="Crater1" type="MeshInstance3D" parent="Props" unique_id=1454407197]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.05, 5)
-material_override = SubResource("sr_2")
+material_override = SubResource("wz_crater")
 mesh = SubResource("sr_71")
 
 [node name="Crater2" type="MeshInstance3D" parent="Props" unique_id=1563894563]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0.05, 8)
-material_override = SubResource("sr_2")
+material_override = SubResource("wz_crater")
 mesh = SubResource("sr_72")
 
 [node name="Crater3" type="MeshInstance3D" parent="Props" unique_id=1028921658]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.05, -8)
-material_override = SubResource("sr_2")
+material_override = SubResource("wz_crater")
 mesh = SubResource("sr_73")
 
 [node name="Crater4" type="MeshInstance3D" parent="Props" unique_id=233659461]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.05, -19)
-material_override = SubResource("sr_2")
+material_override = SubResource("wz_crater")
 mesh = SubResource("sr_74")
 
 [node name="SpawnPoints" type="Node3D" parent="." unique_id=168020038]

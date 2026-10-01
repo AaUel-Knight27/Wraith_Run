@@ -33,8 +33,12 @@ public static class GameSession
     {
         GameUiState.Reset();
         if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
+        // Bank the match into the career first: the result needs the still-running scene (team
+        // scores, scoreboard rows) and the still-open connection (to tell the others).
+        CareerTracker.Instance?.FinishMatch();
         tree.Root.GetNodeOrNull<LanSession>("LanSession")?.Stop();
         MatchManager.Instance?.EndSession();
         MatchStats.Instance?.Reset();
+        CareerTracker.Instance?.EndSession();
     }
 }

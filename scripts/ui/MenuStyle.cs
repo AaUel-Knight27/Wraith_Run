@@ -600,6 +600,51 @@ public static class MenuStyle
         return button;
     }
 
+    /// <summary>Wide tab with an icon and a label (the weapon category row: ASSAULT RIFLES, SMGS...).
+    /// Filled red when it is the open one.</summary>
+    public static Button WideTab(string icon, string label, bool selected, Action onPressed)
+    {
+        var button = NewButton(new Vector2(0, 42), onPressed);
+        StyleButton(button,
+            Box(selected ? SelectedFill : RowFill, selected ? SelectedBorder : Hairline),
+            Box(selected ? SelectedFill : HoverFill, Border),
+            Box(PressFill, BorderHot),
+            Box(RowFill, Hairline));
+
+        var pad = Padding(14, 4);
+        button.AddChild(pad);
+        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 10);
+        pad.AddChild(row);
+        var glyph = Icon(icon, 34, 18, selected ? TextMain : Accent);
+        glyph.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(glyph);
+        var text = Text(label, 18, selected ? TextMain : TextDim, Bold);
+        text.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(text);
+        return button;
+    }
+
+    /// <summary>A tall whole-card button the caller fills (one per weapon set). Red-filled when it is
+    /// the active one. Returns the button; add rows to <paramref name="content"/>.</summary>
+    public static Button SetCard(bool active, Action onPressed, out VBoxContainer content)
+    {
+        var button = NewButton(new Vector2(0, 0), onPressed, UiSounds.Sound.Select);
+        button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        button.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        StyleButton(button,
+            Box(active ? SelectedFill : Ink, active ? SelectedBorder : Border, active ? 2 : 1),
+            Box(active ? SelectedFill : HoverFill, BorderHot, 2, 2, 10),
+            Box(PressFill, BorderHot),
+            Box(RowFill, Hairline));
+        var pad = Padding(16, 14);
+        button.AddChild(pad);
+        content = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        content.AddThemeConstantOverride("separation", 4);
+        pad.AddChild(content);
+        return button;
+    }
+
     /// <summary>Labelled thin bar: "FIRE RATE ........ 600".</summary>
     public static Control StatBar(string label, string value, float fraction)
     {

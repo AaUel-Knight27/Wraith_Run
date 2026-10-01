@@ -50,6 +50,7 @@ public partial class PlayerHud : CanvasLayer
         _killFeed = KillFeed.From(this);
         if (_killFeed != null) _killFeed.KillAnnounced += OnKillAnnounced;
         if (_score != null) _score.MultiKillAwarded += OnMultiKillAwarded;
+        if (CareerTracker.Instance != null) CareerTracker.Instance.MedalEarned += OnMedalEarned;
         if (MatchManager.Instance != null) MatchManager.Instance.MatchEnded += OnMatchEnded;
         Build();
         BuildMenus(player);
@@ -73,6 +74,7 @@ public partial class PlayerHud : CanvasLayer
     {
         if (_killFeed != null && IsInstanceValid(_killFeed)) _killFeed.KillAnnounced -= OnKillAnnounced;
         if (_score != null && IsInstanceValid(_score)) _score.MultiKillAwarded -= OnMultiKillAwarded;
+        if (CareerTracker.Instance != null) CareerTracker.Instance.MedalEarned -= OnMedalEarned;
         if (MatchManager.Instance != null && IsInstanceValid(MatchManager.Instance))
             MatchManager.Instance.MatchEnded -= OnMatchEnded;
     }
@@ -181,6 +183,10 @@ public partial class PlayerHud : CanvasLayer
     /// <summary>Owner-only line: the multi-kill bonus is decided on the killer's device, so only the
     /// killer sees this extra confirmation.</summary>
     private void OnMultiKillAwarded(int bonusPoints) => AddFeedLine($"MULTI-KILL  +{bonusPoints}");
+
+    /// <summary>Owner-only line for a notable career medal (Revenge, Long Shot, Double Kill...). Medals
+    /// are decided on the killer's device, so only the killer sees it.</summary>
+    private void OnMedalEarned(string label) => AddFeedLine($"MEDAL  {label}");
 
     /// <summary>Fires once, locally, when this peer's own MatchManager tally hits the score limit
     /// or the clock runs out (see MatchManager.EndMatch) - every peer reaches the same result

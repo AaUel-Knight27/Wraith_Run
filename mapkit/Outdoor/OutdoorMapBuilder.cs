@@ -64,9 +64,20 @@ public partial class OutdoorMapBuilder : Node3D
     [Export(PropertyHint.Range, "0,15,0.5")] public float ScatterRoadClearance { get; set; } = 1.5f;
     [Export] public bool ScatterCastsShadows { get; set; }
 
+    /// <summary>Nothing is scattered within this many metres of a spawn point, so nobody spawns inside a prop.</summary>
+    [Export(PropertyHint.Range, "0,20,0.5")] public float ScatterSpawnClearance { get; set; } = 5.0f;
+
+    [ExportGroup("Perimeter")]
+    /// <summary>Solid wall round the map edge so nobody can walk off into the void. Empty = no wall.</summary>
+    [Export] public SurfaceLayer? PerimeterSurface { get; set; }
+    [Export(PropertyHint.Range, "0,20,0.5")] public float PerimeterHeight { get; set; } = 5.0f;
+    [Export(PropertyHint.Range, "0.2,4,0.1")] public float PerimeterThickness { get; set; } = 1.0f;
+
     [ExportGroup("Spawns")]
     [Export(PropertyHint.Range, "2,64,1")] public int SpawnCount { get; set; } = 8;
     [Export(PropertyHint.Range, "1,10,0.1")] public float SpawnRingFraction { get; set; } = 0.8f;
+
+    private const float RoadLift = 0.05f;
 
     private Polyline2D? _road;
     private readonly List<Polyline2D> _trenches = new();
@@ -113,6 +124,7 @@ public partial class OutdoorMapBuilder : Node3D
         BuildTerrain(batch, noise);
         if (_road != null && RoadSurface != null) BuildRoad(batch);
         BuildScatter(batch, visual, collision, owner, genFolder);
+        BuildPerimeter(batch);
         BuildSpawns(spawns, owner);
 
         Func<object, Material?> resolve = mat => mat is SurfaceLayer sl ? sl.CreateMaterial() : null;
@@ -265,6 +277,9 @@ public partial class OutdoorMapBuilder : Node3D
         {
             float dist = road.Length * i / (samples - 1);
             SampleAlong(road, dist, out Vector2 pos, out Vector2 tangent, out float y);
+            // The terrain is flattened to exactly the road's height under it, so the road quads sit a
+            // hair above it. Coplanar surfaces flicker (z-fighting); 5 cm is invisible but stable.
+            y += RoadLift;
             Vector2 normal = new(-tangent.Y, tangent.X);
             Vector2 lp = pos + normal * half;
             Vector2 rp = pos - normal * half;
@@ -340,9 +355,14 @@ public partial class OutdoorMapBuilder : Node3D
         };
 
         float roadClear = _road != null ? RoadWidth * 0.5f + BorderWidth + ScatterRoadClearance : -1.0f;
+        List<Vector2> spawnPoints = SpawnPositions();
 
         bool Mask(Vector2 p)
         {
+            foreach (Vector2 sp in spawnPoints)
+            {
+                if (p.DistanceTo(sp) < ScatterSpawnClearance) return false;
+            }
             if (_road != null)
             {
                 _road.Nearest(p, out float dist, out _, out _);
@@ -376,7 +396,72 @@ public partial class OutdoorMapBuilder : Node3D
         }
     }
 
+    // ---------------------------------------------------------------- perimeter
+
+    private void BuildPerimeter(MeshBatcher batch)
+    {
+        if (PerimeterSurface == null || PerimeterHeight <= 0.0f) return;
+
+        float sizeX = Mathf.Max(1, Mathf.RoundToInt(SizeMeters.X / CellSize)) * CellSize;
+        float sizeZ = Mathf.Max(1, Mathf.RoundToInt(SizeMeters.Y / CellSize)) * CellSize;
+        float hx = sizeX * 0.5f;
+        float hz = sizeZ * 0.5f;
+        float t = PerimeterThickness;
+        float bottom = -3.0f;
+        float top = PerimeterHeight;
+        SurfaceLayer s = PerimeterSurface;
+
+        // North and south strips include the corners; east and west fit between them.
+        AddWallStrip(batch, s, new Vector3(-hx - t, bottom, -hz - t), new Vector3(hx + t, top, -hz));
+        AddWallStrip(batch, s, new Vector3(-hx - t, bottom, hz), new Vector3(hx + t, top, hz + t));
+        AddWallStrip(batch, s, new Vector3(-hx - t, bottom, -hz), new Vector3(-hx, top, hz));
+        AddWallStrip(batch, s, new Vector3(hx, bottom, -hz), new Vector3(hx + t, top, hz));
+    }
+
+    /// <summary>A long box cut into chunk-sized pieces, so each piece lands in the chunk it sits in (keeps culling effective).</summary>
+    private void AddWallStrip(MeshBatcher batch, SurfaceLayer surface, Vector3 min, Vector3 max)
+    {
+        bool alongX = (max.X - min.X) >= (max.Z - min.Z);
+        float length = alongX ? max.X - min.X : max.Z - min.Z;
+        float step = Mathf.Max(ChunkSize, 4.0f);
+        int pieces = Mathf.Max(1, Mathf.CeilToInt(length / step));
+        for (int i = 0; i < pieces; i++)
+        {
+            float a = length * i / pieces;
+            float b = length * (i + 1) / pieces;
+            Vector3 lo = min;
+            Vector3 hi = max;
+            if (alongX)
+            {
+                lo.X = min.X + a;
+                hi.X = min.X + b;
+            }
+            else
+            {
+                lo.Z = min.Z + a;
+                hi.Z = min.Z + b;
+            }
+            batch.AddBoxMinMax(surface, lo, hi, BoxFaces.All, collide: true);
+        }
+    }
+
     // ---------------------------------------------------------------- spawns
+
+    /// <summary>Ground-plane positions of the spawn ring. BuildSpawns uses the same maths.</summary>
+    private List<Vector2> SpawnPositions()
+    {
+        var list = new List<Vector2>();
+        if (SpawnCount <= 0) return list;
+        float sizeX = Mathf.Max(1, Mathf.RoundToInt(SizeMeters.X / CellSize)) * CellSize;
+        float sizeZ = Mathf.Max(1, Mathf.RoundToInt(SizeMeters.Y / CellSize)) * CellSize;
+        float radius = Mathf.Min(sizeX, sizeZ) * 0.5f * Mathf.Clamp(SpawnRingFraction, 0.1f, 1.0f);
+        for (int i = 0; i < SpawnCount; i++)
+        {
+            float a = Mathf.Tau * i / SpawnCount;
+            list.Add(new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * radius);
+        }
+        return list;
+    }
 
     private void BuildSpawns(Node3D parent, Node owner)
     {

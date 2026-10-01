@@ -50,8 +50,7 @@ public partial class SettingsManager : Node
     {
         "move_forward", "move_back", "move_left", "move_right",
         "jump", "crouch", "sprint", "reload",
-        "weapon_1", "weapon_2", "weapon_3", "weapon_4",
-        "weapon_5", "weapon_6", "weapon_7", "weapon_8",
+        "weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5",
     };
 
     public static readonly Vector2I[] ResolutionPresets =
@@ -355,7 +354,8 @@ public partial class SettingsManager : Node
 
     private static string KeybindConfigKey(string action) => "keybind_" + action;
 
-    /// <summary>Human label for a RebindableActions entry, e.g. "weapon_3" -> "Weapon Slot 3".</summary>
+    /// <summary>Human label for a RebindableActions entry, e.g. "weapon_3" -> "Pistol". The weapon keys
+    /// follow the carried weapon set: two primaries, a pistol, a knife, and a heavy weapon (Demolisher only).</summary>
     public static string DisplayName(string action) => action switch
     {
         "move_forward" => "Move Forward",
@@ -366,6 +366,11 @@ public partial class SettingsManager : Node
         "crouch" => "Crouch",
         "sprint" => "Sprint",
         "reload" => "Reload",
+        "weapon_1" => "Primary Weapon 1",
+        "weapon_2" => "Primary Weapon 2",
+        "weapon_3" => "Pistol",
+        "weapon_4" => "Knife",
+        "weapon_5" => "Heavy Weapon",
         _ when action.StartsWith("weapon_") => $"Weapon Slot {action.Substring("weapon_".Length)}",
         _ => action,
     };

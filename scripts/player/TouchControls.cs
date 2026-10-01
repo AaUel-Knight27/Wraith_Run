@@ -31,7 +31,6 @@ public partial class TouchControls : CanvasLayer
     private Control _root = null!;
     private bool _sprintOn;
     private bool _adsOn;
-    private int _weaponCursor;
     private VirtualJoystick? _joystick;
     private Button? _sprintButton;
 
@@ -192,11 +191,11 @@ public partial class TouchControls : CanvasLayer
         }
 
         var swap = NewButton("SWAP", "rifle", size);
-        swap.ButtonDown += () => Pulse(NextLoadoutAction());
+        swap.ButtonDown += () => Pulse("weapon_cycle_next");
         slots.Add(swap);
 
         var melee = NewButton("MELEE", null, size);
-        melee.ButtonDown += () => Pulse(MeleeLoadoutAction());
+        melee.ButtonDown += () => Pulse(QuickMeleeAction);
         slots.Add(melee);
 
         float totalHeight = slots.Count * size + (slots.Count - 1) * ClusterGap;
@@ -232,24 +231,10 @@ public partial class TouchControls : CanvasLayer
         button.ButtonUp += () => { if (holdMode()) Input.ActionRelease(action); };
     }
 
-    /// <summary>weapon_N action for the next slot in WeaponSwitcher's loadout, cycling back to 0
-    /// at the end. Reads WeaponSwitcher.Loadout directly (made internal for this) instead of
-    /// hardcoding a count, so this keeps working if the loadout is ever reordered or extended.</summary>
-    private string NextLoadoutAction()
-    {
-        _weaponCursor = (_weaponCursor + 1) % WeaponSwitcher.Loadout.Length;
-        return $"weapon_{_weaponCursor + 1}";
-    }
-
-    /// <summary>Jumps straight to whichever loadout slot is melee (the Karambit) rather than
-    /// cycling to it - a dedicated "quick melee" button is only useful if it is actually quick.</summary>
-    private string MeleeLoadoutAction()
-    {
-        int index = Array.IndexOf(WeaponSwitcher.Loadout, "Karambit");
-        if (index < 0) index = 0; // Loadout changed and no longer has a melee entry - stay safe.
-        _weaponCursor = index;
-        return $"weapon_{index + 1}";
-    }
+    /// <summary>The knife is always the fourth carried slot (Primary 1, Primary 2, Pistol, Knife), so
+    /// the quick-melee button is simply the number-4 key. SWAP uses weapon_cycle_next, which
+    /// WeaponSwitcher steps through the carried set.</summary>
+    private const string QuickMeleeAction = "weapon_4";
 
     /// <summary>One-frame press so Input.IsActionJustPressed picks it up exactly like a key tap,
     /// for actions read that way (reload, weapon switching, tap-fire, tap-ADS).</summary>

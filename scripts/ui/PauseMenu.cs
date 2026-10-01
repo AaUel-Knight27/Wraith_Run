@@ -529,15 +529,17 @@ public partial class PauseMenu : CanvasLayer
 
     private void BuildWeaponSet(VBoxContainer column)
     {
-        var panel = MenuStyle.Panel("WEAPON SET", "rifle", out var body);
-        body.AddChild(Wrapped("Choose a weapon to equip it - the same as pressing its number key.", 17, MenuStyle.TextMuted));
-        if (_weapons == null)
+        // The header carries the set's own name (SHORT RANGE, MID RANGE... or whatever the player typed).
+        var panel = MenuStyle.Panel($"WEAPON SET  -  {PlayerProfile.GetSetName(PlayerProfile.ActiveWeaponSet).ToUpperInvariant()}",
+            "rifle", out var body);
+        if (_weapons == null || _weapons.CarriedCount == 0)
         {
             body.AddChild(Wrapped("No weapon system on this player.", 20, MenuStyle.TextDim));
             column.AddChild(panel);
             return;
         }
-        for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++) body.AddChild(WeaponRow(i));
+        // One row per carried weapon, numbered like the keys that select them.
+        for (int slot = 0; slot < _weapons.CarriedCount; slot++) body.AddChild(WeaponRow(slot, _weapons.GetCarriedIndex(slot)));
         column.AddChild(panel);
     }
 
@@ -563,7 +565,9 @@ public partial class PauseMenu : CanvasLayer
         return box;
     }
 
-    private Button WeaponRow(int index)
+    /// <summary>One carried weapon. <paramref name="slot"/> is its number key minus one;
+    /// <paramref name="index"/> is its place in WeaponSwitcher.Loadout.</summary>
+    private Button WeaponRow(int slot, int index)
     {
         WeaponData? data = _weapons!.GetWeaponData(index);
         bool equipped = index == _weapons.EquippedIndex;
@@ -596,10 +600,10 @@ public partial class PauseMenu : CanvasLayer
         row.AddThemeConstantOverride("separation", 14);
         pad.AddChild(row);
 
-        var slot = MenuStyle.Text((index + 1).ToString(), 30, equipped ? MenuStyle.Accent : MenuStyle.TextMuted, MenuStyle.Bold, HorizontalAlignment.Center);
-        slot.CustomMinimumSize = new Vector2(30, 0);
-        slot.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-        row.AddChild(slot);
+        var slotLabel = MenuStyle.Text((slot + 1).ToString(), 30, equipped ? MenuStyle.Accent : MenuStyle.TextMuted, MenuStyle.Bold, HorizontalAlignment.Center);
+        slotLabel.CustomMinimumSize = new Vector2(30, 0);
+        slotLabel.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(slotLabel);
 
         var names = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter, MouseFilter = Control.MouseFilterEnum.Ignore };
         names.AddThemeConstantOverride("separation", -3);
@@ -667,11 +671,15 @@ public partial class PauseMenu : CanvasLayer
         }
         else
         {
+            // Only what this player carries - the weapons of the active set - not the whole armoury.
+            var carriedIndices = new List<int>();
+            for (int slot = 0; slot < _weapons.CarriedCount; slot++) carriedIndices.Add(_weapons.GetCarriedIndex(slot));
+
             var used = new HashSet<int>();
             foreach ((string title, string[] classes) in ItemGroups)
             {
                 var indices = new List<int>();
-                for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++)
+                foreach (int i in carriedIndices)
                 {
                     WeaponData? data = _weapons.GetWeaponData(i);
                     if (data != null && Array.IndexOf(classes, data.WeaponClass) >= 0) indices.Add(i);
@@ -683,7 +691,7 @@ public partial class PauseMenu : CanvasLayer
             // Anything in the loadout that does not match a group above still gets listed, so a new
             // weapon class can never silently vanish from this screen.
             var other = new List<int>();
-            for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++) if (!used.Contains(i)) other.Add(i);
+            foreach (int i in carriedIndices) if (!used.Contains(i)) other.Add(i);
             if (other.Count > 0)
             {
                 carriedBody.AddChild(MenuStyle.Text("OTHER", 16, MenuStyle.TextMuted, MenuStyle.Bold));

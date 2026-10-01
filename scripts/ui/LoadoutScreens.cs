@@ -1,8 +1,8 @@
 using System;
 using Godot;
 
-/// <summary>Shared scaffolding for the three lobby sub-screens: a left list/controls panel, a
-/// 3D stage in the middle, a details panel on the right.</summary>
+/// <summary>Shared scaffolding for the lobby sub-screens: a left list/controls panel, a 3D stage in
+/// the middle, a details panel on the right. (The weapon screens live in WeaponScreens.cs.)</summary>
 internal static class LoadoutLayout
 {
     public static HBoxContainer Root(Control host)
@@ -12,6 +12,25 @@ internal static class LoadoutLayout
         MenuStyle.Place(layout, 0, 0, 1, 1, 64, 124, -64, -60);
         host.AddChild(layout);
         return layout;
+    }
+
+    /// <summary>Same area as <see cref="Root"/>, but with a row of tabs across the top and the three
+    /// columns underneath it.</summary>
+    public static HBoxContainer RootWithTabs(Control host, out HBoxContainer tabs)
+    {
+        var outer = new VBoxContainer();
+        outer.AddThemeConstantOverride("separation", 10);
+        MenuStyle.Place(outer, 0, 0, 1, 1, 64, 124, -64, -60);
+        host.AddChild(outer);
+
+        tabs = new HBoxContainer();
+        tabs.AddThemeConstantOverride("separation", 6);
+        outer.AddChild(tabs);
+
+        var columns = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        columns.AddThemeConstantOverride("separation", 20);
+        outer.AddChild(columns);
+        return columns;
     }
 
     /// <summary>Framed 3D stage with rotate buttons underneath, sized to take the leftover width.</summary>
@@ -35,16 +54,8 @@ internal static class LoadoutLayout
         var controls = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
         controls.AddThemeConstantOverride("separation", 14);
         controls.AddChild(MenuStyle.IconButton("chevron-left", 22, MenuStyle.TextMain, () => stage.Nudge(-35.0f)));
-        var caption = MenuStyle.Text("ROTATE", 15, MenuStyle.TextMuted, MenuStyle.SemiBold);
-        caption.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-        controls.AddChild(caption);
         controls.AddChild(MenuStyle.IconButton("chevron-right", 22, MenuStyle.TextMain, () => stage.Nudge(35.0f)));
         column.AddChild(controls);
-        var hint = MenuStyle.Text("Drag to rotate  |  scroll or pinch to zoom  |  double-tap to reset",
-            13, MenuStyle.TextMuted, MenuStyle.Medium, HorizontalAlignment.Center);
-        hint.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        hint.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        column.AddChild(hint);
         return stage;
     }
 
@@ -155,7 +166,7 @@ public sealed class OperatorScreen
 
     private void ShowPreview()
     {
-        _stage.ShowOperator(PreviewData, OperatorInfo.FindWeapon(PlayerProfile.WeaponName));
+        _stage.ShowOperator(PreviewData, OperatorInfo.FindWeapon(PlayerProfile.StartingWeaponName));
         RebuildDetails();
     }
 
@@ -230,14 +241,15 @@ public sealed class OperatorScreen
         _details.AddChild(MenuStyle.Wrapped(
             op == null ? "Plain kit. Plays exactly like the game did before operators." : OperatorInfo.ClassBlurb(op.Class),
             16, MenuStyle.TextMuted));
+        if (op != null && op.Class == CharacterData.CharacterClass.Demolisher)
+        {
+            var heavy = new HBoxContainer();
+            heavy.AddChild(MenuStyle.Chip("HEAVY WEAPON SLOT", MenuStyle.Accent, 12));
+            _details.AddChild(heavy);
+        }
         _details.AddChild(MenuStyle.Divider());
 
-        if (op == null)
-        {
-            _details.AddChild(MenuStyle.Wrapped("Pick an operator from the list to see their skill, buffs and drawbacks.",
-                17, MenuStyle.TextDim));
-        }
-        else
+        if (op != null)
         {
             _details.AddChild(LoadoutLayout.SectionLabel("SKILL", MenuStyle.TextMuted));
             _details.AddChild(MenuStyle.Text(op.SkillName, 24, MenuStyle.TextMain, MenuStyle.SemiBold));
@@ -286,137 +298,6 @@ public sealed class OperatorScreen
 }
 
 // ==============================================================================================
-// CHOOSE WEAPON
-// ==============================================================================================
-
-/// <summary>Every weapon in the registry with its model turning in the middle and its numbers on
-/// the right. Weapons the match does not carry yet are listed too, tagged PLANNED.</summary>
-public sealed class WeaponScreen
-{
-    private string _previewName = PlayerProfile.WeaponName;
-    private VBoxContainer _list = null!;
-    private VBoxContainer _details = null!;
-    private VBoxContainer _equipHost = null!;
-    private OperatorStage _stage = null!;
-    private Button? _previewRow;
-
-    public void Build(Control host)
-    {
-        HBoxContainer layout = LoadoutLayout.Root(host);
-
-        PanelContainer listPanel = MenuStyle.Panel("WEAPONS", "rifle", out VBoxContainer listBody);
-        listPanel.CustomMinimumSize = new Vector2(320, 0);
-        layout.AddChild(listPanel);
-        _list = LoadoutLayout.ScrollColumn(listBody, 6);
-
-        _stage = LoadoutLayout.StageColumn(layout);
-
-        PanelContainer detailPanel = MenuStyle.Panel("STATS", "crosshair", out VBoxContainer detailBody);
-        detailPanel.CustomMinimumSize = new Vector2(350, 0);
-        layout.AddChild(detailPanel);
-        _details = LoadoutLayout.ScrollColumn(detailBody, 8);
-        _equipHost = new VBoxContainer();
-        detailBody.AddChild(_equipHost);
-
-        if (OperatorInfo.FindWeapon(_previewName) == null && OperatorInfo.Weapons.Count > 0)
-            _previewName = OperatorInfo.Weapons[0].WeaponName;
-
-        RebuildList();
-        ShowPreview();
-        _previewRow?.CallDeferred(Control.MethodName.GrabFocus);
-    }
-
-    private WeaponData? PreviewData => OperatorInfo.FindWeapon(_previewName);
-
-    private void Preview(string name)
-    {
-        _previewName = name;
-        RebuildList();
-        ShowPreview();
-    }
-
-    private void Equip()
-    {
-        PlayerProfile.WeaponName = _previewName;
-        RebuildList();
-        RebuildDetails();
-    }
-
-    private void ShowPreview()
-    {
-        WeaponData? weapon = PreviewData;
-        if (weapon != null) _stage.ShowWeapon(weapon);
-        RebuildDetails();
-    }
-
-    private void RebuildList()
-    {
-        LoadoutLayout.Clear(_list);
-        _previewRow = null;
-        foreach (WeaponData weapon in OperatorInfo.Weapons)
-        {
-            string name = weapon.WeaponName;
-            bool previewed = name == _previewName;
-            string tag = null;
-            Color tagColor = MenuStyle.Accent;
-            if (name == PlayerProfile.WeaponName) tag = "STARTING";
-            else if (!OperatorInfo.IsInMatchLoadout(weapon)) { tag = "PLANNED"; tagColor = MenuStyle.TextMuted; }
-
-            Button row = MenuStyle.ListRow(OperatorInfo.WeaponIcon(weapon), 56, 22,
-                name.ToUpperInvariant(), weapon.WeaponClass, previewed, () => Preview(name), null, tag, tagColor);
-            _list.AddChild(row);
-            if (previewed) _previewRow = row;
-        }
-    }
-
-    private void RebuildDetails()
-    {
-        LoadoutLayout.Clear(_details);
-        LoadoutLayout.Clear(_equipHost);
-        WeaponData? weapon = PreviewData;
-        if (weapon == null) return;
-
-        _details.AddChild(MenuStyle.Text(weapon.WeaponClass.ToUpperInvariant(), 17, MenuStyle.Accent, MenuStyle.Bold));
-        _details.AddChild(MenuStyle.Text(weapon.WeaponName.ToUpperInvariant(), 38, MenuStyle.TextMain, MenuStyle.Bold));
-
-        var chips = new HBoxContainer();
-        chips.AddThemeConstantOverride("separation", 6);
-        chips.AddChild(MenuStyle.Chip(OperatorInfo.FireModeName(weapon), MenuStyle.TextDim, 12));
-        bool inMatch = OperatorInfo.IsInMatchLoadout(weapon);
-        chips.AddChild(MenuStyle.Chip(inMatch ? "IN MATCH" : "PLANNED", inMatch ? MenuStyle.TextMain : MenuStyle.TextMuted, 12));
-        _details.AddChild(chips);
-        if (!inMatch)
-        {
-            _details.AddChild(MenuStyle.Wrapped(
-                $"Not in the match weapon list yet - a match will start you on the {PlayerProfile.DefaultWeaponName} instead.",
-                15, MenuStyle.TextMuted));
-        }
-        _details.AddChild(MenuStyle.Divider());
-
-        bool melee = weapon.FireMode == WeaponData.FireModeType.Melee;
-        _details.AddChild(MenuStyle.StatBar("DAMAGE", $"{weapon.BodyDamage:0}", weapon.BodyDamage / 100.0f));
-        _details.AddChild(MenuStyle.StatBar("HEADSHOT",
-            weapon.HeadshotDamage >= 100.0f ? "KILL" : $"{weapon.HeadshotDamage:0}",
-            weapon.HeadshotDamage / 100.0f));
-        _details.AddChild(MenuStyle.StatBar(melee ? "SWING RATE" : "FIRE RATE", $"{weapon.FireRateRPM:0}", weapon.FireRateRPM / 1100.0f));
-        if (!melee)
-        {
-            _details.AddChild(MenuStyle.StatBar("MAGAZINE", $"{weapon.MagazineSize} + {weapon.MaxReserveAmmo}", weapon.MagazineSize / 50.0f));
-            _details.AddChild(MenuStyle.StatBar("RELOAD", $"{weapon.ReloadTime:0.0}s", weapon.ReloadTime / 3.5f));
-            _details.AddChild(MenuStyle.StatBar("RECOIL", $"{weapon.RecoilVertical:0.0}", weapon.RecoilVertical / 8.0f));
-            if (weapon.PelletsPerShot > 1)
-                _details.AddChild(MenuStyle.StatBar("PELLETS", $"x{weapon.PelletsPerShot}", weapon.PelletsPerShot / 12.0f));
-        }
-
-        bool starting = _previewName == PlayerProfile.WeaponName;
-        Button equip = MenuStyle.Primary(starting ? "STARTING WEAPON" : "EQUIP", new Vector2(0, 58), Equip, UiSounds.Sound.Select);
-        equip.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        equip.Disabled = starting;
-        _equipHost.AddChild(equip);
-    }
-}
-
-// ==============================================================================================
 // CUSTOMIZE PLAYER
 // ==============================================================================================
 
@@ -459,17 +340,10 @@ public sealed class CustomizeScreen
         info.AddChild(MenuStyle.Text(op == null ? "NO CLASS" : OperatorInfo.ClassName(op.Class), 17, MenuStyle.Accent, MenuStyle.Bold));
         info.AddChild(MenuStyle.Text(OperatorInfo.Callsign(op), 36, MenuStyle.TextMain, MenuStyle.Bold));
         info.AddChild(MenuStyle.Text(OperatorInfo.RealName(op), 17, MenuStyle.TextDim));
-        info.AddChild(MenuStyle.Divider());
-        info.AddChild(MenuStyle.Wrapped(
-            "Colours are saved per operator. Go back and pick another operator to dress someone else.",
-            16, MenuStyle.TextMuted));
-        info.AddChild(MenuStyle.Wrapped(
-            "Other players do not see your colours yet - only you do, in the lobby and in your own matches.",
-            16, MenuStyle.TextMuted));
         infoBody.AddChild(MenuStyle.Outline("RESET COLORS", Reset));
 
         RebuildGroups();
-        _stage.ShowOperator(op, OperatorInfo.FindWeapon(PlayerProfile.WeaponName));
+        _stage.ShowOperator(op, OperatorInfo.FindWeapon(PlayerProfile.StartingWeaponName));
     }
 
     private void Reset()

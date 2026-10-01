@@ -64,9 +64,8 @@ public static class GameUiState
         return $"{total / 60:00}:{total % 60:00}";
     }
 
-    /// <summary>Same wording the kill feed already uses ("Player 1"), so a name on the scoreboard
-    /// is recognisable in the feed. There is no player-name entry in the lobby yet; when there is,
-    /// this is the one place to change.</summary>
+    /// <summary>Same wording the kill feed already uses, so a name on the scoreboard is
+    /// recognisable in the feed: a bot's name, or a person's account name (see PlayerDirectory).</summary>
     public static string PlayerName(long peerId) => BotRoster.DisplayName(peerId);
 
     /// <summary>Kills per death. With zero deaths it is simply the kill count (a 5-0 game reads

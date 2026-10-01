@@ -511,8 +511,11 @@ public partial class WeaponAttachment : Node3D
 		return player;
 	}
 
+	/// <summary>Exists-check first: a sound that is not in the project (the old flesh-hit, Glock
+	/// fire and knife-swing placeholders were never part of the new audio pack) is a quiet null
+	/// instead of an engine error on every shot.</summary>
 	private static AudioStream? LoadStream(string path) =>
-		string.IsNullOrEmpty(path) ? null : ResourceLoader.Load<AudioStream>(path);
+		!string.IsNullOrEmpty(path) && ResourceLoader.Exists(path) ? ResourceLoader.Load<AudioStream>(path) : null;
 
 	/// <summary>Reciprocal of a node's global scale, so a child can cancel it out. Falls back to no
 	/// correction if the scale is degenerate rather than dividing by zero.</summary>
