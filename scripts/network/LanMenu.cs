@@ -47,18 +47,8 @@ public partial class LanMenu : Control
 	private readonly RandomNumberGenerator _menuMusicRng = new();
 	private int _menuMusicIndex = -1;
 
-	/// <summary>The menus are laid out for a 1280x720 canvas (64px margins, 300px tiles, 54pt buttons).
-	/// The project's base viewport is smaller (it is sized for the HUD), which squeezed the side panels
-	/// over the 3D stage. While a menu is on screen the window's content scale is set to the size the
-	/// menus were drawn for, and put back when the menu scene is left so the HUD is unaffected.</summary>
-	private static readonly Vector2I MenuDesignSize = new(1280, 720);
-	private Window? _menuWindow;
-
 	public override void _Ready()
 	{
-		_menuWindow = GetWindow();
-		_menuWindow.ContentScaleSize = MenuDesignSize;
-
 		_refreshTimer = new Timer { WaitTime = 0.5, OneShot = false };
 		_refreshTimer.Timeout += PollDiscovery;
 		AddChild(_refreshTimer);
@@ -67,7 +57,10 @@ public partial class LanMenu : Control
 		_contentRoot.SetAnchorsPreset(LayoutPreset.FullRect);
 		AddChild(_contentRoot);
 		StartMenuMusic();
-		ShowMain();
+		// A brand-new install starts by choosing a name and avatar; every launch after that goes
+		// straight to the main menu.
+		if (PlayerAccount.SetupDone) ShowMain();
+		else ShowAccountSetup(firstRun: true);
 	}
 
 	/// <summary>
@@ -162,16 +155,23 @@ public partial class LanMenu : Control
 		BeginScreen(null);
 
 		CharacterData? op = OperatorInfo.Find(PlayerProfile.OperatorId);
-		WeaponData? weapon = OperatorInfo.FindWeapon(PlayerProfile.StartingWeaponName);
+		WeaponData? weapon = OperatorInfo.FindWeapon(PlayerProfile.WeaponName);
 
-		// The selected operator, live in 3D, in the middle of the screen, holding the starting
-		// weapon. Added first so every button draws over it.
+		// The selected operator, live in 3D, in the middle of the screen: drag to spin, scroll or
+		// pinch to zoom, double-click / double-tap to reset. Added first so every button draws
+		// over it.
 		var stage = new OperatorStage();
 		MenuStyle.Place(stage, 0.335f, 0.10f, 0.665f, 0.985f, 0, 0, 0, 0);
 		_contentRoot.AddChild(stage);
 		stage.ShowOperator(op, weapon);
 
+		var hint = MenuStyle.Text("Drag to rotate  |  scroll or pinch to zoom", 13, MenuStyle.TextMuted,
+			MenuStyle.Medium, HorizontalAlignment.Center);
+		MenuStyle.Place(hint, 0.335f, 1, 0.665f, 1, 0, -30, 0, -10);
+		_contentRoot.AddChild(hint);
+
 		AddTopIcons(includeSettings: true, reopen: ShowMain);
+		AddProfileChip();
 
 		// Right column: what is equipped right now. Each tile opens its own screen; CUSTOMIZE
 		// lives beside EQUIP on the operator screen.
@@ -188,20 +188,17 @@ public partial class LanMenu : Control
 			16, MenuStyle.TextDim));
 		right.AddChild(operatorTile);
 
-		// Opens the weapon sets. The tile shows what the active set starts you with.
-		Button weaponTile = MenuStyle.Tile(new Vector2(300, 118), ShowWeaponSets, out VBoxContainer weaponBox);
+		Button weaponTile = MenuStyle.Tile(new Vector2(300, 118), ShowWeapons, out VBoxContainer weaponBox);
 		weaponBox.AddChild(MenuStyle.Text("STARTING WEAPON", 14, MenuStyle.Accent, MenuStyle.Bold));
-		var weaponName = MenuStyle.Text(
-			weapon == null ? PlayerProfile.StartingWeaponName.ToUpperInvariant() : weapon.WeaponName.ToUpperInvariant(),
-			32, MenuStyle.TextMain, MenuStyle.Bold);
-		weaponName.ClipText = true;
-		weaponBox.AddChild(weaponName);
-		var setLine = MenuStyle.Text(
-			$"{PlayerProfile.GetSetName(PlayerProfile.ActiveWeaponSet).ToUpperInvariant()}"
-				+ (weapon == null ? string.Empty : $"  |  {weapon.BodyDamage:0} dmg"),
-			16, MenuStyle.TextDim);
-		setLine.ClipText = true;
-		weaponBox.AddChild(setLine);
+		weaponBox.AddChild(MenuStyle.Text(
+			weapon == null ? PlayerProfile.WeaponName.ToUpperInvariant() : weapon.WeaponName.ToUpperInvariant(),
+			32, MenuStyle.TextMain, MenuStyle.Bold));
+		weaponBox.AddChild(MenuStyle.Text(
+			weapon == null ? string.Empty
+				: weapon.FireMode == WeaponData.FireModeType.Melee
+					? $"{weapon.BodyDamage:0} dmg  |  melee"
+					: $"{weapon.BodyDamage:0} dmg  |  {weapon.FireRateRPM:0} rpm  |  {weapon.MagazineSize} rd",
+			16, MenuStyle.TextDim));
 		right.AddChild(weaponTile);
 
 		// Left column: PLAY and TRAIN, name only.
@@ -220,6 +217,76 @@ public partial class LanMenu : Control
 		play.GrabFocus();
 	}
 
+	/// <summary>Top-left of the main menu: your avatar and name. Tap it to open your stat card.</summary>
+	private void AddProfileChip()
+	{
+		PlayerCard me = PlayerAccount.Current;
+		Button chip = MenuStyle.Tile(new Vector2(232, 64), ShowProfile, out VBoxContainer content);
+		var row = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+		row.AddThemeConstantOverride("separation", 12);
+		row.AddChild(AvatarView.Create(me, 40));
+		var texts = new VBoxContainer
+		{
+			SizeFlagsHorizontal = SizeFlags.ExpandFill,
+			SizeFlagsVertical = SizeFlags.ShrinkCenter,
+			MouseFilter = MouseFilterEnum.Ignore,
+		};
+		texts.AddThemeConstantOverride("separation", -4);
+		Label name = MenuStyle.Text(me.Name, 24, MenuStyle.TextMain, MenuStyle.Bold);
+		name.ClipText = true;
+		name.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+		texts.AddChild(name);
+		texts.AddChild(MenuStyle.Text("VIEW PROFILE", 13, MenuStyle.Accent, MenuStyle.Bold));
+		row.AddChild(texts);
+		content.AddChild(row);
+		MenuStyle.Place(chip, 0, 0, 0, 0, 56, 18, 56 + 232, 18 + 64);
+		_contentRoot.AddChild(chip);
+	}
+
+	/// <summary>Your own stat card: main stats, best weapons, medals. EDIT changes name and avatar.</summary>
+	private void ShowProfile()
+	{
+		if (_terminalCleanupDone) return;
+		BeginScreen(ShowMain);
+		AddHeader("PROFILE", ShowMain);
+		AddTopIcons(includeSettings: true, reopen: ShowProfile);
+
+		var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+		MenuStyle.Place(scroll, 0, 0, 1, 1, 64, 124, -64, -60);
+		_contentRoot.AddChild(scroll);
+		var column = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+		column.AddThemeConstantOverride("separation", 12);
+		scroll.AddChild(column);
+		column.AddChild(StatCard.Build(PlayerAccount.Current, isYou: true, wide: true,
+			onEdit: () => ShowAccountSetup(firstRun: false)));
+		// Debug builds only: look at a fully filled-in card without touching your real save.
+		if (OS.IsDebugBuild())
+			column.AddChild(MenuStyle.Outline("DEBUG: PREVIEW SAMPLE CARD", ShowSampleProfile));
+	}
+
+	private void ShowSampleProfile()
+	{
+		if (_terminalCleanupDone) return;
+		BeginScreen(ShowProfile);
+		AddHeader("SAMPLE CARD", ShowProfile);
+		AddTopIcons(includeSettings: false, reopen: null);
+		var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+		MenuStyle.Place(scroll, 0, 0, 1, 1, 64, 124, -64, -60);
+		_contentRoot.AddChild(scroll);
+		scroll.AddChild(StatCard.Build(SampleCard.Ash(), isYou: false, wide: true));
+	}
+
+	/// <summary>Create account (first launch, no way back until it is done) or edit it later.</summary>
+	private void ShowAccountSetup(bool firstRun)
+	{
+		if (_terminalCleanupDone) return;
+		Action? back = firstRun ? (Action?)null : ShowProfile;
+		BeginScreen(back);
+		AddHeader(firstRun ? "CREATE ACCOUNT" : "EDIT PROFILE", back);
+		AddTopIcons(includeSettings: false, reopen: null);
+		new AccountScreen(firstRun, onDone: firstRun ? (Action)ShowMain : ShowProfile).Build(_contentRoot);
+	}
+
 	private void ShowOperators() => ShowOperators(null);
 
 	private void ShowOperators(string? previewId)
@@ -231,41 +298,13 @@ public partial class LanMenu : Control
 		new OperatorScreen(previewId, ShowCustomize).Build(_contentRoot);
 	}
 
-	// Weapons, three steps: the three sets -> one set (name + its weapons) -> the weapon for one slot.
-	// Back goes up one step; CONTINUE on the set screen goes straight back to the main menu.
-
-	private void ShowWeaponSets()
+	private void ShowWeapons()
 	{
 		if (_terminalCleanupDone) return;
 		BeginScreen(ShowMain);
-		AddHeader("WEAPON SETS", ShowMain);
-		AddTopIcons(includeSettings: true, reopen: ShowWeaponSets);
-		new WeaponSetsScreen(set => ShowWeaponSet(set, null)).Build(_contentRoot);
-	}
-
-	private void ShowWeaponSet(int set, WeaponSlot? selected)
-	{
-		if (_terminalCleanupDone) return;
-		var screen = new WeaponSetScreen(set, selected,
-			slot => ShowWeaponPicker(set, slot),
-			ShowMain);
-		// Back keeps a half-typed name, then goes up to the three sets.
-		Action back = () => { screen.Leave(); ShowWeaponSets(); };
-		BeginScreen(back);
-		AddHeader("WEAPON SET", back);
-		AddTopIcons(includeSettings: true, reopen: () => ShowWeaponSet(set, screen.SelectedSlot));
-		screen.Build(_contentRoot);
-	}
-
-	private void ShowWeaponPicker(int set, WeaponSlot slot)
-	{
-		if (_terminalCleanupDone) return;
-		var screen = new WeaponPickerScreen(set, slot, () => ShowWeaponSet(set, slot));
-		// Back closes the "coming soon" popup first, then returns to the set.
-		BeginScreen(screen.Back);
-		AddHeader("CHOOSE WEAPON", screen.Back);
-		AddTopIcons(includeSettings: true, reopen: () => ShowWeaponPicker(set, slot));
-		screen.Build(_contentRoot);
+		AddHeader("CHOOSE WEAPON", ShowMain);
+		AddTopIcons(includeSettings: true, reopen: ShowWeapons);
+		new WeaponScreen().Build(_contentRoot);
 	}
 
 	/// <summary>Reached from the operator screen; going back returns there, on the same operator.</summary>
@@ -583,6 +622,8 @@ public partial class LanMenu : Control
 
 	private void BuildHostPane(Container right)
 	{
+		// Untouched default -> name the game after its host, so the LAN list reads "Alph's game".
+		if (_hostName == DefaultGameName) _hostName = $"{PlayerAccount.Name}'s game";
 		var panel = MenuStyle.Panel("HOST A GAME", "server", out var body);
 		panel.SizeFlagsVertical = SizeFlags.ExpandFill;
 		right.AddChild(panel);
@@ -674,7 +715,7 @@ public partial class LanMenu : Control
 		back.GrabFocus();
 	}
 
-	private void AddHeader(string title, Action back)
+	private void AddHeader(string title, Action? back)
 	{
 		var box = new VBoxContainer();
 		box.AddThemeConstantOverride("separation", 0);
@@ -682,14 +723,17 @@ public partial class LanMenu : Control
 			MenuStyle.Spaced(MenuStyle.SemiBold, 2)));
 		var row = new HBoxContainer();
 		row.AddThemeConstantOverride("separation", 10);
-		row.AddChild(MenuStyle.IconButton("arrow-left", 26, MenuStyle.Accent, back));
-		var divider = new ColorRect
+		if (back != null)
 		{
-			Color = MenuStyle.Hairline,
-			CustomMinimumSize = new Vector2(2, 30),
-			SizeFlagsVertical = SizeFlags.ShrinkCenter,
-		};
-		row.AddChild(divider);
+			row.AddChild(MenuStyle.IconButton("arrow-left", 26, MenuStyle.Accent, back));
+			var divider = new ColorRect
+			{
+				Color = MenuStyle.Hairline,
+				CustomMinimumSize = new Vector2(2, 30),
+				SizeFlagsVertical = SizeFlags.ShrinkCenter,
+			};
+			row.AddChild(divider);
+		}
 		row.AddChild(MenuStyle.Text(title, 36, MenuStyle.Accent, MenuStyle.Bold));
 		box.AddChild(row);
 		MenuStyle.Place(box, 0, 0, 0, 0, 56, 18, 56, 18);
@@ -848,15 +892,6 @@ public partial class LanMenu : Control
 
 	public override void _ExitTree()
 	{
-		if (_menuWindow != null && GodotObject.IsInstanceValid(_menuWindow))
-		{
-			// Back to the size the project (and so the HUD) is authored for.
-			_menuWindow.ContentScaleSize = new Vector2I(
-				ProjectSettings.GetSetting("display/window/size/viewport_width", 845).AsInt32(),
-				ProjectSettings.GetSetting("display/window/size/viewport_height", 480).AsInt32());
-			_menuWindow = null;
-		}
-
 		// Usually already complete via LeaveForGame. This covers application shutdown or an
 		// external scene change without ever attempting a second cleanup.
 		RunTerminalCleanup();

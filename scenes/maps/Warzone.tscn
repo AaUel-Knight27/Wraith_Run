@@ -2146,3 +2146,13 @@ transform = Transform3D(6.123234e-17, 0, -1, 0, 1, 0, 1, 0, 6.123234e-17, -27, 0
 
 [node name="Spawn7" type="Marker3D" parent="SpawnPoints" unique_id=1822972382 groups=["spawn_point"]]
 transform = Transform3D(6.123234e-17, 0, 1, 0, 1, 0, -1, 0, 6.123234e-17, 27, 0.15, 0)
+
+[node name="TeamSpawnAreas" type="Node3D" parent="." unique_id=637867222]
+
+[node name="TeamAlphaSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=550689656 groups=["team_spawn_area_0"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, -22)
+metadata/half_extent = Vector2(14, 7)
+
+[node name="TeamBravoSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=108330450 groups=["team_spawn_area_1"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 22)
+metadata/half_extent = Vector2(14, 7)

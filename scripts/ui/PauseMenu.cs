@@ -20,7 +20,7 @@ using System.Collections.Generic;
 /// </summary>
 public partial class PauseMenu : CanvasLayer
 {
-    private enum Section { Objectives, Map, WeaponSet, Items, Settings }
+    private enum Section { Objectives, Players, Map, WeaponSet, Items, Settings }
 
     /// <summary>Set by PlayerHud before the node enters the tree.</summary>
     public CharacterBody3D Player { get; set; } = null!;
@@ -37,6 +37,9 @@ public partial class PauseMenu : CanvasLayer
     private Control _content = null!;
     private Label _subtitle = null!;
     private Control? _modal;
+    // Set while a player's stat card is open: re-checks once a moment whether a fresher copy of that
+    // card has arrived over the network, and redraws it if so.
+    private Action? _cardRefresh;
 
     private bool _open;
     private bool _connectionLost;
@@ -134,6 +137,7 @@ public partial class PauseMenu : CanvasLayer
     {
         UpdateSubtitle();
         foreach (Action refresh in _live) refresh();
+        _cardRefresh?.Invoke();
     }
 
     /// <summary>"TEAM DEATHMATCH  -  03:07" under the title, so the mode and clock are visible from
@@ -286,6 +290,7 @@ public partial class PauseMenu : CanvasLayer
             if (_section == section) selected = button;
         }
         Item("check", "OBJECTIVES", Section.Objectives);
+        Item("users", "PLAYERS", Section.Players);
         Item("map", "MAP", Section.Map);
         Item("rifle", "WEAPON SET", Section.WeaponSet);
         Item("helmet-gear", "ITEMS", Section.Items);
@@ -309,6 +314,7 @@ public partial class PauseMenu : CanvasLayer
         switch (section)
         {
             case Section.Objectives: BuildScrolled(BuildObjectives); break;
+            case Section.Players: BuildScrolled(BuildPlayers); break;
             case Section.Map: BuildMap(); break;
             case Section.WeaponSet: BuildScrolled(BuildWeaponSet); break;
             case Section.Items: BuildScrolled(BuildItems); break;
@@ -487,6 +493,117 @@ public partial class PauseMenu : CanvasLayer
     }
 
     // -------------------------------------------------------------------------------------------
+    // PLAYERS - everyone in the match; tap one to open their stat card
+    // -------------------------------------------------------------------------------------------
+
+    private void BuildPlayers(VBoxContainer column)
+    {
+        var panel = MenuStyle.Panel("PLAYERS", "users", out var body);
+        body.AddChild(Wrapped("Tap a player to see their career: main stats, best weapons and medals.", 17, MenuStyle.TextMuted));
+
+        var list = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        list.AddThemeConstantOverride("separation", 8);
+        body.AddChild(list);
+        Label botNote = Wrapped(string.Empty, 16, MenuStyle.TextMuted);
+        body.AddChild(botNote);
+
+        // The list is rebuilt only when who is here (or what we know about them) changes, so a
+        // button you are about to press does not vanish from under your finger every quarter second.
+        string signature = string.Empty;
+        void Refresh()
+        {
+            long me = PlayerIdentity.IdOf(Player);
+            List<ScoreboardData.Row> rows = ScoreboardData.Collect(GetTree());
+            List<ScoreboardData.Row> humans = rows.FindAll(r => !BotRoster.IsBot(r.PeerId));
+            humans.Sort((a, b) => a.PeerId == me ? -1 : (b.PeerId == me ? 1 : a.PeerId.CompareTo(b.PeerId)));
+            int bots = rows.Count - humans.Count;
+
+            string now = $"{PlayerDirectory.Version}|{bots}|{string.Join(",", humans.ConvertAll(r => r.PeerId))}";
+            if (now == signature) return;
+            signature = now;
+
+            ClearChildren(list);
+            foreach (ScoreboardData.Row row in humans) list.AddChild(PlayerListRow(row, me));
+            botNote.Text = bots > 0
+                ? $"{bots} bot{(bots == 1 ? string.Empty : "s")} in this match. Bots have no career record."
+                : string.Empty;
+        }
+        Refresh();
+        _live.Add(() => { if (GodotObject.IsInstanceValid(list)) Refresh(); });
+        column.AddChild(panel);
+    }
+
+    private Control PlayerListRow(ScoreboardData.Row row, long me)
+    {
+        long id = row.PeerId;
+        bool known = PlayerDirectory.TryGet(id, out PlayerCard card);
+        Control avatar = known ? AvatarView.Create(card, 46) : AvatarView.CreateUnknown(46);
+        string detail = known
+            ? $"K/D {CareerStats.FormatKd(card.Stats.KdRatio)}  \u00b7  {CareerStats.FormatCount(card.Stats.Kills)} kills  \u00b7  {CareerStats.FormatCount(card.Stats.MatchesPlayed)} matches"
+            : "Stats not received yet";
+        return MenuStyle.PlayerRow(avatar, ScoreboardData.DisplayName(row, me), detail,
+            () => ShowPlayerCard(id), highlight: id == me);
+    }
+
+    /// <summary>Full-screen stat card for one player. Opens at once with what this machine already
+    /// has, asks that player for a fresh copy, and redraws when it arrives. Uses the same modal slot
+    /// as the quit question, so Esc / Back / BACK all close it the same way.</summary>
+    private void ShowPlayerCard(long peerId)
+    {
+        if (_connectionLost || !_open) return;
+        CloseModal();
+
+        long me = PlayerIdentity.IdOf(Player);
+        if (peerId != me) CareerTracker.Instance?.RequestFreshCard(peerId);
+
+        _modal = new Control { MouseFilter = Control.MouseFilterEnum.Stop };
+        MenuStyle.Fill(_modal);
+        var dim = new ColorRect { Color = new Color(0, 0, 0, 0.88f), MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Fill(dim);
+        _modal.AddChild(dim);
+
+        var column = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        column.AddThemeConstantOverride("separation", 10);
+        MenuStyle.Place(column, 0.5f, 0, 0.5f, 1, -410, 20, 410, -20);
+        _modal.AddChild(column);
+
+        Button back = MenuStyle.Card("arrow-left", "BACK", null, new Vector2(180, 54), CancelQuit,
+            titleSize: 24, iconSize: 24);
+        back.SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin;
+        column.AddChild(back);
+
+        var scroll = new ScrollContainer
+        {
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            MouseFilter = Control.MouseFilterEnum.Pass,
+        };
+        column.AddChild(scroll);
+        var host = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseFilter = Control.MouseFilterEnum.Ignore };
+        scroll.AddChild(host);
+
+        PlayerCard? shown = null;
+        bool drawn = false;
+        void Fill()
+        {
+            bool known = PlayerDirectory.TryGet(peerId, out PlayerCard card);
+            if (drawn && (known ? ReferenceEquals(card, shown) : shown == null)) return; // nothing new
+            drawn = true;
+            shown = known ? card : null;
+            ClearChildren(host);
+            host.AddChild(known
+                ? StatCard.Build(card, isYou: peerId == me, wide: true)
+                : StatCard.BuildUnavailable(BotRoster.DisplayName(peerId),
+                    "Waiting for their stats to arrive over the network..."));
+        }
+        Fill();
+        _cardRefresh = Fill;
+
+        _root.AddChild(_modal);
+        back.GrabFocus();
+    }
+
+    // -------------------------------------------------------------------------------------------
     // MAP
     // -------------------------------------------------------------------------------------------
 
@@ -529,17 +646,15 @@ public partial class PauseMenu : CanvasLayer
 
     private void BuildWeaponSet(VBoxContainer column)
     {
-        // The header carries the set's own name (SHORT RANGE, MID RANGE... or whatever the player typed).
-        var panel = MenuStyle.Panel($"WEAPON SET  -  {PlayerProfile.GetSetName(PlayerProfile.ActiveWeaponSet).ToUpperInvariant()}",
-            "rifle", out var body);
-        if (_weapons == null || _weapons.CarriedCount == 0)
+        var panel = MenuStyle.Panel("WEAPON SET", "rifle", out var body);
+        body.AddChild(Wrapped("Choose a weapon to equip it - the same as pressing its number key.", 17, MenuStyle.TextMuted));
+        if (_weapons == null)
         {
             body.AddChild(Wrapped("No weapon system on this player.", 20, MenuStyle.TextDim));
             column.AddChild(panel);
             return;
         }
-        // One row per carried weapon, numbered like the keys that select them.
-        for (int slot = 0; slot < _weapons.CarriedCount; slot++) body.AddChild(WeaponRow(slot, _weapons.GetCarriedIndex(slot)));
+        for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++) body.AddChild(WeaponRow(i));
         column.AddChild(panel);
     }
 
@@ -565,9 +680,7 @@ public partial class PauseMenu : CanvasLayer
         return box;
     }
 
-    /// <summary>One carried weapon. <paramref name="slot"/> is its number key minus one;
-    /// <paramref name="index"/> is its place in WeaponSwitcher.Loadout.</summary>
-    private Button WeaponRow(int slot, int index)
+    private Button WeaponRow(int index)
     {
         WeaponData? data = _weapons!.GetWeaponData(index);
         bool equipped = index == _weapons.EquippedIndex;
@@ -600,10 +713,10 @@ public partial class PauseMenu : CanvasLayer
         row.AddThemeConstantOverride("separation", 14);
         pad.AddChild(row);
 
-        var slotLabel = MenuStyle.Text((slot + 1).ToString(), 30, equipped ? MenuStyle.Accent : MenuStyle.TextMuted, MenuStyle.Bold, HorizontalAlignment.Center);
-        slotLabel.CustomMinimumSize = new Vector2(30, 0);
-        slotLabel.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-        row.AddChild(slotLabel);
+        var slot = MenuStyle.Text((index + 1).ToString(), 30, equipped ? MenuStyle.Accent : MenuStyle.TextMuted, MenuStyle.Bold, HorizontalAlignment.Center);
+        slot.CustomMinimumSize = new Vector2(30, 0);
+        slot.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(slot);
 
         var names = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter, MouseFilter = Control.MouseFilterEnum.Ignore };
         names.AddThemeConstantOverride("separation", -3);
@@ -671,15 +784,11 @@ public partial class PauseMenu : CanvasLayer
         }
         else
         {
-            // Only what this player carries - the weapons of the active set - not the whole armoury.
-            var carriedIndices = new List<int>();
-            for (int slot = 0; slot < _weapons.CarriedCount; slot++) carriedIndices.Add(_weapons.GetCarriedIndex(slot));
-
             var used = new HashSet<int>();
             foreach ((string title, string[] classes) in ItemGroups)
             {
                 var indices = new List<int>();
-                foreach (int i in carriedIndices)
+                for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++)
                 {
                     WeaponData? data = _weapons.GetWeaponData(i);
                     if (data != null && Array.IndexOf(classes, data.WeaponClass) >= 0) indices.Add(i);
@@ -691,7 +800,7 @@ public partial class PauseMenu : CanvasLayer
             // Anything in the loadout that does not match a group above still gets listed, so a new
             // weapon class can never silently vanish from this screen.
             var other = new List<int>();
-            foreach (int i in carriedIndices) if (!used.Contains(i)) other.Add(i);
+            for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++) if (!used.Contains(i)) other.Add(i);
             if (other.Count > 0)
             {
                 carriedBody.AddChild(MenuStyle.Text("OTHER", 16, MenuStyle.TextMuted, MenuStyle.Bold));
@@ -841,5 +950,6 @@ public partial class PauseMenu : CanvasLayer
     {
         if (_modal != null && GodotObject.IsInstanceValid(_modal)) _modal.QueueFree();
         _modal = null;
+        _cardRefresh = null;
     }
 }

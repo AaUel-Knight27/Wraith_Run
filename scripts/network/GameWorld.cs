@@ -10,7 +10,6 @@ public partial class GameWorld : Node3D
 
     [Export] public PackedScene PlayerScene { get; set; } = null!;
     private MultiplayerSpawner _spawner = null!;
-    private int _spawnIndex;
 
     private const int MaxBots = 10;
     private const float NavCell = 0.5f;
@@ -154,18 +153,77 @@ public partial class GameWorld : Node3D
         var player = GetNodeOrNull<Node>($"Players/Player_{peerId}");
         player?.QueueFree();
     }
-    private void SpawnForPeer(int peerId) => _spawner.Spawn(peerId);
+
+    /// <summary>
+    /// Picks this peer's spawn spot once, here on the server, and sends the result - not just the
+    /// peer id - through the spawner. Unlike the old fixed-marker system (cycle to the next of 8
+    /// hand-placed points), the v1.1 random spawn is not something every peer could reproduce
+    /// identically on its own: SpawnFunction below runs independently on every connected machine, and
+    /// each one has its own random number generator, so leaving the pick for SpawnFunction to make
+    /// locally would show a newly-joined player in a different spot on every screen until the network
+    /// sync corrected it a moment later. Deciding once, authoritatively, and broadcasting the answer -
+    /// the same pattern SpawnBots below already uses for a bot's random start position - avoids that
+    /// pop entirely.
+    /// </summary>
+    private void SpawnForPeer(int peerId)
+    {
+        (Vector3 pos, float yaw) = ComputeHumanSpawnTransform(peerId);
+        var data = new Godot.Collections.Dictionary
+        {
+            ["peer"] = peerId,
+            ["pos"] = pos,
+            ["yaw"] = yaw,
+        };
+        _spawner.Spawn(data);
+    }
+
+    /// <summary>
+    /// Team Deathmatch sends peerId's player to their own TeamSpawnArea; Free-For-All (and any map
+    /// with no team areas configured) sends them to a fully random point anywhere in the arena - the
+    /// same v1.1 policy Health.Respawn uses for a mid-match respawn, so a player's first spawn and
+    /// every later respawn behave the same way. See RespawnPointSelector for the
+    /// ground/obstruction/other-player validation every candidate gets.
+    ///
+    /// Server-only, called from SpawnForPeer before the player's own node exists anywhere at all, so
+    /// there is nothing yet to exclude from the physics queries.
+    /// </summary>
+    private (Vector3 Position, float Yaw) ComputeHumanSpawnTransform(int peerId)
+    {
+        MatchManager? match = MatchManager.Instance;
+        if (match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch)
+        {
+            int team = match.GetTeam(peerId);
+            if (team >= 0 && TeamSpawnArea.TryGet(this, team, out Vector3 center, out Vector2 halfExtent))
+            {
+                Vector3 areaPos = RespawnPointSelector.SelectInArea(this, center, halfExtent);
+                return (areaPos, FacingTowardCentre(areaPos));
+            }
+            GD.PushWarning($"No TeamSpawnArea configured for team {team}; falling back to a map-wide random spawn.");
+        }
+
+        Vector3 pos = RespawnPointSelector.SelectAnywhere(this, RespawnPointSelector.DefaultMapHalfExtent);
+        return (pos, FacingTowardCentre(pos));
+    }
+
+    /// <summary>A random spot has no "facing" of its own the way a hand-placed marker did, so point the
+    /// player roughly at the middle of the arena instead of leaving whatever rotation the scene
+    /// defaults to - the same "roughly toward the centre" convention SpawnBots already uses below.</summary>
+    private static float FacingTowardCentre(Vector3 position) => Mathf.Atan2(position.X, position.Z);
 
     private Node SpawnPlayer(Variant data)
     {
-        // Bots are spawned with a dictionary (identity, name, level, start pose); people with their peer id.
-        if (data.VariantType == Variant.Type.Dictionary) return SpawnBot(data.AsGodotDictionary());
+        // Both kinds of player now arrive as a dictionary computed on the server: a bot carries its
+        // identity/name/level/start pose (see SpawnBots), a person carries just their peer id plus the
+        // spawn spot ComputeHumanSpawnTransform already picked for them in SpawnForPeer above.
+        var d = data.AsGodotDictionary();
+        if (d.ContainsKey("id")) return SpawnBot(d);
 
-        int peerId = (int)data.AsInt64();
+        int peerId = (int)d["peer"].AsInt64();
         var player = PlayerScene.Instantiate<CharacterBody3D>();
         player.Name = $"Player_{peerId}";
         player.SetMultiplayerAuthority(peerId);
-        ApplySpawnTransform(player, _spawnIndex++);
+        player.Position = d["pos"].AsVector3();
+        player.Rotation = new Vector3(0.0f, d["yaw"].AsSingle(), 0.0f);
         EnsureTeamIndicator(player);
         return player;
     }
@@ -206,33 +264,6 @@ public partial class GameWorld : Node3D
         if (player.GetNodeOrNull("TeamIndicator") != null) return;
         player.AddChild(new TeamIndicator { Name = "TeamIndicator" });
     }
-    /// <summary>
-    /// Places a freshly spawned player on the map's next spawn marker, facing whichever way the
-    /// marker faces. Spawning everyone on a 2m grid at the origin - the old behaviour - dropped all
-    /// four players inside the central ruin on top of each other.
-    ///
-    /// The index is deliberately the same on every peer for a given player: SpawnFunction runs on
-    /// the server and on each client with the same data, so both sides pick the same marker and the
-    /// synchronizer has nothing to correct on the first frame.
-    /// </summary>
-    private void ApplySpawnTransform(Node3D player, int index)
-    {
-        var points = GetTree().GetNodesInGroup(SpawnPointGroup);
-        if (points.Count == 0)
-        {
-            player.Position = new Vector3((index % 4) * 2 - 3, 0.1f, (index / 4) * 2);
-            GD.PushWarning($"No nodes in the '{SpawnPointGroup}' group; falling back to a grid spawn.");
-            return;
-        }
-
-        if (points[index % points.Count] is not Node3D marker) return;
-        // Local Position, not GlobalPosition: this node is not in the tree yet (the spawner adds it
-        // after SpawnPlayer returns), so a global set logs "!is_inside_tree()" every spawn. The
-        // Players node sits at the origin with no rotation, so local == global once it is added.
-        player.Position = marker.GlobalPosition;
-        player.Rotation = new Vector3(0.0f, marker.GlobalRotation.Y, 0.0f);
-    }
-
     public override void _ExitTree()
     {
         Multiplayer.PeerConnected -= OnPeerConnected;

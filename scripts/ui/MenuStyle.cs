@@ -475,6 +475,51 @@ public static class MenuStyle
         return button;
     }
 
+    /// <summary>One player in a list: avatar, name, a line of detail, chevron. Filled red when it is
+    /// the local player's own row.</summary>
+    public static Button PlayerRow(Control avatar, string title, string detail, Action onPressed,
+        bool highlight = false)
+    {
+        var button = NewButton(new Vector2(0, 66), onPressed);
+        button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        StyleButton(button,
+            Box(highlight ? SelectedFill : RowFill, highlight ? SelectedBorder : Hairline),
+            Box(highlight ? SelectedFill : Hex(0x2a0808), Border),
+            Box(PressFill, BorderHot),
+            Box(RowFill, Hairline));
+
+        var pad = Padding(12, 6);
+        button.AddChild(pad);
+        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 12);
+        pad.AddChild(row);
+
+        avatar.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(avatar);
+
+        var texts = new VBoxContainer
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        texts.AddThemeConstantOverride("separation", -2);
+        var titleLabel = Text(title, 22, TextMain, Bold);
+        titleLabel.ClipText = true;
+        titleLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        texts.AddChild(titleLabel);
+        var detailLabel = Text(detail, 15, highlight ? TextDim : TextMuted, Medium);
+        detailLabel.ClipText = true;
+        detailLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        texts.AddChild(detailLabel);
+        row.AddChild(texts);
+
+        var chevron = Icon("chevron-right", 22, 0, Accent);
+        chevron.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(chevron);
+        return button;
+    }
+
     // ---- loadout screens (operators / weapons / colours) -------------------------------------
 
     /// <summary>Small outlined tag: EQUIPPED, IN GAME, PLANNED...</summary>
@@ -597,57 +642,6 @@ public static class MenuStyle
             Fill(text);
             button.AddChild(text);
         }
-        return button;
-    }
-
-    /// <summary>Wide tab with an icon and a label (the weapon category row: ASSAULT RIFLES, SMGS...).
-    /// Filled red when it is the open one.</summary>
-    public static Button WideTab(string icon, string label, bool selected, Action onPressed)
-    {
-        var button = NewButton(new Vector2(0, 42), onPressed);
-        StyleButton(button,
-            Box(selected ? SelectedFill : RowFill, selected ? SelectedBorder : Hairline),
-            Box(selected ? SelectedFill : HoverFill, Border),
-            Box(PressFill, BorderHot),
-            Box(RowFill, Hairline));
-
-        var pad = Padding(14, 4);
-        button.AddChild(pad);
-        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        row.AddThemeConstantOverride("separation", 10);
-        pad.AddChild(row);
-        var glyph = Icon(icon, 34, 18, selected ? TextMain : Accent);
-        glyph.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-        row.AddChild(glyph);
-        var text = Text(label, 18, selected ? TextMain : TextDim, Bold);
-        text.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-        row.AddChild(text);
-
-        // A Button does not size itself to its children, so give it the width of its contents
-        // (measured, with a character-count estimate as the floor) or every tab collapses to
-        // nothing and they all draw on top of each other.
-        float estimate = 28 + 34 + 10 + label.Length * 12.5f;
-        button.CustomMinimumSize = new Vector2(Mathf.Max(estimate, pad.GetCombinedMinimumSize().X), 42);
-        return button;
-    }
-
-    /// <summary>A tall whole-card button the caller fills (one per weapon set). Red-filled when it is
-    /// the active one. Returns the button; add rows to <paramref name="content"/>.</summary>
-    public static Button SetCard(bool active, Action onPressed, out VBoxContainer content)
-    {
-        var button = NewButton(new Vector2(0, 0), onPressed, UiSounds.Sound.Select);
-        button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        button.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        StyleButton(button,
-            Box(active ? SelectedFill : Ink, active ? SelectedBorder : Border, active ? 2 : 1),
-            Box(active ? SelectedFill : HoverFill, BorderHot, 2, 2, 10),
-            Box(PressFill, BorderHot),
-            Box(RowFill, Hairline));
-        var pad = Padding(16, 14);
-        button.AddChild(pad);
-        content = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        content.AddThemeConstantOverride("separation", 4);
-        pad.AddChild(content);
         return button;
     }
 

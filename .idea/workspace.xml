@@ -10,10 +10,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/project.godot" afterDir="false" />
-    </list>
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -223,7 +220,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="adding touch screen control system for mobile phones" />
     <MESSAGE value="removeing un neccessary files form project" />
     <MESSAGE value="fix hud system, add sound system editor" />
     <MESSAGE value="added team death match game mode" />
@@ -248,7 +244,8 @@
     <MESSAGE value="added texture materials to the existing maps" />
     <MESSAGE value="added player status and account managment system" />
     <MESSAGE value="texture materials" />
-    <option name="LAST_COMMIT_MESSAGE" value="texture materials" />
+    <MESSAGE value="fixed overlying bug on the menu" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed overlying bug on the menu" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

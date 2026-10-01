@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="SurfaceLayer" format=3]
+[gd_resource type="Resource" script_class="SurfaceLayer" format=3 uid="uid://ddq4ixuu2pxn2"]
 
 [ext_resource type="Script" uid="uid://cdjjc7783icx1" path="res://mapkit/Core/SurfaceLayer.cs" id="1_script"]
-[ext_resource type="Texture2D" path="res://art/materials/tex/Concrete042C_Color.jpg" id="2_albedo"]
-[ext_resource type="Texture2D" path="res://art/materials/tex/Concrete042C_Normal.jpg" id="3_normal"]
-[ext_resource type="Texture2D" path="res://art/materials/tex/Concrete042C_ORM.jpg" id="4_orm"]
+[ext_resource type="Texture2D" uid="uid://b11k0xhyqcyn1" path="res://art/materials/tex/Concrete042C_Color.jpg" id="2_albedo"]
+[ext_resource type="Texture2D" uid="uid://yufgtgvx0g10" path="res://art/materials/tex/Concrete042C_Normal.jpg" id="3_normal"]
+[ext_resource type="Texture2D" uid="uid://dsv7r3sbu2xs8" path="res://art/materials/tex/Concrete042C_ORM.jpg" id="4_orm"]
 
 [resource]
 script = ExtResource("1_script")

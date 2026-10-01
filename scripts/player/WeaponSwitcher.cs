@@ -49,12 +49,12 @@ public partial class WeaponSwitcher : Node
 	private const float FlyByMinShooterDistance = 2.5f;
 	private const float FlyByMinImpactDistance = 1.5f;
 
-	/// <summary>Every weapon the match can put in a player's hands. A weapon's position here is its id
-	/// on the network (ReplicatedWeaponIndex) and in the bots' tables, so only ever APPEND to it.
-	/// What a given player actually carries is a subset of this: see _carried below.
-	/// Internal rather than private: the lobby's weapon rules read it to know what is equippable.</summary>
+	// Kriss Vector excluded: no model until its mesh is re-sourced (lost in FBX->GLB conversion).
+	// Internal rather than private: TouchControls' weapon-switch/quick-melee buttons read this
+	// directly (length + Karambit's index) instead of hardcoding numbers that would silently go
+	// stale if this list is ever reordered or extended.
 	internal static readonly string[] Loadout =
-		{ "AK-47", "M4", "P90", "Glock 19", "Desert Eagle", "Shotgun", "Karambit", "Bazooka", "Kriss Vector" };
+		{ "AK-47", "M4", "P90", "Glock 19", "Desert Eagle", "Shotgun", "Karambit", "Bazooka" };
 
 	private static readonly string[] HitMarkerSounds =
 	{
@@ -88,12 +88,6 @@ public partial class WeaponSwitcher : Node
 	/// </summary>
 	private const bool KeepAmmoPerWeapon = true;
 
-	/// <summary>The weapons this player carries, as indices into Loadout, in number-key order: key 1 is
-	/// element 0. Built from the lobby's active weapon set for the person at this machine; empty for
-	/// remote copies of a player and for bots, which pick their weapons by index directly. A set holds
-	/// two primaries, a pistol and a knife, plus a heavy weapon for a Demolisher operator only.</summary>
-	private int[] _carried = System.Array.Empty<int>();
-
 	private WeaponData? _currentWeapon;
 	private int _currentAmmo;
 	private int _currentReserve;
@@ -102,6 +96,9 @@ public partial class WeaponSwitcher : Node
 	private int _appliedWeaponIndex = -1;
 	private int _impactSoundsThisShot;
 	private int _fleshSoundsThisShot;
+	/// <summary>Counts trigger pulls. All eight pellets of one shotgun blast share a number, which is
+	/// how the career tracker tells "one shot killed two players" from "two shots".</summary>
+	private int _shotSerial;
 
 	// Ammo of every loadout slot that is NOT the equipped one (the equipped weapon's live numbers
 	// are _currentAmmo/_currentReserve above). _hasSavedAmmo[i] is false until slot i has been
@@ -143,16 +140,6 @@ public partial class WeaponSwitcher : Node
 
 	public static int LoadoutCount => Loadout.Length;
 
-	/// <summary>How many weapons this player carries (0 for anyone who is not the local human).</summary>
-	public int CarriedCount => _carried.Length;
-
-	/// <summary>Loadout index of the weapon in carried slot <paramref name="slot"/> (0 = number key 1),
-	/// or -1 when there is no such slot.</summary>
-	public int GetCarriedIndex(int slot) => slot >= 0 && slot < _carried.Length ? _carried[slot] : -1;
-
-	/// <summary>Which carried slot the equipped weapon is in, or -1.</summary>
-	public int EquippedSlot => System.Array.IndexOf(_carried, _appliedWeaponIndex);
-
 	/// <summary>Stats for a loadout slot, or null if the slot is out of range or not in the registry.</summary>
 	public WeaponData? GetWeaponData(int index)
 	{
@@ -186,8 +173,6 @@ public partial class WeaponSwitcher : Node
 	{
 		if (!_player.IsMultiplayerAuthority()) return false;
 		if (index < 0 || index >= Loadout.Length) return false;
-		// A player only ever equips what their weapon set carries.
-		if (_carried.Length > 0 && System.Array.IndexOf(_carried, index) < 0) return false;
 		if (_health != null && _health.IsDead) return false;
 		ReplicatedWeaponIndex = index;
 		return true;
@@ -210,7 +195,6 @@ public partial class WeaponSwitcher : Node
 		_loadout = GetNodeOrNull<CharacterLoadout>("../CharacterLoadout");
 		_animation = GetNodeOrNull<PlayerAnimationController>("../AnimationController");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
-		BuildCarried();
 
 		// The hit-marker tick is a non-positional UI sound: only the person at this machine gets one
 		// (a bot the host simulates is 'authority' here too and must stay silent).
@@ -223,49 +207,18 @@ public partial class WeaponSwitcher : Node
 		// Deferred so it goes through the replicated-index setter after the spawn snapshot.
 		if (PlayerIdentity.IsLocalHuman(_player)) Callable.From(EquipStartingWeapon).CallDeferred();
 
-		// The person at this machine starts on Primary 1 of their weapon set, so the first model built
-		// is the right one. (The deferred EquipStartingWeapon above stays as a safety net.)
-		if (_carried.Length > 0) _replicatedWeaponIndex = _carried[0];
-
-		// Apply whatever index is already set. On the authority that is now Primary 1 (0 for a bot);
-		// on a remote copy the synchronizer may already have delivered the real value.
+		// Apply whatever index is already set. On the authority that is 0 (the AK); on a remote
+		// copy the synchronizer may already have delivered the real value.
 		ApplyWeaponIndex(_replicatedWeaponIndex);
 	}
 
-	/// <summary>Fills _carried from the lobby's active weapon set. Only the person at this machine has
-	/// one; the Heavy slot is included only when the chosen operator is a Demolisher. Anything the
-	/// profile holds that the match cannot equip is skipped rather than guessed at.</summary>
-	private void BuildCarried()
-	{
-		if (!PlayerIdentity.IsLocalHuman(_player)) return;
-
-		bool demolisher = WeaponRules.IsDemolisher(PlayerProfile.OperatorId);
-		int set = PlayerProfile.ActiveWeaponSet;
-		var carried = new System.Collections.Generic.List<int>();
-		for (int slot = 0; slot < WeaponRules.SlotCount; slot++)
-		{
-			if (!WeaponRules.SlotAvailable((WeaponSlot)slot, demolisher)) continue;
-			int index = System.Array.IndexOf(Loadout, PlayerProfile.GetSetWeapon(set, (WeaponSlot)slot));
-			if (index >= 0 && !carried.Contains(index)) carried.Add(index);
-		}
-		_carried = carried.ToArray();
-	}
-
-	/// <summary>Switches to Primary 1 of the lobby's active weapon set.</summary>
+	/// <summary>Switches to the weapon picked in the lobby. A pick that is not in Loadout (a weapon
+	/// still being built) leaves the default slot alone.</summary>
 	private void EquipStartingWeapon()
 	{
-		if (!IsInstanceValid(this) || !PlayerIdentity.IsLocalHuman(_player) || _carried.Length == 0) return;
-		if (_carried[0] != _appliedWeaponIndex) ReplicatedWeaponIndex = _carried[0];
-	}
-
-	/// <summary>Next / previous carried weapon, wrapping around. From a weapon that is not carried
-	/// (should not happen) it simply goes to the first one.</summary>
-	private void CycleCarried(int direction)
-	{
-		if (_carried.Length < 2) return;
-		int current = EquippedSlot;
-		int next = current < 0 ? 0 : (current + direction + _carried.Length) % _carried.Length;
-		ReplicatedWeaponIndex = _carried[next];
+		if (!IsInstanceValid(this) || !PlayerIdentity.IsLocalHuman(_player)) return;
+		int chosen = System.Array.IndexOf(Loadout, PlayerProfile.WeaponName);
+		if (chosen > 0) ReplicatedWeaponIndex = chosen;
 	}
 
 	public override void _ExitTree()
@@ -283,16 +236,8 @@ public partial class WeaponSwitcher : Node
 		BotControls? bot = _movement.Bot;
 
 		if (bot == null && !inputBlocked)
-		{
-			// Number keys follow the carried set (1 = Primary 1 ... 4 = Knife, 5 = Heavy), not the
-			// global weapon list.
-			for (int slot = 0; slot < _carried.Length; slot++)
-				if (Input.IsActionJustPressed($"weapon_{slot + 1}")) ReplicatedWeaponIndex = _carried[slot];
-
-			// Controller shoulder buttons and the touch swap button.
-			if (InputMap.HasAction("weapon_cycle_next") && Input.IsActionJustPressed("weapon_cycle_next")) CycleCarried(1);
-			if (InputMap.HasAction("weapon_cycle_prev") && Input.IsActionJustPressed("weapon_cycle_prev")) CycleCarried(-1);
-		}
+			for (int i = 0; i < Loadout.Length; i++)
+				if (Input.IsActionJustPressed($"weapon_{i + 1}")) ReplicatedWeaponIndex = i;
 
 		if (_health != null && _health.IsDead) return;
 
@@ -417,6 +362,7 @@ public partial class WeaponSwitcher : Node
 
 		_impactSoundsThisShot = 0;
 		_fleshSoundsThisShot = 0;
+		_shotSerial++;
 
 		int pellets = Mathf.Max(1, _currentWeapon.PelletsPerShot);
 		for (int i = 0; i < pellets; i++)
@@ -528,6 +474,12 @@ public partial class WeaponSwitcher : Node
 		// Identity, not authority: a bot shares the host's authority but has its own id.
 		long attackerId = PlayerIdentity.IdOf(_player);
 		int targetId = targetHealth.GetMultiplayerAuthority();
+		// Career stats: only the person at this machine, and only a hit on someone still alive. Read
+		// before the damage is sent so the victim's health is still what it was when the bullet landed.
+		if (!targetHealth.IsDead && PlayerIdentity.IsLocalHuman(_player))
+			CareerTracker.Instance?.NoteHit(PlayerIdentity.IdOf(body), _currentWeapon.WeaponName,
+				from.DistanceTo(impactPoint), _currentAmmo, _currentWeapon.MagazineSize, _shotSerial,
+				targetHealth.CurrentHealth, targetHealth.MaxHealth);
 		if (targetId == Multiplayer.GetUniqueId())
 		{
 			// The victim lives on THIS machine (host player or a bot): an RPC to yourself is a no-op,

@@ -33,12 +33,13 @@ public partial class Health : Node
     public const float TeamBleedOutSeconds = 20.0f;
 
     /// <summary>
-    /// Half-extent of the area respawn points are drawn from. Deliberately matched to the current
-    /// 60x60 Warzone arena - widen it together with the map. At this size the arena diagonal is
-    /// about 85m, so FR-PL-06's 50m minimum is now reachable for most death positions rather than
-    /// never, which is what the old 40x40 floor could not do.
+    /// Half-extent of the square area a Free-For-All respawn is drawn from (see
+    /// RespawnPointSelector.SelectAnywhere). Deliberately matched to the current 60x60 Warzone arena -
+    /// widen it together with the map. Team Deathmatch ignores this and uses the respawning player's
+    /// own TeamSpawnArea instead. Also used as the fallback half-extent for a bot respawn with no nav
+    /// grid built yet (see BotNav.PickRespawnPosition).
     /// </summary>
-    [Export] public float SpawnAreaHalfExtent { get; set; } = 26.0f;
+    [Export] public float SpawnAreaHalfExtent { get; set; } = RespawnPointSelector.DefaultMapHalfExtent;
 
     [Export] public float MaxHealth { get; set; } = 100.0f;
 
@@ -211,10 +212,10 @@ public partial class Health : Node
     private void Respawn()
     {
         // Bots come back where the map's walkable grid says it is safe and far from everyone; people use
-        // the normal selector.
+        // the mode-appropriate selector below.
         _player.Position = PlayerIdentity.IsBot(_player)
             ? BotNav.PickRespawnPosition(_player, _deathPosition, SpawnAreaHalfExtent, _botRng)
-            : RespawnPointSelector.Select(_player, _deathPosition, SpawnAreaHalfExtent);
+            : SelectHumanRespawnPoint();
         _player.Velocity = Vector3.Zero;
         _damageContribution.Clear();
         _deathAnnounced = false;
@@ -223,6 +224,26 @@ public partial class Health : Node
         // redundant, and it used to be the ONLY call - which is why remote copies stayed dead.
         CurrentHealth = MaxHealth;
         EmitSignal(SignalName.Respawned);
+    }
+
+    /// <summary>
+    /// v1.1 respawn rules for a human player (bots are handled separately above): Team Deathmatch
+    /// comes back in the player's own TeamSpawnArea; everything else (Free-For-All) comes back
+    /// completely at random anywhere in the arena, with no minimum distance from the death location -
+    /// a deliberate departure from the old FR-PL-06 rule that RespawnPointSelector.Select still
+    /// implements for whatever still calls it directly (BotNav's no-nav-grid fallback).
+    /// </summary>
+    private Vector3 SelectHumanRespawnPoint()
+    {
+        MatchManager? match = MatchManager.Instance;
+        if (match != null && match.GameMode == MatchManager.Mode.TeamDeathmatch)
+        {
+            int team = match.GetTeam(PlayerIdentity.IdOf(_player));
+            if (team >= 0 && TeamSpawnArea.TryGet(_player, team, out Vector3 center, out Vector2 halfExtent))
+                return RespawnPointSelector.SelectInArea(_player, center, halfExtent, _player.GetRid());
+            GD.PushWarning($"No TeamSpawnArea configured for team {team}; falling back to a map-wide random respawn.");
+        }
+        return RespawnPointSelector.SelectAnywhere(_player, SpawnAreaHalfExtent, _player.GetRid());
     }
 
     /// <summary>
