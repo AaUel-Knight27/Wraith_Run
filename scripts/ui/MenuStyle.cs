@@ -622,6 +622,12 @@ public static class MenuStyle
         var text = Text(label, 18, selected ? TextMain : TextDim, Bold);
         text.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
         row.AddChild(text);
+
+        // A Button does not size itself to its children, so give it the width of its contents
+        // (measured, with a character-count estimate as the floor) or every tab collapses to
+        // nothing and they all draw on top of each other.
+        float estimate = 28 + 34 + 10 + label.Length * 12.5f;
+        button.CustomMinimumSize = new Vector2(Mathf.Max(estimate, pad.GetCombinedMinimumSize().X), 42);
         return button;
     }
 
