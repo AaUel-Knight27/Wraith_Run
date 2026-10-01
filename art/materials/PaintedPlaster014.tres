@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SurfaceLayer" format=3]
+
+[ext_resource type="Script" uid="uid://cdjjc7783icx1" path="res://mapkit/Core/SurfaceLayer.cs" id="1_script"]
+[ext_resource type="Texture2D" path="res://art/materials/tex/PaintedPlaster014_Color.jpg" id="2_albedo"]
+[ext_resource type="Texture2D" path="res://art/materials/tex/PaintedPlaster014_Normal.jpg" id="3_normal"]
+[ext_resource type="Texture2D" path="res://art/materials/tex/PaintedPlaster014_ORM.jpg" id="4_orm"]
+
+[resource]
+script = ExtResource("1_script")
+Albedo = ExtResource("2_albedo")
+Normal = ExtResource("3_normal")
+Orm = ExtResource("4_orm")
+TileMeters = 2.0

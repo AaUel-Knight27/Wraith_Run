@@ -1,0 +1,2239 @@
+[gd_scene format=3 uid="uid://bw21os8hbvn5p"]
+
+[ext_resource type="Resource" path="res://art/materials/PaintedPlaster014.tres" id="1_17542"]
+[ext_resource type="Resource" path="res://art/materials/Tiles136C.tres" id="2_33459"]
+[ext_resource type="Script" uid="uid://cdjjc7783icx1" path="res://mapkit/Core/SurfaceLayer.cs" id="3_27628"]
+[ext_resource type="Texture2D" uid="uid://dqu8wwdpbpjxv" path="res://art/materials/tex/PaintedPlaster016_Color.jpg" id="4_70973"]
+[ext_resource type="Texture2D" uid="uid://cbh36bkoy3s8a" path="res://art/materials/tex/PaintedPlaster016_Normal.jpg" id="5_72825"]
+[ext_resource type="Texture2D" uid="uid://bt7qt1o0usy86" path="res://art/materials/tex/PaintedPlaster016_ORM.jpg" id="6_38389"]
+[ext_resource type="Resource" path="res://art/materials/Metal063.tres" id="7_76567"]
+[ext_resource type="Resource" path="res://art/materials/PaintedPlaster015.tres" id="8_17219"]
+[ext_resource type="Texture2D" uid="uid://cwsfuyah83mqs" path="res://art/materials/tex/Metal063_Color.jpg" id="9_56053"]
+[ext_resource type="Texture2D" uid="uid://b2q6wwrkiyhhc" path="res://art/materials/tex/Metal063_Normal.jpg" id="10_55907"]
+[ext_resource type="Texture2D" uid="uid://bp25xh1yeenyn" path="res://art/materials/tex/Metal063_ORM.jpg" id="11_64925"]
+[ext_resource type="Texture2D" uid="uid://cnav0e8dk0c77" path="res://art/materials/tex/DiamondPlate009_Color.jpg" id="12_80415"]
+[ext_resource type="Texture2D" uid="uid://c6enr8uimgnjl" path="res://art/materials/tex/DiamondPlate009_Normal.jpg" id="13_86518"]
+[ext_resource type="Texture2D" uid="uid://cdt17xl80p161" path="res://art/materials/tex/DiamondPlate009_ORM.jpg" id="14_71342"]
+[ext_resource type="Resource" path="res://art/materials/DiamondPlate009.tres" id="15_83183"]
+[ext_resource type="Resource" path="res://art/materials/PaintedPlaster016.tres" id="16_63789"]
+[ext_resource type="Script" uid="uid://b3asesa625cjo" path="res://mapkit/Core/PropDefinition.cs" id="18_60743"]
+[ext_resource type="Script" uid="uid://3itrf8xcu2wl" path="res://mapkit/Indoor/FurnishArea.cs" id="19_11610"]
+[ext_resource type="Script" uid="uid://ct1xr28aadpvq" path="res://mapkit/Indoor/RoomLayout.cs" id="20_36490"]
+[ext_resource type="Script" uid="uid://bop84yb8vlir0" path="res://mapkit/Indoor/IndoorMapBuilder.cs" id="21_10503"]
+[ext_resource type="ArrayMesh" uid="uid://b0hffxckl2ctc" path="res://scenes/maps/Lab.gen/mesh_Room_0_0__Resource__9223364095258837284_.res" id="21_r6ord"]
+[ext_resource type="ArrayMesh" uid="uid://bequo672erlxp" path="res://scenes/maps/Lab.gen/mesh_Room_0_0__Resource__9223364096315801865_.res" id="22_qvq7f"]
+[ext_resource type="Texture2D" uid="uid://cjs6ilr541ni7" path="res://art/materials/tex/Tiles136C_Color.jpg" id="23_qvhdv"]
+[ext_resource type="Texture2D" uid="uid://b6oeeoxofn5qr" path="res://art/materials/tex/Tiles136C_Normal.jpg" id="24_08cy3"]
+[ext_resource type="Texture2D" uid="uid://cke5estvd70bs" path="res://art/materials/tex/Tiles136C_ORM.jpg" id="25_xbbgi"]
+[ext_resource type="ArrayMesh" uid="uid://vjhcoh034kxh" path="res://scenes/maps/Lab.gen/mesh_Room_0_0__Resource__9223364099402809654_.res" id="26_t4h0c"]
+[ext_resource type="Texture2D" uid="uid://b3jhk5rv032t1" path="res://art/materials/tex/PaintedPlaster014_Color.jpg" id="27_3jamk"]
+[ext_resource type="Texture2D" uid="uid://q4477e8b1png" path="res://art/materials/tex/PaintedPlaster014_Normal.jpg" id="28_vy4xr"]
+[ext_resource type="Texture2D" uid="uid://dw5lpaleob1j5" path="res://art/materials/tex/PaintedPlaster014_ORM.jpg" id="29_13d32"]
+[ext_resource type="ArrayMesh" uid="uid://ohvcdhdvqire" path="res://scenes/maps/Lab.gen/mesh_Room_0_0__Resource__9223364100208116010_.res" id="30_q2inf"]
+[ext_resource type="ArrayMesh" uid="uid://dxjsmeavu65xp" path="res://scenes/maps/Lab.gen/mesh_Room_0_1__Resource__9223364095258837284_.res" id="31_nyxgc"]
+[ext_resource type="ArrayMesh" uid="uid://mehwlqfr5r4r" path="res://scenes/maps/Lab.gen/mesh_Room_0_1__Resource__9223364099402809654_.res" id="32_1b0gq"]
+[ext_resource type="ArrayMesh" uid="uid://b30w614bg18pw" path="res://scenes/maps/Lab.gen/mesh_Room_0_1__Resource__9223364100208116010_.res" id="33_ff5s0"]
+[ext_resource type="ArrayMesh" uid="uid://c3k7dclokq76c" path="res://scenes/maps/Lab.gen/mesh_Room_0_2__Resource__9223364095258837284_.res" id="34_loa1y"]
+[ext_resource type="ArrayMesh" uid="uid://bs2oflqr6k1dn" path="res://scenes/maps/Lab.gen/mesh_Room_0_2__Resource__9223364099402809654_.res" id="35_j36r1"]
+[ext_resource type="ArrayMesh" uid="uid://c7rhmylv0wygl" path="res://scenes/maps/Lab.gen/mesh_Room_0_2__Resource__9223364100208116010_.res" id="36_41bpj"]
+[ext_resource type="ArrayMesh" uid="uid://c31fs8swrc37e" path="res://scenes/maps/Lab.gen/mesh_Room_0_3__Resource__9223364095258837284_.res" id="37_stwf7"]
+[ext_resource type="ArrayMesh" uid="uid://bov0b2ydly7jl" path="res://scenes/maps/Lab.gen/mesh_Room_0_3__Resource__9223364096315801865_.res" id="38_bby0j"]
+[ext_resource type="ArrayMesh" uid="uid://b46qsy2ybra0h" path="res://scenes/maps/Lab.gen/mesh_Room_0_3__Resource__9223364099402809654_.res" id="39_ujipi"]
+[ext_resource type="ArrayMesh" uid="uid://dpdl0ubkeew5v" path="res://scenes/maps/Lab.gen/mesh_Room_0_3__Resource__9223364100208116010_.res" id="40_yi05a"]
+[ext_resource type="ArrayMesh" uid="uid://dkg74rhahkkxu" path="res://scenes/maps/Lab.gen/mesh_Room_0_4__Resource__9223364100208116010_.res" id="41_84pjq"]
+[ext_resource type="ArrayMesh" uid="uid://bloo60u36lk1d" path="res://scenes/maps/Lab.gen/mesh_Room_1_0__Resource__9223364095258837284_.res" id="42_xnw2l"]
+[ext_resource type="ArrayMesh" uid="uid://dp3bwuv0dr536" path="res://scenes/maps/Lab.gen/mesh_Room_1_0__Resource__9223364099402809654_.res" id="43_xnwbf"]
+[ext_resource type="ArrayMesh" uid="uid://c3eci5aetq1rd" path="res://scenes/maps/Lab.gen/mesh_Room_1_0__Resource__9223364100208116010_.res" id="44_o4sx2"]
+[ext_resource type="ArrayMesh" uid="uid://j0ls3s6vjiif" path="res://scenes/maps/Lab.gen/mesh_Room_1_1__Resource__9223364095258837284_.res" id="45_1v6jw"]
+[ext_resource type="Texture2D" uid="uid://bw3ulgoj07vt4" path="res://art/materials/tex/PaintedPlaster015_Color.jpg" id="46_tigca"]
+[ext_resource type="Texture2D" uid="uid://81exriony0da" path="res://art/materials/tex/PaintedPlaster015_Normal.jpg" id="47_w2135"]
+[ext_resource type="Texture2D" uid="uid://cmsyqsuqlqy8n" path="res://art/materials/tex/PaintedPlaster015_ORM.jpg" id="48_v186h"]
+[ext_resource type="ArrayMesh" uid="uid://dqmnjvggueic" path="res://scenes/maps/Lab.gen/mesh_Room_1_1__Resource__9223364097154662670_.res" id="49_mtdf7"]
+[ext_resource type="ArrayMesh" uid="uid://y3g1vucpwhk2" path="res://scenes/maps/Lab.gen/mesh_Room_1_1__Resource__9223364099402809654_.res" id="50_vidnc"]
+[ext_resource type="ArrayMesh" uid="uid://u83la0uuhmbj" path="res://scenes/maps/Lab.gen/mesh_Room_1_1__Resource__9223364100208116010_.res" id="51_evm81"]
+[ext_resource type="ArrayMesh" uid="uid://bekmradg650pe" path="res://scenes/maps/Lab.gen/mesh_Room_1_2__Resource__9223364095258837284_.res" id="52_iiokl"]
+[ext_resource type="ArrayMesh" uid="uid://kc44q2m57y43" path="res://scenes/maps/Lab.gen/mesh_Room_1_2__Resource__9223364097154662670_.res" id="53_c0meg"]
+[ext_resource type="ArrayMesh" uid="uid://8mpsqggf34ji" path="res://scenes/maps/Lab.gen/mesh_Room_1_2__Resource__9223364099402809654_.res" id="54_x03cf"]
+[ext_resource type="ArrayMesh" uid="uid://dau323rt8kviy" path="res://scenes/maps/Lab.gen/mesh_Room_1_2__Resource__9223364100208116010_.res" id="55_3faks"]
+[ext_resource type="ArrayMesh" uid="uid://dh1gmlpsgqbds" path="res://scenes/maps/Lab.gen/mesh_Room_1_3__Resource__9223364095258837284_.res" id="56_5aelt"]
+[ext_resource type="ArrayMesh" uid="uid://dvl6iux3ri63s" path="res://scenes/maps/Lab.gen/mesh_Room_1_3__Resource__9223364099402809654_.res" id="57_ypsl6"]
+[ext_resource type="ArrayMesh" uid="uid://wencq1qmstm4" path="res://scenes/maps/Lab.gen/mesh_Room_1_3__Resource__9223364100208116010_.res" id="58_5rokq"]
+[ext_resource type="ArrayMesh" uid="uid://bxndgsx0gqeu3" path="res://scenes/maps/Lab.gen/mesh_Room_1_4__Resource__9223364100208116010_.res" id="59_pj3ol"]
+[ext_resource type="ArrayMesh" uid="uid://h67rlodsoqjv" path="res://scenes/maps/Lab.gen/mesh_Room_2_0__Resource__9223364095242060057_.res" id="60_ttnc2"]
+[ext_resource type="ArrayMesh" uid="uid://ns1g4uxv44oq" path="res://scenes/maps/Lab.gen/mesh_Room_2_0__Resource__9223364095258837284_.res" id="61_5xvf3"]
+[ext_resource type="ArrayMesh" uid="uid://cgf45ti1ob1nw" path="res://scenes/maps/Lab.gen/mesh_Room_2_0__Resource__9223364096181584152_.res" id="62_gojrl"]
+[ext_resource type="ArrayMesh" uid="uid://bsqett65t88vh" path="res://scenes/maps/Lab.gen/mesh_Room_2_0__Resource__9223364099402809654_.res" id="63_mfgku"]
+[ext_resource type="ArrayMesh" uid="uid://c678vtvdenvmv" path="res://scenes/maps/Lab.gen/mesh_Room_2_0__Resource__9223364100208116010_.res" id="64_1ea7r"]
+[ext_resource type="ArrayMesh" uid="uid://r5msfhciytt5" path="res://scenes/maps/Lab.gen/mesh_Room_2_1__Resource__9223364095242060057_.res" id="65_j5ul1"]
+[ext_resource type="ArrayMesh" uid="uid://cyxnbymteycn2" path="res://scenes/maps/Lab.gen/mesh_Room_2_1__Resource__9223364095258837284_.res" id="66_5q02e"]
+[ext_resource type="ArrayMesh" uid="uid://cxigkkn1p0bk0" path="res://scenes/maps/Lab.gen/mesh_Room_2_1__Resource__9223364097943191828_.res" id="67_rjadq"]
+[ext_resource type="ArrayMesh" uid="uid://bm23ng8rqw0vx" path="res://scenes/maps/Lab.gen/mesh_Room_2_1__Resource__9223364099402809654_.res" id="68_nm8vv"]
+[ext_resource type="ArrayMesh" uid="uid://dupuvdo3eskv6" path="res://scenes/maps/Lab.gen/mesh_Room_2_1__Resource__9223364100208116010_.res" id="69_f8ode"]
+[ext_resource type="ArrayMesh" uid="uid://byo0dj6p82syp" path="res://scenes/maps/Lab.gen/mesh_Room_2_2__Resource__9223364095242060057_.res" id="70_exlk4"]
+[ext_resource type="ArrayMesh" uid="uid://bn1m1nqtr4ifx" path="res://scenes/maps/Lab.gen/mesh_Room_2_2__Resource__9223364095258837284_.res" id="71_u6g3l"]
+[ext_resource type="ArrayMesh" uid="uid://v63ca2r52dao" path="res://scenes/maps/Lab.gen/mesh_Room_2_2__Resource__9223364097943191828_.res" id="72_yt0t5"]
+[ext_resource type="ArrayMesh" uid="uid://bbky4ejve0q5y" path="res://scenes/maps/Lab.gen/mesh_Room_2_2__Resource__9223364099402809654_.res" id="73_f2n54"]
+[ext_resource type="ArrayMesh" uid="uid://cf1t3momk4bt7" path="res://scenes/maps/Lab.gen/mesh_Room_2_2__Resource__9223364100208116010_.res" id="74_c1jay"]
+[ext_resource type="ArrayMesh" uid="uid://ddf3mkf8du16j" path="res://scenes/maps/Lab.gen/mesh_Room_2_3__Resource__9223364095242060057_.res" id="75_i7rho"]
+[ext_resource type="ArrayMesh" uid="uid://p3qxj1pgn5ik" path="res://scenes/maps/Lab.gen/mesh_Room_2_3__Resource__9223364095258837284_.res" id="76_1sx0r"]
+[ext_resource type="ArrayMesh" uid="uid://ylromq5nqfwx" path="res://scenes/maps/Lab.gen/mesh_Room_2_3__Resource__9223364096181584152_.res" id="77_uuaqo"]
+[ext_resource type="ArrayMesh" uid="uid://c2l0di81xt3m" path="res://scenes/maps/Lab.gen/mesh_Room_2_3__Resource__9223364099402809654_.res" id="78_rxpqm"]
+[ext_resource type="ArrayMesh" uid="uid://b4f1nfhdk5lyb" path="res://scenes/maps/Lab.gen/mesh_Room_2_3__Resource__9223364100208116010_.res" id="79_2cm37"]
+[ext_resource type="ArrayMesh" uid="uid://2sfn7cqf4ygk" path="res://scenes/maps/Lab.gen/mesh_Room_2_4__Resource__9223364100208116010_.res" id="80_602j1"]
+[ext_resource type="ArrayMesh" uid="uid://bbx0podvxrus5" path="res://scenes/maps/Lab.gen/mesh_Room_3_0__Resource__9223364095225282856_.res" id="81_2vcrc"]
+[ext_resource type="ArrayMesh" uid="uid://nfwlgk4f1l3s" path="res://scenes/maps/Lab.gen/mesh_Room_3_0__Resource__9223364095242060057_.res" id="82_iqdlr"]
+[ext_resource type="ArrayMesh" uid="uid://doa3khsx8ow0y" path="res://scenes/maps/Lab.gen/mesh_Room_3_0__Resource__9223364095258837284_.res" id="83_p45u3"]
+[ext_resource type="ArrayMesh" uid="uid://dw4dx3lf4gypw" path="res://scenes/maps/Lab.gen/mesh_Room_3_0__Resource__9223364096181584152_.res" id="84_4g1af"]
+[ext_resource type="ArrayMesh" uid="uid://f0k8bi36m7il" path="res://scenes/maps/Lab.gen/mesh_Room_3_0__Resource__9223364099402809654_.res" id="85_asb5l"]
+[ext_resource type="ArrayMesh" uid="uid://b1qt6c600l5uy" path="res://scenes/maps/Lab.gen/mesh_Room_3_0__Resource__9223364100208116010_.res" id="86_jk6a2"]
+[ext_resource type="ArrayMesh" uid="uid://dlvrqplvkdyt7" path="res://scenes/maps/Lab.gen/mesh_Room_3_1__Resource__9223364095225282856_.res" id="87_ak6ox"]
+[ext_resource type="ArrayMesh" uid="uid://bii8e8xa5ie0p" path="res://scenes/maps/Lab.gen/mesh_Room_3_1__Resource__9223364095242060057_.res" id="88_gqops"]
+[ext_resource type="ArrayMesh" uid="uid://bojk2jhaye0am" path="res://scenes/maps/Lab.gen/mesh_Room_3_1__Resource__9223364095258837284_.res" id="89_o23gc"]
+[ext_resource type="ArrayMesh" uid="uid://b5eysgx1pi8ka" path="res://scenes/maps/Lab.gen/mesh_Room_3_1__Resource__9223364097943191828_.res" id="90_0fx8b"]
+[ext_resource type="ArrayMesh" uid="uid://cq53jaj1crjnb" path="res://scenes/maps/Lab.gen/mesh_Room_3_1__Resource__9223364099402809654_.res" id="91_1x7wr"]
+[ext_resource type="ArrayMesh" uid="uid://bsdqlc3iryoby" path="res://scenes/maps/Lab.gen/mesh_Room_3_1__Resource__9223364100208116010_.res" id="92_xhhxn"]
+[ext_resource type="ArrayMesh" uid="uid://lr14kj6llc5o" path="res://scenes/maps/Lab.gen/mesh_Room_3_2__Resource__9223364095242060057_.res" id="93_b7vtm"]
+[ext_resource type="ArrayMesh" uid="uid://bg1usfk5mduvr" path="res://scenes/maps/Lab.gen/mesh_Room_3_2__Resource__9223364095258837284_.res" id="94_7c7os"]
+[ext_resource type="ArrayMesh" uid="uid://daiuh7g3h8k5n" path="res://scenes/maps/Lab.gen/mesh_Room_3_2__Resource__9223364097943191828_.res" id="95_n1ys8"]
+[ext_resource type="ArrayMesh" uid="uid://kts2o8ygqgnp" path="res://scenes/maps/Lab.gen/mesh_Room_3_2__Resource__9223364099402809654_.res" id="96_268km"]
+[ext_resource type="ArrayMesh" uid="uid://4e620g8qixuu" path="res://scenes/maps/Lab.gen/mesh_Room_3_2__Resource__9223364100208116010_.res" id="97_kwdvj"]
+[ext_resource type="ArrayMesh" uid="uid://brlx0l1jx1xkl" path="res://scenes/maps/Lab.gen/mesh_Room_3_3__Resource__9223364095242060057_.res" id="98_rdbce"]
+[ext_resource type="ArrayMesh" uid="uid://120gcjksp0b" path="res://scenes/maps/Lab.gen/mesh_Room_3_3__Resource__9223364095258837284_.res" id="99_gvmi6"]
+[ext_resource type="ArrayMesh" uid="uid://g5xvehyj3v4x" path="res://scenes/maps/Lab.gen/mesh_Room_3_3__Resource__9223364096181584152_.res" id="100_nlx41"]
+[ext_resource type="ArrayMesh" uid="uid://v58tindjlspq" path="res://scenes/maps/Lab.gen/mesh_Room_3_3__Resource__9223364099402809654_.res" id="101_4p300"]
+[ext_resource type="ArrayMesh" uid="uid://b21e7yby840u4" path="res://scenes/maps/Lab.gen/mesh_Room_3_3__Resource__9223364100208116010_.res" id="102_0vdcm"]
+[ext_resource type="ArrayMesh" uid="uid://rkeg24i0ta8u" path="res://scenes/maps/Lab.gen/mesh_Room_3_4__Resource__9223364100208116010_.res" id="103_87m01"]
+[ext_resource type="ArrayMesh" uid="uid://crtp7kjemfhoc" path="res://scenes/maps/Lab.gen/mesh_Room_4_0__Resource__9223364095225282856_.res" id="104_o6w1u"]
+[ext_resource type="ArrayMesh" uid="uid://bpycqelhlcnb7" path="res://scenes/maps/Lab.gen/mesh_Room_4_0__Resource__9223364095258837284_.res" id="105_t76qh"]
+[ext_resource type="ArrayMesh" uid="uid://borexfq2hor0u" path="res://scenes/maps/Lab.gen/mesh_Room_4_0__Resource__9223364099402809654_.res" id="106_ulsvv"]
+[ext_resource type="ArrayMesh" uid="uid://buo8fo6i0sru2" path="res://scenes/maps/Lab.gen/mesh_Room_4_0__Resource__9223364100208116010_.res" id="107_e8l1a"]
+[ext_resource type="ArrayMesh" uid="uid://bb6tlaeq0orva" path="res://scenes/maps/Lab.gen/mesh_Room_4_1__Resource__9223364095225282856_.res" id="108_5s2qd"]
+[ext_resource type="ArrayMesh" uid="uid://duv84v1afjmeo" path="res://scenes/maps/Lab.gen/mesh_Room_4_1__Resource__9223364095258837284_.res" id="109_70rn6"]
+[ext_resource type="ArrayMesh" uid="uid://bxktcinou0884" path="res://scenes/maps/Lab.gen/mesh_Room_4_1__Resource__9223364099402809654_.res" id="110_gyqal"]
+[ext_resource type="ArrayMesh" uid="uid://0tqepexsxi42" path="res://scenes/maps/Lab.gen/mesh_Room_4_1__Resource__9223364100208116010_.res" id="111_126oj"]
+[ext_resource type="ArrayMesh" uid="uid://bxt2mqeillqt1" path="res://scenes/maps/Lab.gen/mesh_Room_4_2__Resource__9223364095208505643_.res" id="112_sqjgj"]
+[ext_resource type="ArrayMesh" uid="uid://dql4v5e2f84f7" path="res://scenes/maps/Lab.gen/mesh_Room_4_2__Resource__9223364095258837284_.res" id="113_mb7ek"]
+[ext_resource type="ArrayMesh" uid="uid://bd4mslecrioiw" path="res://scenes/maps/Lab.gen/mesh_Room_4_2__Resource__9223364099402809654_.res" id="114_my1l4"]
+[ext_resource type="ArrayMesh" uid="uid://i135lua4vlj4" path="res://scenes/maps/Lab.gen/mesh_Room_4_2__Resource__9223364100208116010_.res" id="115_sce8d"]
+[ext_resource type="ArrayMesh" uid="uid://d3688yksuaq56" path="res://scenes/maps/Lab.gen/mesh_Room_4_3__Resource__9223364095258837284_.res" id="116_y3xrr"]
+[ext_resource type="ArrayMesh" uid="uid://bt60kxj4cfutw" path="res://scenes/maps/Lab.gen/mesh_Room_4_3__Resource__9223364099402809654_.res" id="117_ersnt"]
+[ext_resource type="ArrayMesh" uid="uid://dmdmc5tuylo2t" path="res://scenes/maps/Lab.gen/mesh_Room_4_3__Resource__9223364100208116010_.res" id="118_qce7e"]
+[ext_resource type="ArrayMesh" uid="uid://comqsp5i2olgt" path="res://scenes/maps/Lab.gen/mesh_Room_4_4__Resource__9223364100208116010_.res" id="119_hp5qh"]
+[ext_resource type="ArrayMesh" uid="uid://cibgnyofi2qx4" path="res://scenes/maps/Lab.gen/mesh_Room_5_0__Resource__9223364095225282856_.res" id="120_hvunj"]
+[ext_resource type="ArrayMesh" uid="uid://dgkx31bq0lr2" path="res://scenes/maps/Lab.gen/mesh_Room_5_0__Resource__9223364095258837284_.res" id="121_d72m5"]
+[ext_resource type="ArrayMesh" uid="uid://ck656gl44n3yr" path="res://scenes/maps/Lab.gen/mesh_Room_5_0__Resource__9223364096315801865_.res" id="122_apdyy"]
+[ext_resource type="ArrayMesh" uid="uid://cbaayhi6jdmko" path="res://scenes/maps/Lab.gen/mesh_Room_5_0__Resource__9223364099402809654_.res" id="123_njuva"]
+[ext_resource type="ArrayMesh" uid="uid://cj4vipnqba2nb" path="res://scenes/maps/Lab.gen/mesh_Room_5_0__Resource__9223364100208116010_.res" id="124_p1nso"]
+[ext_resource type="ArrayMesh" uid="uid://brdmagc16pc87" path="res://scenes/maps/Lab.gen/mesh_Room_5_1__Resource__9223364095225282856_.res" id="125_fsyib"]
+[ext_resource type="ArrayMesh" uid="uid://v6udgfekqtg1" path="res://scenes/maps/Lab.gen/mesh_Room_5_1__Resource__9223364095258837284_.res" id="126_7otlk"]
+[ext_resource type="ArrayMesh" uid="uid://dwsvmkbuhqnub" path="res://scenes/maps/Lab.gen/mesh_Room_5_1__Resource__9223364099402809654_.res" id="127_mkga2"]
+[ext_resource type="ArrayMesh" uid="uid://ddk56hnxw6g03" path="res://scenes/maps/Lab.gen/mesh_Room_5_1__Resource__9223364100208116010_.res" id="128_1c23x"]
+[ext_resource type="ArrayMesh" uid="uid://dpduvwa24fd4l" path="res://scenes/maps/Lab.gen/mesh_Room_5_2__Resource__9223364095258837284_.res" id="129_5uskb"]
+[ext_resource type="ArrayMesh" uid="uid://drgr1kto6cry8" path="res://scenes/maps/Lab.gen/mesh_Room_5_2__Resource__9223364099402809654_.res" id="130_7wce8"]
+[ext_resource type="ArrayMesh" uid="uid://b0lu4c58nfx5f" path="res://scenes/maps/Lab.gen/mesh_Room_5_2__Resource__9223364100208116010_.res" id="131_wc31j"]
+[ext_resource type="ArrayMesh" uid="uid://da0d7hbh1d3ge" path="res://scenes/maps/Lab.gen/mesh_Room_5_3__Resource__9223364095258837284_.res" id="132_jre3a"]
+[ext_resource type="ArrayMesh" uid="uid://gh8fo4j7n85y" path="res://scenes/maps/Lab.gen/mesh_Room_5_3__Resource__9223364096315801865_.res" id="133_odw1y"]
+[ext_resource type="ArrayMesh" uid="uid://0oik41rx1h3q" path="res://scenes/maps/Lab.gen/mesh_Room_5_3__Resource__9223364099402809654_.res" id="134_pb23n"]
+[ext_resource type="ArrayMesh" uid="uid://b8epq7tuvtqlp" path="res://scenes/maps/Lab.gen/mesh_Room_5_3__Resource__9223364100208116010_.res" id="135_jam8b"]
+[ext_resource type="ArrayMesh" uid="uid://cduuaeq3bgova" path="res://scenes/maps/Lab.gen/mesh_Room_5_4__Resource__9223364100208116010_.res" id="136_p4lqa"]
+[ext_resource type="ArrayMesh" uid="uid://ccevah1mxr4hf" path="res://scenes/maps/Lab.gen/mesh_Room_6_0__Resource__9223364100208116010_.res" id="137_q2406"]
+[ext_resource type="ArrayMesh" uid="uid://burijm377qxbg" path="res://scenes/maps/Lab.gen/mesh_Room_6_1__Resource__9223364100208116010_.res" id="138_onjmk"]
+[ext_resource type="ArrayMesh" uid="uid://bn4jjgbjg1pay" path="res://scenes/maps/Lab.gen/mesh_Room_6_2__Resource__9223364100208116010_.res" id="139_jgwje"]
+[ext_resource type="ArrayMesh" uid="uid://bpevs2ix5yslm" path="res://scenes/maps/Lab.gen/mesh_Room_6_3__Resource__9223364100208116010_.res" id="140_f2gxx"]
+[ext_resource type="Shape3D" uid="uid://cnep7wlycvvrp" path="res://scenes/maps/Lab.gen/shape_Room_col_0_0.res" id="141_n85qe"]
+[ext_resource type="Shape3D" uid="uid://bpue06qw6eibi" path="res://scenes/maps/Lab.gen/shape_Room_col_0_1.res" id="142_f6fuw"]
+[ext_resource type="Shape3D" uid="uid://e5ohbu22tpm3" path="res://scenes/maps/Lab.gen/shape_Room_col_0_2.res" id="143_a23e2"]
+[ext_resource type="Shape3D" uid="uid://cue2wo710mop3" path="res://scenes/maps/Lab.gen/shape_Room_col_0_3.res" id="144_fmdjm"]
+[ext_resource type="Shape3D" uid="uid://b0utfsc1ec483" path="res://scenes/maps/Lab.gen/shape_Room_col_0_4.res" id="145_x64q8"]
+[ext_resource type="Shape3D" uid="uid://b7chwfcr2uo25" path="res://scenes/maps/Lab.gen/shape_Room_col_1_0.res" id="146_j1mw3"]
+[ext_resource type="Shape3D" uid="uid://xbl17p2str8" path="res://scenes/maps/Lab.gen/shape_Room_col_1_1.res" id="147_jx533"]
+[ext_resource type="Shape3D" uid="uid://jqisvtqavhk7" path="res://scenes/maps/Lab.gen/shape_Room_col_1_2.res" id="148_v63s8"]
+[ext_resource type="Shape3D" uid="uid://bbg4m86fl6qkc" path="res://scenes/maps/Lab.gen/shape_Room_col_1_3.res" id="149_qj50s"]
+[ext_resource type="Shape3D" uid="uid://da5na5luuohcn" path="res://scenes/maps/Lab.gen/shape_Room_col_1_4.res" id="150_eux7y"]
+[ext_resource type="Shape3D" uid="uid://csyiifk3xpovp" path="res://scenes/maps/Lab.gen/shape_Room_col_2_0.res" id="151_otht1"]
+[ext_resource type="Shape3D" uid="uid://b7frkem28b356" path="res://scenes/maps/Lab.gen/shape_Room_col_2_1.res" id="152_oc4ex"]
+[ext_resource type="Shape3D" uid="uid://btlhuusva218t" path="res://scenes/maps/Lab.gen/shape_Room_col_2_2.res" id="153_lwlwk"]
+[ext_resource type="Shape3D" uid="uid://b7002fgxv4fx0" path="res://scenes/maps/Lab.gen/shape_Room_col_2_3.res" id="154_wm0fk"]
+[ext_resource type="Shape3D" uid="uid://cccwwe8ach2er" path="res://scenes/maps/Lab.gen/shape_Room_col_2_4.res" id="155_wiwen"]
+[ext_resource type="Shape3D" uid="uid://b7gspdbvl5rya" path="res://scenes/maps/Lab.gen/shape_Room_col_3_0.res" id="156_a2me4"]
+[ext_resource type="Shape3D" uid="uid://bhcxabvfn7yg8" path="res://scenes/maps/Lab.gen/shape_Room_col_3_1.res" id="157_fe8rn"]
+[ext_resource type="Shape3D" uid="uid://c53rrs7srhbd2" path="res://scenes/maps/Lab.gen/shape_Room_col_3_2.res" id="158_8i7eq"]
+[ext_resource type="Shape3D" uid="uid://8odi7rbf6f2a" path="res://scenes/maps/Lab.gen/shape_Room_col_3_3.res" id="159_xypyd"]
+[ext_resource type="Shape3D" uid="uid://cwom1j8hwfde" path="res://scenes/maps/Lab.gen/shape_Room_col_3_4.res" id="160_wnbg1"]
+[ext_resource type="Shape3D" uid="uid://b6uhmwbxx26c7" path="res://scenes/maps/Lab.gen/shape_Room_col_4_0.res" id="161_8qyo3"]
+[ext_resource type="Shape3D" uid="uid://dxn3m0yfhjs7s" path="res://scenes/maps/Lab.gen/shape_Room_col_4_1.res" id="162_o2hti"]
+[ext_resource type="Shape3D" uid="uid://df4xsiuvfxr72" path="res://scenes/maps/Lab.gen/shape_Room_col_4_2.res" id="163_lgiks"]
+[ext_resource type="Shape3D" uid="uid://b2jkxuxegyimr" path="res://scenes/maps/Lab.gen/shape_Room_col_4_3.res" id="164_kh7i5"]
+[ext_resource type="Shape3D" uid="uid://ciofyd1hiuvf2" path="res://scenes/maps/Lab.gen/shape_Room_col_4_4.res" id="165_rh0tp"]
+[ext_resource type="Shape3D" uid="uid://dt4nabibyov2o" path="res://scenes/maps/Lab.gen/shape_Room_col_5_0.res" id="166_qst8d"]
+[ext_resource type="Shape3D" uid="uid://jjinnx0ospxd" path="res://scenes/maps/Lab.gen/shape_Room_col_5_1.res" id="167_dstix"]
+[ext_resource type="Shape3D" uid="uid://bkc725yp2rxo7" path="res://scenes/maps/Lab.gen/shape_Room_col_5_2.res" id="168_hydnj"]
+[ext_resource type="Shape3D" uid="uid://cyjocjcewddod" path="res://scenes/maps/Lab.gen/shape_Room_col_5_3.res" id="169_vgort"]
+[ext_resource type="Shape3D" uid="uid://csc6lerhbb70b" path="res://scenes/maps/Lab.gen/shape_Room_col_5_4.res" id="170_qaxqm"]
+[ext_resource type="Shape3D" uid="uid://cdbitpwd28fle" path="res://scenes/maps/Lab.gen/shape_Room_col_6_0.res" id="171_22wsq"]
+[ext_resource type="Shape3D" uid="uid://cmksr17jnilm" path="res://scenes/maps/Lab.gen/shape_Room_col_6_1.res" id="172_4wqdd"]
+[ext_resource type="Shape3D" uid="uid://drr5bjwomkham" path="res://scenes/maps/Lab.gen/shape_Room_col_6_2.res" id="173_smfv2"]
+[ext_resource type="Shape3D" uid="uid://cgov5h5iqxcvd" path="res://scenes/maps/Lab.gen/shape_Room_col_6_3.res" id="174_hchj7"]
+
+[sub_resource type="Environment" id="Lab_Env"]
+background_mode = 1
+background_color = Color(0.03, 0.035, 0.04, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.62, 0.68, 0.74, 1)
+ambient_light_energy = 0.85
+tonemap_mode = 2
+tonemap_white = 1.2
+
+[sub_resource type="Resource" id="RoomLayout_Lab"]
+script = ExtResource("20_36490")
+Rows = PackedStringArray("##############################", "#............................#", "#............................#", "#..####D######DD######D####..#", "#..#.......W......W.......#..#", "#..#.......D......D.......#..#", "#..#.......#......#.......#..#", "#..#.......W......W.......#..#", "#..####D####......####D####..#", "#..D......................D..#", "#..D......................D..#", "#..####D####......####D####..#", "#..#.......W......W.......#..#", "#..#.......#......#.......#..#", "#..#.......D......D.......#..#", "#..#.......W......W.......#..#", "#..####D######DD######D####..#", "#............................#", "#............................#", "##############################")
+WallHeight = 3.6
+
+[sub_resource type="Resource" id="SL_LabGlass"]
+script = ExtResource("3_27628")
+Tint = Color(0.62, 0.78, 0.82, 0.28)
+Roughness = 0.06
+Transparent = true
+
+[sub_resource type="Resource" id="SL_LabCeiling"]
+script = ExtResource("3_27628")
+Albedo = ExtResource("4_70973")
+Normal = ExtResource("5_72825")
+Orm = ExtResource("6_38389")
+Tint = Color(0.9, 0.9, 0.92, 1)
+
+[sub_resource type="Resource" id="P_LabBench"]
+script = ExtResource("18_60743")
+PrimitiveSurface = ExtResource("7_76567")
+PrimitiveSize = Vector3(4, 0.95, 1)
+Footprint = 4.2
+RandomYaw = false
+
+[sub_resource type="Resource" id="F_HallBenchesN"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_LabBench")
+CellStart = Vector2i(12, 5)
+CellEnd = Vector2i(17, 6)
+Spacing = 6.5
+MarginFromWalls = 0.8
+
+[sub_resource type="Resource" id="F_HallBenchesS"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_LabBench")
+CellStart = Vector2i(12, 13)
+CellEnd = Vector2i(17, 14)
+Spacing = 6.5
+MarginFromWalls = 0.8
+
+[sub_resource type="Resource" id="P_SmallBench"]
+script = ExtResource("18_60743")
+PrimitiveSurface = ExtResource("8_17219")
+PrimitiveSize = Vector3(3, 0.95, 1)
+Footprint = 3.2
+RandomYaw = false
+
+[sub_resource type="Resource" id="F_RoomABenches"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_SmallBench")
+CellStart = Vector2i(5, 5)
+CellEnd = Vector2i(9, 6)
+Spacing = 5.0
+MarginFromWalls = 0.6
+
+[sub_resource type="Resource" id="F_RoomBBenches"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_SmallBench")
+CellStart = Vector2i(5, 13)
+CellEnd = Vector2i(9, 14)
+Spacing = 5.0
+MarginFromWalls = 0.6
+
+[sub_resource type="Resource" id="SL_Rack"]
+script = ExtResource("3_27628")
+Albedo = ExtResource("9_56053")
+Normal = ExtResource("10_55907")
+Orm = ExtResource("11_64925")
+Tint = Color(0.55, 0.58, 0.62, 1)
+TileMeters = 1.0
+
+[sub_resource type="Resource" id="P_ServerRack"]
+script = ExtResource("18_60743")
+PrimitiveSurface = SubResource("SL_Rack")
+PrimitiveSize = Vector3(0.9, 2.3, 0.9)
+Footprint = 1.1
+RandomYaw = false
+
+[sub_resource type="Resource" id="F_RacksCNorthRow"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_ServerRack")
+CellStart = Vector2i(19, 4)
+CellEnd = Vector2i(25, 4)
+Spacing = 2.2
+MarginFromWalls = 0.5
+
+[sub_resource type="Resource" id="F_RacksCSouthRow"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_ServerRack")
+CellStart = Vector2i(19, 7)
+CellEnd = Vector2i(25, 7)
+Spacing = 2.2
+MarginFromWalls = 0.5
+
+[sub_resource type="Resource" id="SL_Tank"]
+script = ExtResource("3_27628")
+Albedo = ExtResource("12_80415")
+Normal = ExtResource("13_86518")
+Orm = ExtResource("14_71342")
+Tint = Color(0.8, 0.85, 0.9, 1)
+TileMeters = 1.0
+
+[sub_resource type="Resource" id="P_Tank"]
+script = ExtResource("18_60743")
+Primitive = 1
+PrimitiveSurface = SubResource("SL_Tank")
+PrimitiveSize = Vector3(1.6, 3, 1.6)
+Footprint = 1.8
+RandomYaw = false
+
+[sub_resource type="Resource" id="F_TanksD"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_Tank")
+CellStart = Vector2i(20, 13)
+CellEnd = Vector2i(24, 14)
+Spacing = 4.0
+MarginFromWalls = 0.6
+
+[sub_resource type="Resource" id="P_LabCrate"]
+script = ExtResource("18_60743")
+PrimitiveSurface = ExtResource("15_83183")
+PrimitiveSize = Vector3(1.2, 1.2, 1.2)
+Footprint = 1.4
+RandomYaw = false
+
+[sub_resource type="Resource" id="F_CratesNW"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_LabCrate")
+CellStart = Vector2i(1, 1)
+CellEnd = Vector2i(2, 2)
+Spacing = 2.6
+MarginFromWalls = 1.6
+
+[sub_resource type="Resource" id="F_CratesNE"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_LabCrate")
+CellStart = Vector2i(27, 1)
+CellEnd = Vector2i(28, 2)
+Spacing = 2.6
+MarginFromWalls = 1.6
+
+[sub_resource type="Resource" id="F_CratesSW"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_LabCrate")
+CellStart = Vector2i(1, 17)
+CellEnd = Vector2i(2, 18)
+Spacing = 2.6
+MarginFromWalls = 1.6
+
+[sub_resource type="Resource" id="F_CratesSE"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_LabCrate")
+CellStart = Vector2i(27, 17)
+CellEnd = Vector2i(28, 18)
+Spacing = 2.6
+MarginFromWalls = 1.6
+
+[sub_resource type="Resource" id="P_Cabinet"]
+script = ExtResource("18_60743")
+PrimitiveSurface = ExtResource("16_63789")
+PrimitiveSize = Vector3(2, 1.9, 0.6)
+Footprint = 2.2
+RandomYaw = false
+
+[sub_resource type="Resource" id="F_CabinetsRing"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_Cabinet")
+CellStart = Vector2i(13, 1)
+CellEnd = Vector2i(16, 1)
+Spacing = 2.6
+MarginFromWalls = 0.5
+
+[sub_resource type="Resource" id="F_CabinetsRingS"]
+script = ExtResource("19_11610")
+Prop = SubResource("P_Cabinet")
+CellStart = Vector2i(13, 18)
+CellEnd = Vector2i(16, 18)
+Spacing = 2.6
+MarginFromWalls = 0.5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_lx04l"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_wxdhr"]
+albedo_texture = ExtResource("12_80415")
+orm_texture = ExtResource("14_71342")
+normal_enabled = true
+normal_texture = ExtResource("13_86518")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.6666667, 0.6666667, 0.6666667)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_kj0t3"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_ffdky"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_7gbdn"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_g6m6t"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_bebiw"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_pmjvr"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_ic358"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_kaihn"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_00haa"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_s346n"]
+albedo_texture = ExtResource("12_80415")
+orm_texture = ExtResource("14_71342")
+normal_enabled = true
+normal_texture = ExtResource("13_86518")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.6666667, 0.6666667, 0.6666667)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_q3h3o"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_ihuqc"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_137va"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_xqcsj"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_3v0m5"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_fbtl7"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_bef8x"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_ng5uj"]
+albedo_texture = ExtResource("46_tigca")
+orm_texture = ExtResource("48_v186h")
+normal_enabled = true
+normal_texture = ExtResource("47_w2135")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_obd2c"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_dgegj"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_t4lri"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_vtow0"]
+albedo_texture = ExtResource("46_tigca")
+orm_texture = ExtResource("48_v186h")
+normal_enabled = true
+normal_texture = ExtResource("47_w2135")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_7nmg7"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_u5b88"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_ob57h"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_4kabs"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_6xwf5"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_c8k2b"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2x55d"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.62, 0.78, 0.82, 0.28)
+roughness = 0.06
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_0e133"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_fi3y0"]
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_hcd6d"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_jerm6"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hvp1n"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.62, 0.78, 0.82, 0.28)
+roughness = 0.06
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_siqc6"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_6wv0u"]
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_rr5t8"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_vpn7x"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7n121"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.62, 0.78, 0.82, 0.28)
+roughness = 0.06
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_i7w3h"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_io0ok"]
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_f4at3"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_04rqe"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yko3q"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.62, 0.78, 0.82, 0.28)
+roughness = 0.06
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_r7xpg"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_r1aiy"]
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_048ae"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_iy8ja"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_l5g43"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_ll8l8"]
+albedo_color = Color(0.55, 0.58, 0.62, 1)
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6qmmt"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.62, 0.78, 0.82, 0.28)
+roughness = 0.06
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_kc7iq"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_4ky1j"]
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_yficd"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_fmc66"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_j066q"]
+albedo_color = Color(0.55, 0.58, 0.62, 1)
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n6agj"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.62, 0.78, 0.82, 0.28)
+roughness = 0.06
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_5mdiq"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_76oe4"]
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_j1ily"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_4t8ia"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vvequ"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.62, 0.78, 0.82, 0.28)
+roughness = 0.06
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_mncuq"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_xs87e"]
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_uih1j"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_a53ll"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jfyjo"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.62, 0.78, 0.82, 0.28)
+roughness = 0.06
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_lunao"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_40lsn"]
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_e4ndw"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_675s2"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_gafig"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_7nmij"]
+albedo_color = Color(0.55, 0.58, 0.62, 1)
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_g0bvl"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_5tphl"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_0xx0h"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_0kjdp"]
+albedo_color = Color(0.55, 0.58, 0.62, 1)
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_onyrp"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_8opr4"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_6nv1q"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_4nort"]
+albedo_color = Color(0.8, 0.85, 0.9, 1)
+albedo_texture = ExtResource("12_80415")
+orm_texture = ExtResource("14_71342")
+normal_enabled = true
+normal_texture = ExtResource("13_86518")
+ao_enabled = true
+ao_light_affect = 0.35
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_saep2"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_76txp"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_pk8g6"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_dmwjg"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_5e440"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cjaxh"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_j5824"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_ey81y"]
+albedo_color = Color(0.55, 0.58, 0.62, 1)
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_c074g"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_nj1xr"]
+albedo_texture = ExtResource("12_80415")
+orm_texture = ExtResource("14_71342")
+normal_enabled = true
+normal_texture = ExtResource("13_86518")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.6666667, 0.6666667, 0.6666667)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_1wiw0"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_j04q3"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_jue6s"]
+albedo_color = Color(0.55, 0.58, 0.62, 1)
+albedo_texture = ExtResource("9_56053")
+orm_texture = ExtResource("11_64925")
+normal_enabled = true
+normal_texture = ExtResource("10_55907")
+ao_enabled = true
+ao_light_affect = 0.35
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_6j26g"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_ro4hm"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_8e4bg"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_vqrr1"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_6shx3"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_ae8cn"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_4goyp"]
+albedo_color = Color(0.9, 0.9, 0.92, 1)
+albedo_texture = ExtResource("4_70973")
+orm_texture = ExtResource("6_38389")
+normal_enabled = true
+normal_texture = ExtResource("5_72825")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_rudcq"]
+albedo_texture = ExtResource("12_80415")
+orm_texture = ExtResource("14_71342")
+normal_enabled = true
+normal_texture = ExtResource("13_86518")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.6666667, 0.6666667, 0.6666667)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_g7c1q"]
+albedo_texture = ExtResource("23_qvhdv")
+orm_texture = ExtResource("25_xbbgi")
+normal_enabled = true
+normal_texture = ExtResource("24_08cy3")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_kfcdk"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_21l3b"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_707xb"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_nhs62"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_c12aj"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_1olfy"]
+albedo_texture = ExtResource("27_3jamk")
+orm_texture = ExtResource("29_13d32")
+normal_enabled = true
+normal_texture = ExtResource("28_vy4xr")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+texture_filter = 5
+
+[node name="Lab" type="Node3D" unique_id=1318828770]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=579136319]
+environment = SubResource("Lab_Env")
+
+[node name="Builder" type="Node3D" parent="." unique_id=301653695]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 0, -30)
+script = ExtResource("21_10503")
+Layout = SubResource("RoomLayout_Lab")
+ChunkSize = 15.0
+WallSurface = ExtResource("1_17542")
+WindowSurface = SubResource("SL_LabGlass")
+FloorSurface = ExtResource("2_33459")
+CeilingSurface = SubResource("SL_LabCeiling")
+FurnishAreas = [SubResource("F_HallBenchesN"), SubResource("F_HallBenchesS"), SubResource("F_RoomABenches"), SubResource("F_RoomBBenches"), SubResource("F_RacksCNorthRow"), SubResource("F_RacksCSouthRow"), SubResource("F_TanksD"), SubResource("F_CratesNW"), SubResource("F_CratesNE"), SubResource("F_CratesSW"), SubResource("F_CratesSE"), SubResource("F_CabinetsRing"), SubResource("F_CabinetsRingS")]
+SpawnCells = Array[Vector2i]([Vector2i(2, 3), Vector2i(27, 3), Vector2i(2, 16), Vector2i(27, 16), Vector2i(5, 4), Vector2i(8, 15), Vector2i(24, 5), Vector2i(23, 15), Vector2i(13, 9), Vector2i(16, 10), Vector2i(8, 9), Vector2i(21, 10), Vector2i(9, 1), Vector2i(20, 18)])
+
+[node name="Light01" type="OmniLight3D" parent="Builder" unique_id=442960322]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 3.1, 16.5)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light02" type="OmniLight3D" parent="Builder" unique_id=306777517]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 3.1, 40.5)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light03" type="OmniLight3D" parent="Builder" unique_id=1369287222]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.5, 3.1, 16.5)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light04" type="OmniLight3D" parent="Builder" unique_id=283055843]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.5, 3.1, 40.5)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light05" type="OmniLight3D" parent="Builder" unique_id=1392013823]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 3.1, 18)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light06" type="OmniLight3D" parent="Builder" unique_id=413737051]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 3.1, 42)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light07" type="OmniLight3D" parent="Builder" unique_id=1952931785]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 3.1, 30)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light08" type="OmniLight3D" parent="Builder" unique_id=105384254]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 3.1, 30)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light09" type="OmniLight3D" parent="Builder" unique_id=133885196]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63, 3.1, 30)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light10" type="OmniLight3D" parent="Builder" unique_id=1759500221]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 3.1, 6)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light11" type="OmniLight3D" parent="Builder" unique_id=1433408526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 3.1, 6)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light12" type="OmniLight3D" parent="Builder" unique_id=2132823906]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 3.1, 54)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Light13" type="OmniLight3D" parent="Builder" unique_id=126748363]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 3.1, 54)
+light_color = Color(0.88, 0.95, 1, 1)
+light_energy = 1.4
+omni_range = 11.0
+
+[node name="Generated" type="Node3D" parent="Builder" unique_id=1650220656]
+
+[node name="Visuals" type="Node3D" parent="Builder/Generated" unique_id=1345748726]
+
+[node name="Room_0_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=613469791]
+material_override = SubResource("ORMMaterial3D_lx04l")
+mesh = ExtResource("21_r6ord")
+
+[node name="Room_0_0__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1011364654]
+material_override = SubResource("ORMMaterial3D_wxdhr")
+mesh = ExtResource("22_qvq7f")
+
+[node name="Room_0_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1783626328]
+material_override = SubResource("ORMMaterial3D_kj0t3")
+mesh = ExtResource("26_t4h0c")
+
+[node name="Room_0_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1007510282]
+material_override = SubResource("ORMMaterial3D_ffdky")
+mesh = ExtResource("30_q2inf")
+
+[node name="Room_0_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1879565139]
+material_override = SubResource("ORMMaterial3D_7gbdn")
+mesh = ExtResource("31_nyxgc")
+
+[node name="Room_0_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1040968712]
+material_override = SubResource("ORMMaterial3D_g6m6t")
+mesh = ExtResource("32_1b0gq")
+
+[node name="Room_0_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1077118608]
+material_override = SubResource("ORMMaterial3D_bebiw")
+mesh = ExtResource("33_ff5s0")
+
+[node name="Room_0_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=264007137]
+material_override = SubResource("ORMMaterial3D_pmjvr")
+mesh = ExtResource("34_loa1y")
+
+[node name="Room_0_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=892214567]
+material_override = SubResource("ORMMaterial3D_ic358")
+mesh = ExtResource("35_j36r1")
+
+[node name="Room_0_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=283705351]
+material_override = SubResource("ORMMaterial3D_kaihn")
+mesh = ExtResource("36_41bpj")
+
+[node name="Room_0_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=84704816]
+material_override = SubResource("ORMMaterial3D_00haa")
+mesh = ExtResource("37_stwf7")
+
+[node name="Room_0_3__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=570267540]
+material_override = SubResource("ORMMaterial3D_s346n")
+mesh = ExtResource("38_bby0j")
+
+[node name="Room_0_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1967247012]
+material_override = SubResource("ORMMaterial3D_q3h3o")
+mesh = ExtResource("39_ujipi")
+
+[node name="Room_0_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2097405001]
+material_override = SubResource("ORMMaterial3D_ihuqc")
+mesh = ExtResource("40_yi05a")
+
+[node name="Room_0_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2117362724]
+material_override = SubResource("ORMMaterial3D_137va")
+mesh = ExtResource("41_84pjq")
+
+[node name="Room_1_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1775938597]
+material_override = SubResource("ORMMaterial3D_xqcsj")
+mesh = ExtResource("42_xnw2l")
+
+[node name="Room_1_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=628219328]
+material_override = SubResource("ORMMaterial3D_3v0m5")
+mesh = ExtResource("43_xnwbf")
+
+[node name="Room_1_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=178173065]
+material_override = SubResource("ORMMaterial3D_fbtl7")
+mesh = ExtResource("44_o4sx2")
+
+[node name="Room_1_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=246926948]
+material_override = SubResource("ORMMaterial3D_bef8x")
+mesh = ExtResource("45_1v6jw")
+
+[node name="Room_1_1__Resource__9223364097154662670_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=551549791]
+material_override = SubResource("ORMMaterial3D_ng5uj")
+mesh = ExtResource("49_mtdf7")
+
+[node name="Room_1_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1041568307]
+material_override = SubResource("ORMMaterial3D_obd2c")
+mesh = ExtResource("50_vidnc")
+
+[node name="Room_1_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1532116042]
+material_override = SubResource("ORMMaterial3D_dgegj")
+mesh = ExtResource("51_evm81")
+
+[node name="Room_1_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1503929898]
+material_override = SubResource("ORMMaterial3D_t4lri")
+mesh = ExtResource("52_iiokl")
+
+[node name="Room_1_2__Resource__9223364097154662670_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=724241003]
+material_override = SubResource("ORMMaterial3D_vtow0")
+mesh = ExtResource("53_c0meg")
+
+[node name="Room_1_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=301228795]
+material_override = SubResource("ORMMaterial3D_7nmg7")
+mesh = ExtResource("54_x03cf")
+
+[node name="Room_1_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1514352661]
+material_override = SubResource("ORMMaterial3D_u5b88")
+mesh = ExtResource("55_3faks")
+
+[node name="Room_1_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1890143095]
+material_override = SubResource("ORMMaterial3D_ob57h")
+mesh = ExtResource("56_5aelt")
+
+[node name="Room_1_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1460354875]
+material_override = SubResource("ORMMaterial3D_4kabs")
+mesh = ExtResource("57_ypsl6")
+
+[node name="Room_1_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1303172923]
+material_override = SubResource("ORMMaterial3D_6xwf5")
+mesh = ExtResource("58_5rokq")
+
+[node name="Room_1_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=583867741]
+material_override = SubResource("ORMMaterial3D_c8k2b")
+mesh = ExtResource("59_pj3ol")
+
+[node name="Room_2_0__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=554683483]
+material_override = SubResource("StandardMaterial3D_2x55d")
+mesh = ExtResource("60_ttnc2")
+
+[node name="Room_2_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2034658721]
+material_override = SubResource("ORMMaterial3D_0e133")
+mesh = ExtResource("61_5xvf3")
+
+[node name="Room_2_0__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1208186670]
+material_override = SubResource("ORMMaterial3D_fi3y0")
+mesh = ExtResource("62_gojrl")
+
+[node name="Room_2_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1100682439]
+material_override = SubResource("ORMMaterial3D_hcd6d")
+mesh = ExtResource("63_mfgku")
+
+[node name="Room_2_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=639208094]
+material_override = SubResource("ORMMaterial3D_jerm6")
+mesh = ExtResource("64_1ea7r")
+
+[node name="Room_2_1__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=108565031]
+material_override = SubResource("StandardMaterial3D_hvp1n")
+mesh = ExtResource("65_j5ul1")
+
+[node name="Room_2_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=408860562]
+material_override = SubResource("ORMMaterial3D_siqc6")
+mesh = ExtResource("66_5q02e")
+
+[node name="Room_2_1__Resource__9223364097943191828_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=156490327]
+material_override = SubResource("ORMMaterial3D_6wv0u")
+mesh = ExtResource("67_rjadq")
+
+[node name="Room_2_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1975388696]
+material_override = SubResource("ORMMaterial3D_rr5t8")
+mesh = ExtResource("68_nm8vv")
+
+[node name="Room_2_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=131864788]
+material_override = SubResource("ORMMaterial3D_vpn7x")
+mesh = ExtResource("69_f8ode")
+
+[node name="Room_2_2__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1619027568]
+material_override = SubResource("StandardMaterial3D_7n121")
+mesh = ExtResource("70_exlk4")
+
+[node name="Room_2_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=18630857]
+material_override = SubResource("ORMMaterial3D_i7w3h")
+mesh = ExtResource("71_u6g3l")
+
+[node name="Room_2_2__Resource__9223364097943191828_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1132397925]
+material_override = SubResource("ORMMaterial3D_io0ok")
+mesh = ExtResource("72_yt0t5")
+
+[node name="Room_2_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=973045776]
+material_override = SubResource("ORMMaterial3D_f4at3")
+mesh = ExtResource("73_f2n54")
+
+[node name="Room_2_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=663626424]
+material_override = SubResource("ORMMaterial3D_04rqe")
+mesh = ExtResource("74_c1jay")
+
+[node name="Room_2_3__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1426681899]
+material_override = SubResource("StandardMaterial3D_yko3q")
+mesh = ExtResource("75_i7rho")
+
+[node name="Room_2_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2039827850]
+material_override = SubResource("ORMMaterial3D_r7xpg")
+mesh = ExtResource("76_1sx0r")
+
+[node name="Room_2_3__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=871896072]
+material_override = SubResource("ORMMaterial3D_r1aiy")
+mesh = ExtResource("77_uuaqo")
+
+[node name="Room_2_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1783811932]
+material_override = SubResource("ORMMaterial3D_048ae")
+mesh = ExtResource("78_rxpqm")
+
+[node name="Room_2_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1564595990]
+material_override = SubResource("ORMMaterial3D_iy8ja")
+mesh = ExtResource("79_2cm37")
+
+[node name="Room_2_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1142649853]
+material_override = SubResource("ORMMaterial3D_l5g43")
+mesh = ExtResource("80_602j1")
+
+[node name="Room_3_0__Resource__9223364095225282856_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1396319568]
+material_override = SubResource("ORMMaterial3D_ll8l8")
+mesh = ExtResource("81_2vcrc")
+
+[node name="Room_3_0__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=999591431]
+material_override = SubResource("StandardMaterial3D_6qmmt")
+mesh = ExtResource("82_iqdlr")
+
+[node name="Room_3_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=740406635]
+material_override = SubResource("ORMMaterial3D_kc7iq")
+mesh = ExtResource("83_p45u3")
+
+[node name="Room_3_0__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=565045053]
+material_override = SubResource("ORMMaterial3D_4ky1j")
+mesh = ExtResource("84_4g1af")
+
+[node name="Room_3_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=354884608]
+material_override = SubResource("ORMMaterial3D_yficd")
+mesh = ExtResource("85_asb5l")
+
+[node name="Room_3_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1880050935]
+material_override = SubResource("ORMMaterial3D_fmc66")
+mesh = ExtResource("86_jk6a2")
+
+[node name="Room_3_1__Resource__9223364095225282856_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1903873407]
+material_override = SubResource("ORMMaterial3D_j066q")
+mesh = ExtResource("87_ak6ox")
+
+[node name="Room_3_1__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=533367142]
+material_override = SubResource("StandardMaterial3D_n6agj")
+mesh = ExtResource("88_gqops")
+
+[node name="Room_3_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1575820381]
+material_override = SubResource("ORMMaterial3D_5mdiq")
+mesh = ExtResource("89_o23gc")
+
+[node name="Room_3_1__Resource__9223364097943191828_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=455672047]
+material_override = SubResource("ORMMaterial3D_76oe4")
+mesh = ExtResource("90_0fx8b")
+
+[node name="Room_3_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1207380246]
+material_override = SubResource("ORMMaterial3D_j1ily")
+mesh = ExtResource("91_1x7wr")
+
+[node name="Room_3_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1141525130]
+material_override = SubResource("ORMMaterial3D_4t8ia")
+mesh = ExtResource("92_xhhxn")
+
+[node name="Room_3_2__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=620315410]
+material_override = SubResource("StandardMaterial3D_vvequ")
+mesh = ExtResource("93_b7vtm")
+
+[node name="Room_3_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1513794202]
+material_override = SubResource("ORMMaterial3D_mncuq")
+mesh = ExtResource("94_7c7os")
+
+[node name="Room_3_2__Resource__9223364097943191828_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1539667161]
+material_override = SubResource("ORMMaterial3D_xs87e")
+mesh = ExtResource("95_n1ys8")
+
+[node name="Room_3_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=919811597]
+material_override = SubResource("ORMMaterial3D_uih1j")
+mesh = ExtResource("96_268km")
+
+[node name="Room_3_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1722921400]
+material_override = SubResource("ORMMaterial3D_a53ll")
+mesh = ExtResource("97_kwdvj")
+
+[node name="Room_3_3__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1256547024]
+material_override = SubResource("StandardMaterial3D_jfyjo")
+mesh = ExtResource("98_rdbce")
+
+[node name="Room_3_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1248603294]
+material_override = SubResource("ORMMaterial3D_lunao")
+mesh = ExtResource("99_gvmi6")
+
+[node name="Room_3_3__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1330561007]
+material_override = SubResource("ORMMaterial3D_40lsn")
+mesh = ExtResource("100_nlx41")
+
+[node name="Room_3_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1902440946]
+material_override = SubResource("ORMMaterial3D_e4ndw")
+mesh = ExtResource("101_4p300")
+
+[node name="Room_3_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1706603125]
+material_override = SubResource("ORMMaterial3D_675s2")
+mesh = ExtResource("102_0vdcm")
+
+[node name="Room_3_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=486277076]
+material_override = SubResource("ORMMaterial3D_gafig")
+mesh = ExtResource("103_87m01")
+
+[node name="Room_4_0__Resource__9223364095225282856_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1715167289]
+material_override = SubResource("ORMMaterial3D_7nmij")
+mesh = ExtResource("104_o6w1u")
+
+[node name="Room_4_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1168861077]
+material_override = SubResource("ORMMaterial3D_g0bvl")
+mesh = ExtResource("105_t76qh")
+
+[node name="Room_4_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2100136755]
+material_override = SubResource("ORMMaterial3D_5tphl")
+mesh = ExtResource("106_ulsvv")
+
+[node name="Room_4_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=716558862]
+material_override = SubResource("ORMMaterial3D_0xx0h")
+mesh = ExtResource("107_e8l1a")
+
+[node name="Room_4_1__Resource__9223364095225282856_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1208672657]
+material_override = SubResource("ORMMaterial3D_0kjdp")
+mesh = ExtResource("108_5s2qd")
+
+[node name="Room_4_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1467494986]
+material_override = SubResource("ORMMaterial3D_onyrp")
+mesh = ExtResource("109_70rn6")
+
+[node name="Room_4_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=511970773]
+material_override = SubResource("ORMMaterial3D_8opr4")
+mesh = ExtResource("110_gyqal")
+
+[node name="Room_4_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=984936712]
+material_override = SubResource("ORMMaterial3D_6nv1q")
+mesh = ExtResource("111_126oj")
+
+[node name="Room_4_2__Resource__9223364095208505643_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1744447990]
+material_override = SubResource("ORMMaterial3D_4nort")
+mesh = ExtResource("112_sqjgj")
+
+[node name="Room_4_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2070754190]
+material_override = SubResource("ORMMaterial3D_saep2")
+mesh = ExtResource("113_mb7ek")
+
+[node name="Room_4_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1601426744]
+material_override = SubResource("ORMMaterial3D_76txp")
+mesh = ExtResource("114_my1l4")
+
+[node name="Room_4_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=374825803]
+material_override = SubResource("ORMMaterial3D_pk8g6")
+mesh = ExtResource("115_sce8d")
+
+[node name="Room_4_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2041995086]
+material_override = SubResource("ORMMaterial3D_dmwjg")
+mesh = ExtResource("116_y3xrr")
+
+[node name="Room_4_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=800080813]
+material_override = SubResource("ORMMaterial3D_5e440")
+mesh = ExtResource("117_ersnt")
+
+[node name="Room_4_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=231356990]
+material_override = SubResource("ORMMaterial3D_cjaxh")
+mesh = ExtResource("118_qce7e")
+
+[node name="Room_4_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1095061964]
+material_override = SubResource("ORMMaterial3D_j5824")
+mesh = ExtResource("119_hp5qh")
+
+[node name="Room_5_0__Resource__9223364095225282856_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=966569903]
+material_override = SubResource("ORMMaterial3D_ey81y")
+mesh = ExtResource("120_hvunj")
+
+[node name="Room_5_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=213779673]
+material_override = SubResource("ORMMaterial3D_c074g")
+mesh = ExtResource("121_d72m5")
+
+[node name="Room_5_0__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=758665072]
+material_override = SubResource("ORMMaterial3D_nj1xr")
+mesh = ExtResource("122_apdyy")
+
+[node name="Room_5_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1093505426]
+material_override = SubResource("ORMMaterial3D_1wiw0")
+mesh = ExtResource("123_njuva")
+
+[node name="Room_5_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=618146195]
+material_override = SubResource("ORMMaterial3D_j04q3")
+mesh = ExtResource("124_p1nso")
+
+[node name="Room_5_1__Resource__9223364095225282856_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1154475984]
+material_override = SubResource("ORMMaterial3D_jue6s")
+mesh = ExtResource("125_fsyib")
+
+[node name="Room_5_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1344238473]
+material_override = SubResource("ORMMaterial3D_6j26g")
+mesh = ExtResource("126_7otlk")
+
+[node name="Room_5_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1751536356]
+material_override = SubResource("ORMMaterial3D_ro4hm")
+mesh = ExtResource("127_mkga2")
+
+[node name="Room_5_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1427514141]
+material_override = SubResource("ORMMaterial3D_8e4bg")
+mesh = ExtResource("128_1c23x")
+
+[node name="Room_5_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=546289441]
+material_override = SubResource("ORMMaterial3D_vqrr1")
+mesh = ExtResource("129_5uskb")
+
+[node name="Room_5_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=23695497]
+material_override = SubResource("ORMMaterial3D_6shx3")
+mesh = ExtResource("130_7wce8")
+
+[node name="Room_5_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1676539419]
+material_override = SubResource("ORMMaterial3D_ae8cn")
+mesh = ExtResource("131_wc31j")
+
+[node name="Room_5_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=784984241]
+material_override = SubResource("ORMMaterial3D_4goyp")
+mesh = ExtResource("132_jre3a")
+
+[node name="Room_5_3__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1237028581]
+material_override = SubResource("ORMMaterial3D_rudcq")
+mesh = ExtResource("133_odw1y")
+
+[node name="Room_5_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2043162396]
+material_override = SubResource("ORMMaterial3D_g7c1q")
+mesh = ExtResource("134_pb23n")
+
+[node name="Room_5_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1404744881]
+material_override = SubResource("ORMMaterial3D_kfcdk")
+mesh = ExtResource("135_jam8b")
+
+[node name="Room_5_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1512203711]
+material_override = SubResource("ORMMaterial3D_21l3b")
+mesh = ExtResource("136_p4lqa")
+
+[node name="Room_6_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1470804666]
+material_override = SubResource("ORMMaterial3D_707xb")
+mesh = ExtResource("137_q2406")
+
+[node name="Room_6_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=663966063]
+material_override = SubResource("ORMMaterial3D_nhs62")
+mesh = ExtResource("138_onjmk")
+
+[node name="Room_6_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1424726458]
+material_override = SubResource("ORMMaterial3D_c12aj")
+mesh = ExtResource("139_jgwje")
+
+[node name="Room_6_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=570557302]
+material_override = SubResource("ORMMaterial3D_1olfy")
+mesh = ExtResource("140_f2gxx")
+
+[node name="Collision" type="Node3D" parent="Builder/Generated" unique_id=612503929]
+
+[node name="Room_Collision" type="StaticBody3D" parent="Builder/Generated/Collision" unique_id=1800835350]
+
+[node name="Room_col_0_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1068624950]
+shape = ExtResource("141_n85qe")
+
+[node name="Room_col_0_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=834847207]
+shape = ExtResource("142_f6fuw")
+
+[node name="Room_col_0_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1052121807]
+shape = ExtResource("143_a23e2")
+
+[node name="Room_col_0_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1249930797]
+shape = ExtResource("144_fmdjm")
+
+[node name="Room_col_0_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2053136177]
+shape = ExtResource("145_x64q8")
+
+[node name="Room_col_1_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1976397012]
+shape = ExtResource("146_j1mw3")
+
+[node name="Room_col_1_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1780635992]
+shape = ExtResource("147_jx533")
+
+[node name="Room_col_1_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1107816144]
+shape = ExtResource("148_v63s8")
+
+[node name="Room_col_1_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=127722193]
+shape = ExtResource("149_qj50s")
+
+[node name="Room_col_1_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2044197865]
+shape = ExtResource("150_eux7y")
+
+[node name="Room_col_2_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=827849381]
+shape = ExtResource("151_otht1")
+
+[node name="Room_col_2_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=295538329]
+shape = ExtResource("152_oc4ex")
+
+[node name="Room_col_2_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=180932876]
+shape = ExtResource("153_lwlwk")
+
+[node name="Room_col_2_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1850954434]
+shape = ExtResource("154_wm0fk")
+
+[node name="Room_col_2_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1265252744]
+shape = ExtResource("155_wiwen")
+
+[node name="Room_col_3_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2056572959]
+shape = ExtResource("156_a2me4")
+
+[node name="Room_col_3_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=451862496]
+shape = ExtResource("157_fe8rn")
+
+[node name="Room_col_3_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1248859344]
+shape = ExtResource("158_8i7eq")
+
+[node name="Room_col_3_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=355487483]
+shape = ExtResource("159_xypyd")
+
+[node name="Room_col_3_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1175560251]
+shape = ExtResource("160_wnbg1")
+
+[node name="Room_col_4_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1567741193]
+shape = ExtResource("161_8qyo3")
+
+[node name="Room_col_4_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=959770931]
+shape = ExtResource("162_o2hti")
+
+[node name="Room_col_4_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=452016828]
+shape = ExtResource("163_lgiks")
+
+[node name="Room_col_4_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1974905324]
+shape = ExtResource("164_kh7i5")
+
+[node name="Room_col_4_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1185275102]
+shape = ExtResource("165_rh0tp")
+
+[node name="Room_col_5_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1608196025]
+shape = ExtResource("166_qst8d")
+
+[node name="Room_col_5_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1928767924]
+shape = ExtResource("167_dstix")
+
+[node name="Room_col_5_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=615205144]
+shape = ExtResource("168_hydnj")
+
+[node name="Room_col_5_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1243677019]
+shape = ExtResource("169_vgort")
+
+[node name="Room_col_5_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=559329989]
+shape = ExtResource("170_qaxqm")
+
+[node name="Room_col_6_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=831420846]
+shape = ExtResource("171_22wsq")
+
+[node name="Room_col_6_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=258191849]
+shape = ExtResource("172_4wqdd")
+
+[node name="Room_col_6_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=280776259]
+shape = ExtResource("173_smfv2")
+
+[node name="Room_col_6_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=210614622]
+shape = ExtResource("174_hchj7")
+
+[node name="Doors" type="Node3D" parent="Builder/Generated" unique_id=466254254]
+
+[node name="Door_7_3" type="Marker3D" parent="Builder/Generated/Doors" unique_id=1348021625 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0, 10.5)
+
+[node name="Door_14_3" type="Marker3D" parent="Builder/Generated/Doors" unique_id=698354743 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 0, 10.5)
+
+[node name="Door_15_3" type="Marker3D" parent="Builder/Generated/Doors" unique_id=1919878754 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.5, 0, 10.5)
+
+[node name="Door_22_3" type="Marker3D" parent="Builder/Generated/Doors" unique_id=1460560849 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.5, 0, 10.5)
+
+[node name="Door_11_5" type="Marker3D" parent="Builder/Generated/Doors" unique_id=208609591 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.5, 0, 16.5)
+
+[node name="Door_18_5" type="Marker3D" parent="Builder/Generated/Doors" unique_id=503977905 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55.5, 0, 16.5)
+
+[node name="Door_7_8" type="Marker3D" parent="Builder/Generated/Doors" unique_id=132963006 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0, 25.5)
+
+[node name="Door_22_8" type="Marker3D" parent="Builder/Generated/Doors" unique_id=1087403849 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.5, 0, 25.5)
+
+[node name="Door_3_9" type="Marker3D" parent="Builder/Generated/Doors" unique_id=908081469 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0, 28.5)
+
+[node name="Door_26_9" type="Marker3D" parent="Builder/Generated/Doors" unique_id=1704210838 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 79.5, 0, 28.5)
+
+[node name="Door_3_10" type="Marker3D" parent="Builder/Generated/Doors" unique_id=876529215 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 0, 31.5)
+
+[node name="Door_26_10" type="Marker3D" parent="Builder/Generated/Doors" unique_id=7331984 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 79.5, 0, 31.5)
+
+[node name="Door_7_11" type="Marker3D" parent="Builder/Generated/Doors" unique_id=2109380617 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0, 34.5)
+
+[node name="Door_22_11" type="Marker3D" parent="Builder/Generated/Doors" unique_id=1042932998 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.5, 0, 34.5)
+
+[node name="Door_11_14" type="Marker3D" parent="Builder/Generated/Doors" unique_id=1460596682 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.5, 0, 43.5)
+
+[node name="Door_18_14" type="Marker3D" parent="Builder/Generated/Doors" unique_id=1515139737 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55.5, 0, 43.5)
+
+[node name="Door_7_16" type="Marker3D" parent="Builder/Generated/Doors" unique_id=2024103553 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 0, 49.5)
+
+[node name="Door_14_16" type="Marker3D" parent="Builder/Generated/Doors" unique_id=93064812 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 0, 49.5)
+
+[node name="Door_15_16" type="Marker3D" parent="Builder/Generated/Doors" unique_id=896607646 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.5, 0, 49.5)
+
+[node name="Door_22_16" type="Marker3D" parent="Builder/Generated/Doors" unique_id=557326650 groups=["door"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.5, 0, 49.5)
+
+[node name="Spawns" type="Node3D" parent="Builder/Generated" unique_id=1682078846]
+
+[node name="Spawn_2_3" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=390047708 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0.1, 10.5)
+
+[node name="Spawn_27_3" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=248114332 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 82.5, 0.1, 10.5)
+
+[node name="Spawn_2_16" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=1188912964 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0.1, 49.5)
+
+[node name="Spawn_27_16" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=1277209428 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 82.5, 0.1, 49.5)
+
+[node name="Spawn_5_4" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=476411732 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 0.1, 13.5)
+
+[node name="Spawn_8_15" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=1517293876 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.5, 0.1, 46.5)
+
+[node name="Spawn_24_5" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=1890230411 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 73.5, 0.1, 16.5)
+
+[node name="Spawn_23_15" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=1467257245 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.5, 0.1, 46.5)
+
+[node name="Spawn_13_9" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=1941045590 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.5, 0.1, 28.5)
+
+[node name="Spawn_16_10" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=904544716 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49.5, 0.1, 31.5)
+
+[node name="Spawn_8_9" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=2138402160 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.5, 0.1, 28.5)
+
+[node name="Spawn_21_10" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=941701371 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.5, 0.1, 31.5)
+
+[node name="Spawn_9_1" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=925020805 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.5, 0.1, 4.5)
+
+[node name="Spawn_20_18" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=2066010735 groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.5, 0.1, 55.5)
