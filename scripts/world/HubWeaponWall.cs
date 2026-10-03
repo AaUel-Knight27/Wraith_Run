@@ -126,7 +126,7 @@ public partial class HubWeaponWall : Node3D
     }
 
     private Camera3D? LocalCamera() =>
-        GetTree().CurrentScene?.GetNodeOrNull<Camera3D>($"Players/Player_{Multiplayer.GetUniqueId()}/Head/FirstPersonCamera");
+        GetTree().CurrentScene?.GetNodeOrNull<Camera3D>($"Players/Player_{Multiplayer.GetUniqueId()}/Head/CameraShake/FirstPersonCamera");
 
     public override void _Process(double delta)
     {

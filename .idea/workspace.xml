@@ -10,15 +10,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.godot" beforeDir="false" afterPath="$PROJECT_DIR$/project.godot" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/autoloads/MatchManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/autoloads/MatchManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/network/GameWorld.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/GameWorld.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/Health.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/Health.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/TouchControls.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/TouchControls.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/PauseMenu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/PauseMenu.cs" afterDir="false" />
-    </list>
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -230,10 +222,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="sound effects and rooms sound" />
-    <MESSAGE value="adding more sound effects and fixing sound effects" />
-    <MESSAGE value="adding and fps model to make the game more stable" />
-    <MESSAGE value="fix compile error" />
     <MESSAGE value="fixed an audio bug" />
     <MESSAGE value="added character rig edit system and audio files" />
     <MESSAGE value="fix debugging systems and fixed control systems." />
@@ -255,7 +243,11 @@
     <MESSAGE value="created all the 7 modes and edit the bots" />
     <MESSAGE value="audio and mesh fix" />
     <MESSAGE value="fix host and peer bugs" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix host and peer bugs" />
+    <MESSAGE value="added lobby system inside warehouse and additional map" />
+    <MESSAGE value="added animation player entering car" />
+    <MESSAGE value="additional map and rider buggy vehicle" />
+    <MESSAGE value="modify car system to integrate with every system" />
+    <option name="LAST_COMMIT_MESSAGE" value="modify car system to integrate with every system" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

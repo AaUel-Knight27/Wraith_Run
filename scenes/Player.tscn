@@ -16,6 +16,8 @@
 [ext_resource type="Script" uid="uid://dsgal1w2b3nq3" path="res://scripts/debug/CharacterRigTuner.cs" id="15"]
 [ext_resource type="Script" uid="uid://dbp87dk8oe3rn" path="res://scripts/debug/WeaponSoundTuner.cs" id="16"]
 [ext_resource type="Script" uid="uid://cxg1yq5hqar8y" path="res://scripts/player/CharacterLoadout.cs" id="17"]
+[ext_resource type="Script" path="res://scripts/player/ViewModelManager.cs" id="18_viewmodels"]
+[ext_resource type="Script" path="res://scripts/player/ViewModelCameraMotion.cs" id="19_camera_motion"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.35
@@ -83,7 +85,13 @@ script = ExtResource("5")
 [node name="Head" type="Node3D" parent="." unique_id=410578168]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
-[node name="FirstPersonCamera" type="Camera3D" parent="Head" unique_id=250919579]
+[node name="CameraShake" type="Node3D" parent="Head"]
+script = ExtResource("19_camera_motion")
+
+[node name="ViewModelManager" type="Node3D" parent="Head/CameraShake"]
+script = ExtResource("18_viewmodels")
+
+[node name="FirstPersonCamera" type="Camera3D" parent="Head/CameraShake" unique_id=250919579]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0052988976, 0.08884847, -0.15)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=755757165]

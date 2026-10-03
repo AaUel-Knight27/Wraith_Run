@@ -105,7 +105,7 @@ public partial class PauseMenu : CanvasLayer
     /// open. The menu controls remain screen-space so they stay readable at every resolution.</summary>
     private void AttachTabletModel()
     {
-        var camera = Player.GetNodeOrNull<Node3D>("Head/FirstPersonCamera");
+		var camera = Player.GetNodeOrNull<Node3D>("Head/CameraShake/FirstPersonCamera");
         var tabletScene = ResourceLoader.Load<PackedScene>("res://art/ui/tablet/rugged_tactical_tablet.glb");
         if (camera == null || tabletScene == null) return;
         _tabletModel = tabletScene.Instantiate<Node3D>();

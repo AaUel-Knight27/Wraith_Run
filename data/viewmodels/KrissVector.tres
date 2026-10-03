@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
+[ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/ak_rig.tscn" id="2_rig"]
+[ext_resource type="PackedScene" path="res://art/weapons/SMGs/KRISS VECTOR.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/ak_rig.tscn" id="4_reference"]
+
+[resource]
+script = ExtResource("1_script")
+WeaponName = "Kriss Vector"
+RigScene = ExtResource("2_rig")
+WeaponModelScene = ExtResource("3_model")
+AttachBoneName = "PBody"
+AttachPosition = Vector3(0, 0, 0)
+AttachRotationDegrees = Vector3(0, 0, 0)
+AttachScale = Vector3(0.55, 0.55, 0.55)
+ViewPosition = Vector3(0.0053, -0.1479, -0.2292)
+ViewRotationDegrees = Vector3(0, 180, 0)
+ArmMeshNames = PackedStringArray("arms")
+OriginalWeaponMeshNames = PackedStringArray("Ak")
+OriginalMagazineMeshNames = PackedStringArray("krissVector_Magazine_Low")
+ClipMap = {
+"idle": "Rig|AK_Idle",
+"walk": "Rig|AK_Walk",
+"run": "Rig|AK_Run",
+"fire": "Rig|AK_Shot",
+"reload": "Rig|AK_Reload",
+"reload_full": "Rig|AK_Reload_full",
+"draw": "Rig|AK_Draw"
+}
+IdlePoseTime = 0.0
+NormalizationReferenceRig = ExtResource("4_reference")
+NormalizationReferenceArmMeshNames = PackedStringArray("arms")
+CullMargin = 1.0
+MuzzlePointOffset = Vector3(0, 0, -0.58)
+MagazineNodeName = "krissVector_Magazine_Low"
+MagazineBoneName = "Pmag2"

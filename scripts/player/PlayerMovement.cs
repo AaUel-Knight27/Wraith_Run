@@ -71,6 +71,7 @@ public partial class PlayerMovement : CharacterBody3D
     private ShapeCast3D _groundProbe = null!;
     private Node3D _head = null!;
     private Camera3D _camera = null!;
+    private ViewModelManager? _viewModelManager;
     private PlayerAnimationController _animationController = null!;
     private Health? _health;
     private CapsuleShape3D _capsule = null!;
@@ -115,7 +116,8 @@ public partial class PlayerMovement : CharacterBody3D
         _collisionShape = GetNode<CollisionShape3D>("CollisionShape3D");
         _groundProbe = GetNode<ShapeCast3D>("GroundProbe");
         _head = GetNode<Node3D>("Head");
-        _camera = GetNode<Camera3D>("Head/FirstPersonCamera");
+        _camera = GetNode<Camera3D>("Head/CameraShake/FirstPersonCamera");
+        _viewModelManager = GetNodeOrNull<ViewModelManager>("Head/CameraShake/ViewModelManager");
         _animationController = GetNode<PlayerAnimationController>("AnimationController");
         _health = GetNodeOrNull<Health>("Health");
         _capsule = (CapsuleShape3D)_collisionShape.Shape;
@@ -142,9 +144,9 @@ public partial class PlayerMovement : CharacterBody3D
         SprintSpeed *= moveMult;
         CrouchSpeed *= loadout?.GetModifier(CharacterEffectIds.CrouchWalkSpeedMult, 1.0f) ?? 1.0f;
 
-        // FirstPersonArms used to own this; with a single always-visible body mesh there is no
-        // separate view-model to toggle, but each client must still only activate its own camera.
-        // A bot is 'authority' on the host too, but it must never steal the host player's camera.
+        // Each client activates only its own camera. ViewModelManager separately hides this local
+        // Armature only while a supported first-person rig is equipped. A bot shares host authority
+        // but must never steal the host player's camera or show a first-person viewmodel.
         _camera.Current = PlayerIdentity.IsLocalHuman(this);
         // Touch devices have no cursor to capture; TouchControls drives look via screen drags
         // instead (see _UnhandledInput below), so capturing here would just be a no-op on mobile.
@@ -275,6 +277,7 @@ public partial class PlayerMovement : CharacterBody3D
             _animationController.SetMovementState(State);
             ReplicatedMovementState = State.ToString();
             ReplicatedAimState = IsAiming;
+            _viewModelManager?.UpdateMovement(State);
             return;
         }
         float delta = (float)deltaValue;
@@ -322,6 +325,7 @@ public partial class PlayerMovement : CharacterBody3D
         ReplicatedMovementState = State.ToString();
         ReplicatedAimState = IsAiming;
         _animationController.SetMovementState(State);
+        _viewModelManager?.UpdateMovement(State);
         Bot?.ClearJump(); // a jump request that could not happen this frame is dropped, not banked
     }
 

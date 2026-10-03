@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
+[ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/pistol_rig.tscn" id="2_rig"]
+[ext_resource type="PackedScene" path="res://art/weapons/Pistols/Glock 19.glb" id="3_model"]
+[ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/ak_rig.tscn" id="4_reference"]
+
+[resource]
+script = ExtResource("1_script")
+WeaponName = "Glock 19"
+RigScene = ExtResource("2_rig")
+WeaponModelScene = ExtResource("3_model")
+AttachBoneName = "Main"
+AttachPosition = Vector3(0, 0, 0)
+AttachRotationDegrees = Vector3(0, 90, 0)
+AttachScale = Vector3(0.5, 0.5, 0.5)
+ViewPosition = Vector3(0.0053, -0.0802, -0.2758)
+ViewRotationDegrees = Vector3(0, 180, 0)
+ArmMeshNames = PackedStringArray("arms")
+OriginalWeaponMeshNames = PackedStringArray("502_1_low_001")
+OriginalMagazineMeshNames = PackedStringArray("m_low")
+ClipMap = {
+"idle": "Armature|FN_Walk",
+"walk": "Armature|FN_Walk",
+"run": "Armature|FN_Run",
+"fire": "Armature|FN_Shot",
+"reload": "Armature|FN_Reload",
+"reload_full": "Armature|FN_ReloadFull"
+}
+IdlePoseTime = 0.0
+NormalizationReferenceRig = ExtResource("4_reference")
+NormalizationReferenceArmMeshNames = PackedStringArray("arms")
+CullMargin = 1.0
+MuzzlePointOffset = Vector3(0, 0, -0.35)
+MagazineNodeName = "m_low"
+MagazineBoneName = "Mag"

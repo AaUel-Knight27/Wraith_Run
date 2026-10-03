@@ -253,7 +253,7 @@ public partial class HubTablet : CanvasLayer
     }
 
     private Camera3D? LocalCamera() =>
-        GetTree().CurrentScene?.GetNodeOrNull<Camera3D>($"Players/Player_{Multiplayer.GetUniqueId()}/Head/FirstPersonCamera");
+        GetTree().CurrentScene?.GetNodeOrNull<Camera3D>($"Players/Player_{Multiplayer.GetUniqueId()}/Head/CameraShake/FirstPersonCamera");
 
     /// <summary>Hang the tablet on the local player's camera as soon as that camera exists.</summary>
     private void AttachTabletModel() => CallDeferred(nameof(MountDevice));

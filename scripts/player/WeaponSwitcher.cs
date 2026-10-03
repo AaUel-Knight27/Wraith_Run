@@ -61,8 +61,7 @@ public partial class WeaponSwitcher : Node
 	};
 
 	private WeaponAttachment _attachment = null!;
-	private WeaponAttachment? _viewmodelAttachment;
-	private FirstPersonMp5Viewmodel? _viewmodel;
+	private ViewModelManager? _viewmodel;
 	private WeaponRegistry _registry = null!;
 	private Camera3D _camera = null!;
 	private CharacterBody3D _player = null!;
@@ -259,12 +258,8 @@ public partial class WeaponSwitcher : Node
 		_player = (CharacterBody3D)GetParent();
 		_movement = (PlayerMovement)GetParent();
 		_attachment = GetNode<WeaponAttachment>("../Armature/WeaponAttachment");
-		// Both optional: a scene that hasn't picked up the Player.tscn viewmodel changes (see
-		// MP5_VIEWMODEL_README.md) still runs exactly as before - GetNodeOrNull rather than GetNode,
-		// same as _animation below, and every call site already null-conditions on it.
-		_viewmodelAttachment = GetNodeOrNull<WeaponAttachment>("../Head/FirstPersonCamera/FirstPersonMp5Viewmodel/WeaponAttachment");
-		_viewmodel = GetNodeOrNull<FirstPersonMp5Viewmodel>("../Head/FirstPersonCamera/FirstPersonMp5Viewmodel");
-		_camera = GetNode<Camera3D>("../Head/FirstPersonCamera");
+		_viewmodel = GetNodeOrNull<ViewModelManager>("../Head/CameraShake/ViewModelManager");
+		_camera = GetNode<Camera3D>("../Head/CameraShake/FirstPersonCamera");
 		_rotationWindow = GetNode<RotationWindowTracker>("../RotationWindow");
 		_health = GetNodeOrNull<Health>("../Health");
 		_loadout = GetNodeOrNull<CharacterLoadout>("../CharacterLoadout");
@@ -380,8 +375,7 @@ public partial class WeaponSwitcher : Node
 			_reloadRemaining = 0.0f;
 			_animation?.CancelReload();
 			_attachment.Equip(weapon);
-			_viewmodelAttachment?.Equip(weapon);
-			_viewmodel?.PlayEquip();
+			_viewmodel?.EquipWeapon(weapon.WeaponName);
 			WeaponEquipped?.Invoke(weapon);
 			return;
 		}
@@ -468,14 +462,10 @@ public partial class WeaponSwitcher : Node
 	{
 		_attachment.PlayFire();
 		_animation?.PlayFire();
-		_viewmodel?.PlayShoot();
+		_viewmodel?.Play("fire");
 		// Bots (host only) hear the shot: everyone nearby learns roughly where it came from.
 		if (_currentWeapon != null && _currentWeapon.WeaponClass != "Melee")
 			BotSenses.ReportGunshot(_player.GlobalPosition, Mathf.Min(_currentWeapon.FireMaxDistanceMeters, 80.0f), _player);
-		// Flash only: SkipAudio on this attachment (set in Player.tscn) means _fireAudio is null, so
-		// this plays nothing but the muzzle flash, positioned at the viewmodel's own barrel instead
-		// of at the (now-hidden, see HiddenFromOwner) world model's.
-		_viewmodelAttachment?.PlayFire();
 	}
 
 	/// <summary>Reload audio and animation. Reliable, unlike fire: a dropped reload would leave a
@@ -486,7 +476,7 @@ public partial class WeaponSwitcher : Node
 	{
 		_attachment.PlayReload();
 		_animation?.PlayReload();
-		_viewmodel?.PlayReload();
+		_viewmodel?.PlayReload(_currentWeapon?.ReloadTime ?? 0.0f, _currentAmmo == 0);
 	}
 
 	/// <summary>A shell-by-shell reload interrupted by firing: stop the reload sound on every peer.</summary>

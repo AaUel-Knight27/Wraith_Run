@@ -214,7 +214,7 @@ public partial class PlayerAnimationController : Node
 
 		var rigCameraScale = new CharacterRigCameraScaleApplier { Name = "CharacterRigCameraScale" };
 		AddChild(rigCameraScale);
-		rigCameraScale.Setup(_body.GetNode<Camera3D>("Head/FirstPersonCamera"), _body.GetNode<Node3D>("Armature"),
+		rigCameraScale.Setup(_body.GetNode<Camera3D>("Head/CameraShake/FirstPersonCamera"), _body.GetNode<Node3D>("Armature"),
 			(PlayerMovement)_body, this);
 
 		// Debug-only live tuner (F8). It spawns itself away in release exports and on remote players.

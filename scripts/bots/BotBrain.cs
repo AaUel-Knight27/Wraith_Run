@@ -94,7 +94,7 @@ public partial class BotBrain : Node
 		_body = GetParent<PlayerMovement>();
 		_health = _body.GetNode<Health>("Health");
 		_weapon = _body.GetNode<WeaponSwitcher>("WeaponSwitcher");
-		_camera = _body.GetNode<Camera3D>("Head/FirstPersonCamera");
+		_camera = _body.GetNode<Camera3D>("Head/CameraShake/FirstPersonCamera");
 		_selfExclude = new Godot.Collections.Array<Rid> { _body.GetRid() };
 
 		_health.Died += OnDied;
