@@ -9,11 +9,13 @@ public partial class GameWorld : Node3D
     private const string SpawnPointGroup = "spawn_point";
 
     [Export] public PackedScene PlayerScene { get; set; } = null!;
+    [Export] public PackedScene VehicleScene { get; set; } = null!;
     /// <summary>True for Hub.tscn: the walkable warehouse home base. Same spawning and map code as a
     /// match, but no match rules, no bots, no clock and no scoring.</summary>
     [Export] public bool IsHub { get; set; }
     private const string HubMapPath = "res://scenes/maps/DefaultWarehouse.tscn";
     private MultiplayerSpawner _spawner = null!;
+    private MultiplayerSpawner _vehicleSpawner = null!;
 
 	private const int MaxBots = 11;
     private const float NavCell = 0.5f;
@@ -27,6 +29,9 @@ public partial class GameWorld : Node3D
         _spawner = GetNode<MultiplayerSpawner>("MultiplayerSpawner");
         _spawner.SpawnPath = new NodePath("../Players");
         _spawner.SpawnFunction = new Callable(this, nameof(SpawnPlayer));
+        _vehicleSpawner = GetNode<MultiplayerSpawner>("VehicleSpawner");
+        _vehicleSpawner.SpawnPath = new NodePath("../Vehicles");
+        _vehicleSpawner.SpawnFunction = new Callable(this, nameof(SpawnGameVehicle));
         Multiplayer.PeerConnected += OnPeerConnected;
         Multiplayer.PeerDisconnected += OnPeerDisconnected;
         HubState.Active = IsHub;
@@ -163,11 +168,54 @@ public partial class GameWorld : Node3D
             SpawnForPeer(1);
             foreach (long peerId in Multiplayer.GetPeers())
                 SpawnForPeer((int)peerId);
+            SpawnMatchVehicles();
             wantBots = MatchManager.Instance.BotCount > 0;
         }
         // With bots, keep the loading screen up until the navigation grid is built and they exist.
         if (wantBots) StartBotsAsync();
         else LoadingScreen.Instance?.Hide();
+    }
+
+    /// <summary>Playable vehicle roster: the buggy belongs to the two-versus-two mode; the reused
+    /// Land Cruiser serves the other driving modes. Cursed Deathmatch remains a foot-only mode.</summary>
+    private void SpawnMatchVehicles()
+    {
+        var match = MatchManager.Instance;
+        if (match == null || match.GameMode == MatchManager.Mode.CursedDeathmatch) return;
+        bool buggyMode = match.GameMode == MatchManager.Mode.DuoBuggy;
+        string model = buggyMode ? GameVehicle.BuggyPath : GameVehicle.LandCruiserPath;
+        string display = buggyMode ? "Raider Buggy" : "STV · Land Cruiser";
+        float length = buggyMode ? 4.2f : 4.9f;
+        int count = buggyMode ? 2 : (match.GameMode == MatchManager.Mode.ConvoyAssault ? 2 : 1);
+        for (int i = 0; i < count; i++)
+        {
+            float side = i == 0 ? -1.0f : 1.0f;
+            var data = new Godot.Collections.Dictionary
+            {
+                ["model"] = model,
+                ["display"] = display,
+                ["length"] = length,
+                ["pos"] = new Vector3(side * (buggyMode ? 5.0f : 7.0f), 0.1f, 3.5f),
+                ["yaw"] = side < 0 ? 0.0f : Mathf.Pi,
+                ["slot"] = i,
+            };
+            if (_vehicleSpawner.Spawn(data) == null)
+                GD.PushError($"Failed to spawn {display}.");
+        }
+    }
+
+    private Node SpawnGameVehicle(Variant data)
+    {
+        var d = data.AsGodotDictionary();
+        var vehicle = VehicleScene.Instantiate<GameVehicle>();
+        vehicle.Name = $"Vehicle_{d["slot"].AsInt32()}";
+        vehicle.ModelPath = d["model"].AsString();
+        vehicle.DisplayName = d["display"].AsString();
+        vehicle.TargetLength = d["length"].AsSingle();
+        vehicle.Position = d["pos"].AsVector3();
+        vehicle.Rotation = new Vector3(0.0f, d["yaw"].AsSingle(), 0.0f);
+        vehicle.SetMultiplayerAuthority(1);
+        return vehicle;
     }
 
     // -------------------------------------------------------------------------------------------

@@ -2,11 +2,17 @@
 
 [ext_resource type="Script" path="res://scripts/network/GameWorld.cs" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/GameVehicle.tscn" id="3"]
 
 [node name="GameWorld" type="Node3D"]
 script = ExtResource("1")
 PlayerScene = ExtResource("2")
+VehicleScene = ExtResource("3")
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 
 [node name="Players" type="Node3D" parent="."]
+
+[node name="VehicleSpawner" type="MultiplayerSpawner" parent="."]
+
+[node name="Vehicles" type="Node3D" parent="."]

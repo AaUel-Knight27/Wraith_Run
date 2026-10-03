@@ -95,6 +95,16 @@ public partial class PlayerMovement : CharacterBody3D
     private float _recoilPitchDegrees;
     private float _recoilYawDegrees;
     private float _recoilRecoveryPerSecond = 20.0f;
+    private float _vehicleAimYaw;
+    private Vector3 _vehicleSeatLocal;
+    private bool _vehicleDriver;
+    private Transform3D? _savedCameraTransform;
+    private bool _savedCollisionDisabled;
+    private bool _savedArmatureVisible = true;
+    public GameVehicle? CurrentVehicle { get; private set; }
+    public bool IsInVehicle => CurrentVehicle != null && IsInstanceValid(CurrentVehicle);
+    public bool IsVehicleDriver => IsInVehicle && _vehicleDriver;
+    public bool IsThirdPersonVehicleView { get; private set; }
 
     public override void _Ready()
     {
@@ -164,7 +174,7 @@ public partial class PlayerMovement : CharacterBody3D
     }
 
     private bool CrouchJustPressed() => Bot == null && ActionTapped("crouch");
-    private bool AimHeld() => Bot != null ? Bot.Aim : ActionHeld("aim");
+    private bool AimHeld() => IsVehicleDriver ? false : Bot != null ? Bot.Aim : ActionHeld("aim");
 
     public override void _UnhandledInput(InputEvent @event)
     {
@@ -215,7 +225,10 @@ public partial class PlayerMovement : CharacterBody3D
         // The one place every look source passes through, so it is also the one place the pause
         // menu needs to stop the camera from turning behind it.
         if (GameUiState.BlocksGameplayInput) return;
-        RotateY(-yawDelta);
+        if (IsInVehicle)
+            _vehicleAimYaw = Mathf.Clamp(_vehicleAimYaw - yawDelta, Mathf.DegToRad(-110), Mathf.DegToRad(110));
+        else
+            RotateY(-yawDelta);
         _pitch = Mathf.Clamp(_pitch - pitchDelta,
             Mathf.DegToRad(-CameraPitchLimitDegrees), Mathf.DegToRad(CameraPitchLimitDegrees));
     }
@@ -249,6 +262,19 @@ public partial class PlayerMovement : CharacterBody3D
         if (_health != null && _health.IsDead)
         {
             Velocity = Vector3.Zero;
+            return;
+        }
+        if (IsInVehicle)
+        {
+            GlobalPosition = CurrentVehicle!.SeatPosition((int)GetMultiplayerAuthority());
+            GlobalRotation = new Vector3(0, CurrentVehicle.GlobalRotation.Y, 0);
+            Velocity = Vector3.Zero;
+            State = MovementState.Idle;
+            IsAiming = AimHeld();
+            UpdateHeadAim((float)deltaValue);
+            _animationController.SetMovementState(State);
+            ReplicatedMovementState = State.ToString();
+            ReplicatedAimState = IsAiming;
             return;
         }
         float delta = (float)deltaValue;
@@ -299,6 +325,57 @@ public partial class PlayerMovement : CharacterBody3D
         Bot?.ClearJump(); // a jump request that could not happen this frame is dropped, not banked
     }
 
+    /// <summary>Called by a gameplay vehicle on every peer while this player occupies a seat.</summary>
+    public void EnterVehicle(GameVehicle vehicle, bool driver, Vector3 seatPosition)
+    {
+        if (CurrentVehicle != vehicle)
+        {
+            CurrentVehicle = vehicle;
+            _savedCameraTransform = _camera.Transform;
+            _savedCollisionDisabled = _collisionShape.Disabled;
+            _savedArmatureVisible = GetNode<Node3D>("Armature").Visible;
+            _vehicleAimYaw = 0.0f;
+            _vehicleSeatLocal = vehicle.ToLocal(seatPosition);
+        }
+        _vehicleDriver = driver;
+        _collisionShape.Disabled = true;
+        GlobalPosition = seatPosition;
+        GlobalRotation = new Vector3(0, vehicle.GlobalRotation.Y, 0);
+        if (PlayerIdentity.IsLocalHuman(this))
+        {
+            _camera.Current = true;
+            if (driver && !IsThirdPersonVehicleView)
+                GetNode<Node3D>("Armature").Visible = false;
+            else
+                GetNode<Node3D>("Armature").Visible = _savedArmatureVisible;
+        }
+    }
+
+    public void LeaveVehicle(GameVehicle vehicle, Vector3 exitPosition)
+    {
+        if (CurrentVehicle != vehicle) return;
+        CurrentVehicle = null;
+        _vehicleDriver = false;
+        IsThirdPersonVehicleView = false;
+        _vehicleAimYaw = 0.0f;
+        _collisionShape.Disabled = _savedCollisionDisabled;
+        _camera.Transform = _savedCameraTransform ?? Transform3D.Identity;
+        GetNode<Node3D>("Armature").Visible = _savedArmatureVisible;
+        GlobalPosition = exitPosition;
+        GlobalRotation = new Vector3(0, vehicle.GlobalRotation.Y, 0);
+        Velocity = Vector3.Zero;
+        _camera.Current = PlayerIdentity.IsLocalHuman(this);
+    }
+
+    public void SetVehicleCameraView(bool thirdPerson, GameVehicle vehicle)
+    {
+        if (CurrentVehicle != vehicle || !_vehicleDriver) return;
+        IsThirdPersonVehicleView = thirdPerson;
+        _camera.Position = thirdPerson ? new Vector3(0, 0.55f, 3.1f) : new Vector3(-0.28f, 0.05f, -0.05f);
+        _camera.Rotation = thirdPerson ? new Vector3(Mathf.DegToRad(9.0f), 0, 0) : Vector3.Zero;
+        GetNode<Node3D>("Armature").Visible = thirdPerson;
+    }
+
     /// <summary>
     /// Adds a recoil kick. Positive pitch throws the view upward; yaw is signed, so the caller
     /// should randomise it. recoveryMs is how long the kick takes to wash out.
@@ -327,7 +404,7 @@ public partial class PlayerMovement : CharacterBody3D
         // past vertical and flip the view.
         float limit = Mathf.DegToRad(CameraPitchLimitDegrees);
         float pitch = Mathf.Clamp(_pitch + Mathf.DegToRad(_recoilPitchDegrees), -limit, limit);
-        _head.Rotation = new Vector3(pitch, Mathf.DegToRad(_recoilYawDegrees), 0.0f);
+        _head.Rotation = new Vector3(pitch, _vehicleAimYaw + Mathf.DegToRad(_recoilYawDegrees), 0.0f);
     }
 
     private void UpdateFov(float delta)
