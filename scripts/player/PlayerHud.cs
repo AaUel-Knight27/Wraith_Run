@@ -253,9 +253,11 @@ public partial class PlayerHud : CanvasLayer
         }
 
         MatchManager? match = MatchManager.Instance;
-        bool teamDeathmatch = match != null && match.IsTeamMode;
+        bool teamDeathmatch = match != null && match.IsTeamMode && !HubState.Active;
 
-        if (_score != null)
+        // The hub has no match: no points, kills or team score on the screen.
+        _scoreLabel.Visible = !HubState.Active;
+        if (_score != null && !HubState.Active)
         {
             string scoreText = $"SCORE {_score.TotalPoints}\nK {_score.Kills} / D {_score.Deaths}";
             if (teamDeathmatch)

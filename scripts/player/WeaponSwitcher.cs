@@ -204,9 +204,53 @@ public partial class WeaponSwitcher : Node
 	{
 		if (!PlayerIdentity.HasAuthority(_player)) return false;
 		if (index < 0 || index >= Loadout.Length) return false;
+		if (!CanCarryIndex(index)) return false;
 		if (_health != null && _health.IsDead) return false;
 		ReplicatedWeaponIndex = index;
 		return true;
+	}
+
+	/// <summary>Hub weapon wall: hold a weapon that was just written into the active set.</summary>
+	public void TryEquipFromHub(int index) => TryEquip(index);
+
+	// ---- what this person may carry --------------------------------------------------------------
+
+	/// <summary>Demolisher is the only class that carries the heavy weapon (the Bazooka).</summary>
+	private bool IsDemolisher => _loadout?.Data != null
+		? _loadout.Data.Class == CharacterData.CharacterClass.Demolisher
+		: WeaponRules.IsDemolisher(PlayerProfile.OperatorId);
+
+	/// <summary>Loadout index of the weapon in one carry slot of the active weapon set, or -1 when the
+	/// slot does not exist for this operator (Heavy, unless Demolisher) or holds nothing equippable.</summary>
+	public int CarriedIndexFor(WeaponSlot slot)
+	{
+		if (!WeaponRules.SlotAvailable(slot, IsDemolisher)) return -1;
+		string name = PlayerProfile.GetSetWeapon(PlayerProfile.ActiveWeaponSet, slot);
+		return string.IsNullOrEmpty(name) ? -1 : System.Array.IndexOf(Loadout, name);
+	}
+
+	/// <summary>True when this Loadout index is one of the weapons the person may hold right now.</summary>
+	public bool CanCarryIndex(int index)
+	{
+		for (int slot = 0; slot < WeaponRules.SlotCount; slot++)
+			if (CarriedIndexFor((WeaponSlot)slot) == index) return true;
+		return false;
+	}
+
+	/// <summary>Next carried weapon after the one in hand (touch SWAP button).</summary>
+	private void CycleCarried()
+	{
+		int current = ReplicatedWeaponIndex;
+		int firstSlot = -1;
+		for (int slot = 0; slot < WeaponRules.SlotCount; slot++)
+		{
+			if (CarriedIndexFor((WeaponSlot)slot) == current) { firstSlot = slot; break; }
+		}
+		for (int step = 1; step <= WeaponRules.SlotCount; step++)
+		{
+			int next = CarriedIndexFor((WeaponSlot)((firstSlot + step + WeaponRules.SlotCount) % WeaponRules.SlotCount));
+			if (next >= 0 && next != current) { ReplicatedWeaponIndex = next; return; }
+		}
 	}
 
 	public override void _Ready()
@@ -266,16 +310,21 @@ public partial class WeaponSwitcher : Node
 		bool inputBlocked = GameUiState.BlocksGameplayInput;
 		BotControls? bot = _movement.Bot;
 
+		// A person carries two primaries, one pistol, one knife and - Demolisher only - one heavy, so
+		// the keys are the five carry slots (1 Primary 1, 2 Primary 2, 3 Pistol, 4 Knife, 5 Heavy),
+		// not the nine weapons in Loadout. Bots are not limited by this (they pick their own).
 		if (bot == null && !inputBlocked)
-			for (int i = 0; i < Loadout.Length; i++)
+		{
+			for (int slot = 0; slot < WeaponRules.SlotCount; slot++)
 			{
-				string action = $"weapon_{i + 1}";
-				// Loadouts can contain more slots than an older/custom project InputMap. Godot logs
-				// an error on every frame for a missing action, which floods the debugger on every
-				// local and replicated player and can make a multiplayer match appear frozen.
-				if (InputMap.HasAction(action) && Input.IsActionJustPressed(action))
-					ReplicatedWeaponIndex = i;
+				string action = $"weapon_{slot + 1}";
+				// A missing action logs an error every frame in Godot, so ask InputMap first.
+				if (!InputMap.HasAction(action) || !Input.IsActionJustPressed(action)) continue;
+				int carried = CarriedIndexFor((WeaponSlot)slot);
+				if (carried >= 0) ReplicatedWeaponIndex = carried;
 			}
+			if (InputMap.HasAction("weapon_cycle_next") && Input.IsActionJustPressed("weapon_cycle_next")) CycleCarried();
+		}
 
 		if (_health != null && _health.IsDead) return;
 

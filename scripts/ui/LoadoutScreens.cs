@@ -5,11 +5,20 @@ using Godot;
 /// the middle, a details panel on the right. (The weapon screens live in WeaponScreens.cs.)</summary>
 internal static class LoadoutLayout
 {
+    /// <summary>True while a screen is being built for the tablet: the screen fills the area it is given
+    /// (no full-window margins) and its fixed-width panels are narrower, so it fits the tablet's glass.</summary>
+    public static bool Compact;
+
+    public static float Wide(float full, float compact) => Compact ? compact : full;
+
+    private static void PlaceFull(Control c) =>
+        MenuStyle.Place(c, 0, 0, 1, 1, Compact ? 0 : 64, Compact ? 0 : 124, Compact ? 0 : -64, Compact ? 0 : -60);
+
     public static HBoxContainer Root(Control host)
     {
         var layout = new HBoxContainer();
-        layout.AddThemeConstantOverride("separation", 20);
-        MenuStyle.Place(layout, 0, 0, 1, 1, 64, 124, -64, -60);
+        layout.AddThemeConstantOverride("separation", Compact ? 10 : 20);
+        PlaceFull(layout);
         host.AddChild(layout);
         return layout;
     }
@@ -20,7 +29,7 @@ internal static class LoadoutLayout
     {
         var outer = new VBoxContainer();
         outer.AddThemeConstantOverride("separation", 10);
-        MenuStyle.Place(outer, 0, 0, 1, 1, 64, 124, -64, -60);
+        PlaceFull(outer);
         host.AddChild(outer);
 
         tabs = new HBoxContainer();
@@ -28,7 +37,7 @@ internal static class LoadoutLayout
         outer.AddChild(tabs);
 
         var columns = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        columns.AddThemeConstantOverride("separation", 20);
+        columns.AddThemeConstantOverride("separation", Compact ? 10 : 20);
         outer.AddChild(columns);
         return columns;
     }
@@ -119,7 +128,7 @@ public sealed class OperatorScreen
         HBoxContainer layout = LoadoutLayout.Root(host);
 
         PanelContainer listPanel = MenuStyle.Panel("OPERATORS", "users", out VBoxContainer listBody);
-        listPanel.CustomMinimumSize = new Vector2(330, 0);
+        listPanel.CustomMinimumSize = new Vector2(LoadoutLayout.Wide(330, 300), 0);
         layout.AddChild(listPanel);
         _tabs = new HBoxContainer();
         _tabs.AddThemeConstantOverride("separation", 4);
@@ -129,7 +138,7 @@ public sealed class OperatorScreen
         _stage = LoadoutLayout.StageColumn(layout);
 
         PanelContainer detailPanel = MenuStyle.Panel("KIT", "helmet-gear", out VBoxContainer detailBody);
-        detailPanel.CustomMinimumSize = new Vector2(350, 0);
+        detailPanel.CustomMinimumSize = new Vector2(LoadoutLayout.Wide(350, 300), 0);
         layout.AddChild(detailPanel);
         _details = LoadoutLayout.ScrollColumn(detailBody, 8);
         _equipHost = new VBoxContainer();
@@ -327,14 +336,14 @@ public sealed class CustomizeScreen
         HBoxContainer layout = LoadoutLayout.Root(host);
 
         PanelContainer colorPanel = MenuStyle.Panel("COLORS", "helmet-gear", out VBoxContainer colorBody);
-        colorPanel.CustomMinimumSize = new Vector2(360, 0);
+        colorPanel.CustomMinimumSize = new Vector2(LoadoutLayout.Wide(360, 270), 0);
         layout.AddChild(colorPanel);
         _groups = LoadoutLayout.ScrollColumn(colorBody, 10);
 
         _stage = LoadoutLayout.StageColumn(layout);
 
         PanelContainer infoPanel = MenuStyle.Panel("OPERATOR", "users", out VBoxContainer infoBody);
-        infoPanel.CustomMinimumSize = new Vector2(300, 0);
+        infoPanel.CustomMinimumSize = new Vector2(LoadoutLayout.Wide(300, 240), 0);
         layout.AddChild(infoPanel);
         var info = LoadoutLayout.ScrollColumn(infoBody, 8);
         info.AddChild(MenuStyle.Text(op == null ? "NO CLASS" : OperatorInfo.ClassName(op.Class), 17, MenuStyle.Accent, MenuStyle.Bold));

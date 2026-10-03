@@ -112,6 +112,17 @@ public static class PlayerProfile
         return true;
     }
 
+    /// <summary>Swap the two primary guns of a set. SetSetWeapon cannot do this itself, because it refuses a
+    /// gun that is already in the other primary slot.</summary>
+    public static void SwapPrimaries(int set)
+    {
+        EnsureLoaded();
+        if (set < 0 || set >= WeaponRules.SetCount) return;
+        (_setWeapons[set][(int)WeaponSlot.Primary1], _setWeapons[set][(int)WeaponSlot.Primary2]) =
+            (_setWeapons[set][(int)WeaponSlot.Primary2], _setWeapons[set][(int)WeaponSlot.Primary1]);
+        Save();
+    }
+
     /// <summary>The weapon a match starts you holding: Primary 1 of the active set.</summary>
     public static string StartingWeaponName
     {

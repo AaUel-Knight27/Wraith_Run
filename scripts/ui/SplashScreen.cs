@@ -9,7 +9,9 @@ using Godot;
 public partial class SplashScreen : Control
 {
 	private const string BackgroundImagePath = "res://art/ui/splash/splash_screen.png";
-	private const string NextScenePath = "res://scenes/MainMenu.tscn";
+	// First run still goes through the old menu's CREATE ACCOUNT screen; after that the game
+	// starts in the hub (the walkable warehouse) instead of a full-screen menu.
+	private static string NextScenePath => PlayerAccount.SetupDone ? "res://scenes/Hub.tscn" : "res://scenes/MainMenu.tscn";
 	private bool _advancing;
 
 	public override void _Ready()

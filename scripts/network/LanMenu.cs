@@ -292,7 +292,7 @@ public partial class LanMenu : Control
 		BeginScreen(back);
 		AddHeader(firstRun ? "CREATE ACCOUNT" : "EDIT PROFILE", back);
 		AddTopIcons(includeSettings: false, reopen: null);
-		new AccountScreen(firstRun, onDone: firstRun ? (Action)ShowMain : ShowProfile).Build(_contentRoot);
+		new AccountScreen(firstRun, onDone: firstRun ? (Action)LeaveForHub : ShowProfile).Build(_contentRoot);
 	}
 
 	private void ShowOperators() => ShowOperators(null);
@@ -966,6 +966,19 @@ public partial class LanMenu : Control
 	}
 
 	private void ChangeToGameWorld() => GetTree().ChangeSceneToFile("res://scenes/GameWorld.tscn");
+
+	private void LeaveForHub()
+	{
+		if (_sceneChangeQueued) return;
+		_sceneChangeQueued = true;
+		_leavingMenu = true;
+		RunTerminalCleanup();
+		LoadingScreen.Instance?.Show();
+		SetProcess(false);
+		CallDeferred(nameof(ChangeToHub));
+	}
+
+	private void ChangeToHub() => GetTree().ChangeSceneToFile(GameSession.HubScene);
 
 	private void LeaveForTraining()
 	{

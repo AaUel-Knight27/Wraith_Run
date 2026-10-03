@@ -114,6 +114,8 @@ public partial class Health : Node
     public void ReceiveDamage(float amount, long attackerId, int styleFlags, int basePoints)
     {
         if (!PlayerIdentity.HasAuthority(this) || IsDead || amount <= 0.0f) return;
+        // The hub is a place to stand around and try weapons: shots land, nobody gets hurt.
+        if (HubState.Active) return;
         if (IsFriendlyFire(attackerId)) return;
         _damageContribution[attackerId] = GetContribution(attackerId) + amount;
 
@@ -238,11 +240,17 @@ public partial class Health : Node
         if (match != null && match.IsTeamMode)
         {
             int team = match.GetTeam(PlayerIdentity.IdOf(_player));
-            if (team >= 0 && TeamSpawnArea.TryGet(_player, team, out Vector3 center, out Vector2 halfExtent))
-                return RespawnPointSelector.SelectInArea(_player, center, halfExtent, _player.GetRid());
+            if (team >= 0 && TeamSpawnArea.TryGet(_player, team, out Vector3 center, out Vector2 teamHalfExtent))
+                return RespawnPointSelector.SelectInArea(_player, center, teamHalfExtent, _player.GetRid());
             GD.PushWarning($"No TeamSpawnArea configured for team {team}; falling back to a map-wide random respawn.");
         }
-        return RespawnPointSelector.SelectAnywhere(_player, SpawnAreaHalfExtent, _player.GetRid());
+        float halfExtent = match?.SelectedMap switch
+        {
+            MatchManager.ArenaMap.Warehouse => 7.0f,
+            MatchManager.ArenaMap.DefaultMap => 26.0f,
+            _ => SpawnAreaHalfExtent,
+        };
+        return RespawnPointSelector.SelectAnywhere(_player, halfExtent, _player.GetRid());
     }
 
     /// <summary>

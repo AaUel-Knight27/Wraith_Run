@@ -19,6 +19,7 @@ public abstract partial class GameModeBase : RefCounted
     public static GameModeBase For(MatchManager.Mode mode) => mode switch
     {
         MatchManager.Mode.Default => new DefaultMode(),
+        MatchManager.Mode.TeamDeathmatch => new TeamDeathmatchMode(),
         MatchManager.Mode.PureChase => new PureChaseMode(),
         MatchManager.Mode.StormRespawn => new StormRespawnMode(),
         MatchManager.Mode.ClanChase => new ClanChaseMode(),
@@ -48,6 +49,22 @@ public partial class PureChaseMode : GameModeBase
     public override string PlayerFormat => "Two-player crews · assigned target teams";
     public override int BaseKillPoints => 100;
     public override bool UsesTeams => true;
+}
+
+/// <summary>Plain Alpha vs Bravo on foot: the mode the hub's two warehouses were designed for. Team
+/// scoring and the time limit already live in MatchManager (they check GameMode == TeamDeathmatch);
+/// this class only gives the mode its own name and rules so it can be picked in the lobby.</summary>
+public partial class TeamDeathmatchMode : GameModeBase
+{
+    public override MatchManager.Mode Id => MatchManager.Mode.TeamDeathmatch;
+    public override string DisplayName => "Team Deathmatch";
+    public override string LobbyDescription => "Alpha against Bravo on foot. Each team preps in its own warehouse; when the host starts, both squads drop into the map. The team with the most kills when time runs out wins.";
+    public override string PlayerFormat => "2 teams · Alpha vs Bravo";
+    public override int BaseKillPoints => 100;
+    public override bool UsesTeams => true;
+    public override bool UsesVehicles => false;
+    public override bool HasTimedResolution => true;
+    public override int RecommendedTeamSize => 4;
 }
 
 public partial class StormRespawnMode : GameModeBase

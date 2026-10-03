@@ -3,10 +3,9 @@ using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// The in-game menu: Esc (keyboard), Start (gamepad), Android's Back button/gesture, or the MENU
-/// button TouchControls draws. Left: RESUME plus six screens - OBJECTIVES, MAP, WEAPON SET, ITEMS,
-/// SETTINGS, QUIT GAME. Right: the selected screen. Styled with MenuStyle, so it matches the main
-/// menu.
+/// In-game tablet: Esc (keyboard), Start (gamepad), Android's Back button/gesture, or the MENU
+/// button TouchControls draws. It displays the existing main menu inside the supplied 3D tablet,
+/// so players can use the same operator, loadout, settings, and play flows from the warehouse.
 ///
 /// It does NOT pause the game. This is a LAN multiplayer shooter: the other players keep playing, the
 /// clock keeps running and you can still be shot while you read the map - the same as every online
@@ -33,8 +32,13 @@ public partial class PauseMenu : CanvasLayer
     private CharacterLoadout? _loadout;
 
     private Control _root = null!;
-    private VBoxContainer _nav = null!;
+    // Retained for the legacy in-match detail builders below. The visible tablet now hosts the
+    // actual main menu scene inside its screen viewport.
+    private Control _nav = null!;
     private Control _content = null!;
+    private Node3D? _tabletModel;
+    private Control? _tabletMenu;
+    private Control? _connectionNotice;
     private Label _subtitle = null!;
     private Control? _modal;
     // Set while a player's stat card is open: re-checks once a moment whether a fresher copy of that
@@ -42,6 +46,7 @@ public partial class PauseMenu : CanvasLayer
     private Action? _cardRefresh;
 
     private bool _open;
+    private bool _inHub;
     private bool _connectionLost;
     private Section _section = Section.Objectives;
     private SettingsPanel? _settingsPanel;
@@ -58,10 +63,20 @@ public partial class PauseMenu : CanvasLayer
     {
         Layer = 80;
         GameUiState.EnsureInputActions();
+        // The hub has its own tablet (HubTablet). Building this one as well would instantiate a whole
+        // hidden main menu per player, and that menu reacts to "match starting" by changing scenes too.
+        if (HubState.Active)
+        {
+            _inHub = true;
+            SetProcess(false);
+            SetProcessInput(false);
+            return;
+        }
         _weapons = Player.GetNodeOrNull<WeaponSwitcher>("WeaponSwitcher");
         _score = Player.GetNodeOrNull<PlayerScore>("Score");
         _health = Player.GetNodeOrNull<Health>("Health");
         _loadout = Player.GetNodeOrNull<CharacterLoadout>("CharacterLoadout");
+        AttachTabletModel();
 
         BuildShell();
         _root.Visible = false;
@@ -71,6 +86,7 @@ public partial class PauseMenu : CanvasLayer
 
     public override void _ExitTree()
     {
+        if (_inHub) return;
         if (Multiplayer != null) Multiplayer.ServerDisconnected -= OnServerDisconnected;
         // Leaving the scene with the menu open (scene change, player freed) must not leave the rest
         // of the game believing a menu is still up.
@@ -79,12 +95,31 @@ public partial class PauseMenu : CanvasLayer
 
     public void Toggle()
     {
+        // In the hub the tablet is the menu (HubTablet); this match menu stays out of the way.
+        if (_inHub) { HubTablet.Instance?.Toggle(); return; }
         if (_connectionLost) return;
         if (_open) Close(); else Open();
     }
 
+    /// <summary>Put the supplied tablet in the local first-person view while its tactical menu is
+    /// open. The menu controls remain screen-space so they stay readable at every resolution.</summary>
+    private void AttachTabletModel()
+    {
+        var camera = Player.GetNodeOrNull<Node3D>("Head/FirstPersonCamera");
+        var tabletScene = ResourceLoader.Load<PackedScene>("res://art/ui/tablet/rugged_tactical_tablet.glb");
+        if (camera == null || tabletScene == null) return;
+        _tabletModel = tabletScene.Instantiate<Node3D>();
+        _tabletModel.Name = "TacticalTabletViewModel";
+        _tabletModel.Position = new Vector3(0.0f, -0.02f, -0.82f);
+        _tabletModel.Rotation = new Vector3(0.0f, Mathf.Pi, Mathf.Pi * 0.5f);
+        _tabletModel.Scale = new Vector3(2.8f, 2.8f, 2.8f);
+        _tabletModel.Visible = false;
+        camera.AddChild(_tabletModel);
+    }
+
     public override void _Input(InputEvent @event)
     {
+        if (_inHub) return;
         if (_connectionLost) return;
 
         // A key row in SETTINGS > CONTROLS is waiting for a key: Escape then means "cancel the
@@ -160,6 +195,7 @@ public partial class PauseMenu : CanvasLayer
         if (_open || GameUiState.ResultsOpen) return;
         _open = true;
         GameUiState.SetMenuOpen(true);
+        if (_tabletModel != null) _tabletModel.Visible = true;
         if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
         // A finger that was on the joystick or FIRE when MENU was tapped would otherwise leave that
         // action pressed for good, because its release lands on the menu overlay instead.
@@ -167,10 +203,8 @@ public partial class PauseMenu : CanvasLayer
         Player.GetNodeOrNull<Scoreboard>("Hud/Scoreboard")?.HideNow();
 
         _root.Visible = true;
-        _section = Section.Objectives;
-        BuildNav();
-        ShowSection(_section);
-        SetProcess(true);
+        if (_tabletMenu != null) _tabletMenu.ProcessMode = ProcessModeEnum.Inherit;
+        SetProcess(false);
     }
 
     private void Close()
@@ -179,11 +213,10 @@ public partial class PauseMenu : CanvasLayer
         _open = false;
         if (!_connectionLost) CloseModal();
         GameUiState.SetMenuOpen(false);
+        if (_tabletModel != null && IsInstanceValid(_tabletModel)) _tabletModel.Visible = false;
         _root.Visible = false;
+        if (_tabletMenu != null && IsInstanceValid(_tabletMenu)) _tabletMenu.ProcessMode = ProcessModeEnum.Disabled;
         SetProcess(false);
-        _live.Clear();
-        ClearChildren(_content);
-        _settingsPanel = null;
         if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Captured;
     }
 
@@ -200,39 +233,18 @@ public partial class PauseMenu : CanvasLayer
         {
             _open = true;
             GameUiState.SetMenuOpen(true);
+            if (_tabletModel != null) _tabletModel.Visible = true;
             if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
             Player.GetNodeOrNull<Scoreboard>("Hud/Scoreboard")?.HideNow();
             _root.Visible = true;
-            BuildNav();
-            ShowSection(_section);
+            if (_tabletMenu != null) _tabletMenu.ProcessMode = ProcessModeEnum.Inherit;
         }
-
-        _modal?.QueueFree();
-        _modal = new Control { MouseFilter = Control.MouseFilterEnum.Stop };
-        MenuStyle.Fill(_modal);
-        var dim = new ColorRect { Color = new Color(0, 0, 0, 0.82f), MouseFilter = Control.MouseFilterEnum.Ignore };
-        MenuStyle.Fill(dim);
-        _modal.AddChild(dim);
-        var center = new CenterContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        MenuStyle.Fill(center);
-        _modal.AddChild(center);
-        var panel = MenuStyle.Panel("CONNECTION LOST", "wifi", out var body);
-        panel.CustomMinimumSize = new Vector2(520, 0);
-        var text = MenuStyle.Text("The host closed the match, or the connection dropped.", 22,
-            MenuStyle.TextDim, MenuStyle.Medium);
-        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        body.AddChild(text);
-        var back = MenuStyle.Card("arrow-left", "MAIN MENU", null, new Vector2(0, 60),
-            () => GameSession.LeaveToMainMenu(GetTree()), titleSize: 26, iconSize: 28);
-        body.AddChild(back);
-        center.AddChild(panel);
-        _root.AddChild(_modal);
-        back.GrabFocus();
+        if (_connectionNotice != null) _connectionNotice.Visible = true;
         SetProcess(false);
     }
 
     // -------------------------------------------------------------------------------------------
-    // Shell: backdrop, title, navigation column, content area
+    // Tablet shell and its live main-menu screen
     // -------------------------------------------------------------------------------------------
 
     private void BuildShell()
@@ -241,36 +253,50 @@ public partial class PauseMenu : CanvasLayer
         MenuStyle.Fill(_root);
         AddChild(_root);
 
-        var dim = new ColorRect { Color = new Color(0.02f, 0.015f, 0.02f, 0.86f), MouseFilter = Control.MouseFilterEnum.Ignore };
+        var dim = new ColorRect { Color = new Color(0.01f, 0.02f, 0.025f, 0.16f), MouseFilter = Control.MouseFilterEnum.Ignore };
         MenuStyle.Fill(dim);
         _root.AddChild(dim);
-        // Same deep-red wash as the main menu, so the two feel like one product.
-        var wash = new ColorRect { Color = new Color(0.30f, 0.03f, 0.03f, 0.22f), MouseFilter = Control.MouseFilterEnum.Ignore };
-        MenuStyle.Fill(wash);
-        _root.AddChild(wash);
+        var frame = new Panel { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Place(frame, 0.17f, 0.13f, 0.83f, 0.87f, 0, 0, 0, 0);
+        var frameStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.025f, 0.04f, 0.045f, 0.96f),
+            BorderColor = new Color(0.25f, 0.46f, 0.42f, 0.96f),
+            BorderWidthLeft = 5, BorderWidthTop = 5, BorderWidthRight = 5, BorderWidthBottom = 5,
+            CornerRadiusTopLeft = 12, CornerRadiusTopRight = 12,
+            CornerRadiusBottomLeft = 12, CornerRadiusBottomRight = 12,
+        };
+        frame.AddThemeStyleboxOverride("panel", frameStyle);
+        _root.AddChild(frame);
 
-        var title = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        title.AddThemeConstantOverride("separation", 2);
-        title.AddChild(MenuStyle.Text("MENU", 42, MenuStyle.TextMain, MenuStyle.Spaced(MenuStyle.Bold, 3)));
-        title.AddChild(new ColorRect { Color = MenuStyle.Accent, CustomMinimumSize = new Vector2(64, 3), MouseFilter = Control.MouseFilterEnum.Ignore });
-        _subtitle = MenuStyle.Text("", 18, MenuStyle.TextDim, MenuStyle.Medium);
-        title.AddChild(_subtitle);
-        MenuStyle.Place(title, 0, 0, 0, 0, 56, 20, 56 + 330, 20);
-        _root.AddChild(title);
+        var screen = new SubViewportContainer { Stretch = true, MouseFilter = Control.MouseFilterEnum.Stop };
+        MenuStyle.Place(screen, 0.5f, 0.5f, 0.5f, 0.5f, -360, -220, 360, 220);
+        frame.AddChild(screen);
 
-        _nav = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        _nav.AddThemeConstantOverride("separation", 8);
-        MenuStyle.Place(_nav, 0, 0, 0, 1, 56, 118, 56 + 330, -64);
-        _root.AddChild(_nav);
+        var viewport = new SubViewport
+        {
+            Size = new Vector2I(1280, 720),
+            TransparentBg = false,
+            RenderTargetUpdateMode = SubViewport.UpdateMode.WhenVisible,
+        };
+        screen.AddChild(viewport);
 
-        var note = MenuStyle.Text("The match keeps running while this menu is open.", 15, MenuStyle.TextMuted, MenuStyle.Medium);
-        note.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        MenuStyle.Place(note, 0, 1, 0, 1, 56, -52, 56 + 330, -16);
-        _root.AddChild(note);
+        // This is the game's actual main menu, hosted as the tablet's display so operator, weapon,
+        // settings, profile and play actions keep their existing behavior inside the device.
+        var mainMenuScene = ResourceLoader.Load<PackedScene>("res://scenes/MainMenu.tscn");
+        if (mainMenuScene != null)
+        {
+            _tabletMenu = mainMenuScene.Instantiate<Control>();
+            _tabletMenu.ProcessMode = ProcessModeEnum.Disabled;
+            MenuStyle.Fill(_tabletMenu);
+            viewport.AddChild(_tabletMenu);
+        }
 
-        _content = new Control { MouseFilter = Control.MouseFilterEnum.Ignore };
-        MenuStyle.Place(_content, 0, 0, 1, 1, 56 + 330 + 24, 24, -56, -24);
-        _root.AddChild(_content);
+        _connectionNotice = MenuStyle.Text("HOST LINK LOST", 18,
+            new Color(1.0f, 0.34f, 0.24f), MenuStyle.Bold);
+        MenuStyle.Place(_connectionNotice, 0.5f, 0.13f, 0.5f, 0.13f, -100, -26, 100, 4);
+        _connectionNotice.Visible = false;
+        _root.AddChild(_connectionNotice);
     }
 
     private void BuildNav()
@@ -654,7 +680,8 @@ public partial class PauseMenu : CanvasLayer
             column.AddChild(panel);
             return;
         }
-        for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++) body.AddChild(WeaponRow(i));
+        for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++)
+            if (_weapons.CanCarryIndex(i)) body.AddChild(WeaponRow(i));
         column.AddChild(panel);
     }
 
@@ -791,7 +818,7 @@ public partial class PauseMenu : CanvasLayer
                 for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++)
                 {
                     WeaponData? data = _weapons.GetWeaponData(i);
-                    if (data != null && Array.IndexOf(classes, data.WeaponClass) >= 0) indices.Add(i);
+                    if (data != null && _weapons.CanCarryIndex(i) && Array.IndexOf(classes, data.WeaponClass) >= 0) indices.Add(i);
                 }
                 if (indices.Count == 0) continue;
                 carriedBody.AddChild(MenuStyle.Text(title, 16, MenuStyle.TextMuted, MenuStyle.Bold));
@@ -800,7 +827,7 @@ public partial class PauseMenu : CanvasLayer
             // Anything in the loadout that does not match a group above still gets listed, so a new
             // weapon class can never silently vanish from this screen.
             var other = new List<int>();
-            for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++) if (!used.Contains(i)) other.Add(i);
+            for (int i = 0; i < WeaponSwitcher.LoadoutCount; i++) if (!used.Contains(i) && _weapons.CanCarryIndex(i)) other.Add(i);
             if (other.Count > 0)
             {
                 carriedBody.AddChild(MenuStyle.Text("OTHER", 16, MenuStyle.TextMuted, MenuStyle.Bold));

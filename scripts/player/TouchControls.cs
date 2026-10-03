@@ -88,8 +88,8 @@ public partial class TouchControls : CanvasLayer
         BuildSystemButtons(scale);
     }
 
-    /// <summary>MENU (opens the pause menu) and SCORE (toggles the scoreboard), side by side at the
-    /// top edge in the middle - the one part of a landscape phone screen neither thumb is using.
+    /// <summary>MENU (opens the pause menu) is at the upper-left; SCORE (toggles the scoreboard)
+    /// stays at top center, where a phone user's thumbs can reach them.
     /// Sits below the Team Deathmatch score line PlayerHud draws at the very top. A phone has no Esc
     /// or Tab key; Android's Back gesture also opens the menu (see PauseMenu), this is the visible
     /// way in. Both nodes are looked up at press time because PlayerHud adds them a frame after
@@ -98,10 +98,19 @@ public partial class TouchControls : CanvasLayer
     {
         float size = 60f * scale;
         float half = 4f;
-        float top = 64f;
+        float top = 24f;
 
-        var menu = NewButton("MENU", null, size);
-        MenuStyle.Place(menu, 0.5f, 0f, 0.5f, 0f, -(size + half), top, -half, top + size);
+        var menu = NewButton("", null, size);
+        var burger = new Control { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Place(burger, 0.5f, 0.5f, 0.5f, 0.5f, -12, -9, 12, 9);
+        menu.AddChild(burger);
+        for (int line = 0; line < 3; line++)
+        {
+            var stroke = new ColorRect { Color = MenuStyle.TextMain, MouseFilter = Control.MouseFilterEnum.Ignore };
+            MenuStyle.Place(stroke, 0, 0, 1, 0, 0, line * 8, 0, line * 8 + 2);
+            burger.AddChild(stroke);
+        }
+        MenuStyle.Place(menu, 0f, 0f, 0f, 0f, 20f, top, 20f + size, top + size);
         menu.ButtonDown += () => _player.GetNodeOrNull<PauseMenu>("Hud/PauseMenu")?.Toggle();
 
         var score = NewButton("SCORE", null, size);

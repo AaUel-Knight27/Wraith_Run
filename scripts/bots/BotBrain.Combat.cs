@@ -15,22 +15,51 @@ public partial class BotBrain
 		}
 	}
 
-	// Indexed like WeaponSwitcher.Loadout: AK-47, M4, P90, Glock 19, Desert Eagle, Shotgun, Karambit, Bazooka,
-	// Kriss Vector.
-	private static readonly WeaponInfo[] WeaponTable =
+	// Looked up by weapon name. This used to be a literal array "indexed like WeaponSwitcher.Loadout",
+	// but the Kriss Vector was later inserted at index 3 of Loadout, which shifted everything after
+	// it: bots then believed index 8 (Bazooka) was the Kriss and gave it real main-weapon weight, and
+	// the Shotgun/Glock/Desert Eagle entries all pointed one slot off.
+	private static int LoadoutIndex(string weaponName)
 	{
-		new WeaponInfo(6.0f, 45.0f),
-		new WeaponInfo(5.0f, 45.0f),
-		new WeaponInfo(3.0f, 28.0f),
-		new WeaponInfo(3.0f, 22.0f),
-		new WeaponInfo(4.0f, 30.0f),
-		new WeaponInfo(0.0f, 9.0f),
-		new WeaponInfo(0.0f, 2.0f),
-		new WeaponInfo(0.0f, 1.0f),
-		new WeaponInfo(3.0f, 28.0f),
-	};
+		int index = System.Array.IndexOf(WeaponSwitcher.Loadout, weaponName);
+		return index < 0 ? 0 : index;
+	}
 
-	private const int GlockIndex = 3;
+	private static readonly WeaponInfo[] WeaponTable = BuildWeaponTable();
+
+	private static WeaponInfo[] BuildWeaponTable()
+	{
+		var table = new WeaponInfo[WeaponSwitcher.Loadout.Length];
+		for (int i = 0; i < table.Length; i++) table[i] = new WeaponInfo(3.0f, 28.0f);
+		table[LoadoutIndex("AK-47")] = new WeaponInfo(6.0f, 45.0f);
+		table[LoadoutIndex("M4")] = new WeaponInfo(5.0f, 45.0f);
+		table[LoadoutIndex("P90")] = new WeaponInfo(3.0f, 28.0f);
+		table[LoadoutIndex("Kriss Vector")] = new WeaponInfo(3.0f, 28.0f);
+		table[LoadoutIndex("Glock 19")] = new WeaponInfo(3.0f, 22.0f);
+		table[LoadoutIndex("Desert Eagle")] = new WeaponInfo(4.0f, 30.0f);
+		table[LoadoutIndex("Shotgun")] = new WeaponInfo(0.0f, 9.0f);
+		table[LoadoutIndex("Karambit")] = new WeaponInfo(0.0f, 2.0f);
+		table[LoadoutIndex("Bazooka")] = new WeaponInfo(0.0f, 1.0f);
+		return table;
+	}
+
+	private static readonly int GlockIndex = LoadoutIndex("Glock 19");
+	private static readonly int DesertEagleIndex = LoadoutIndex("Desert Eagle");
+
+	/// <summary>Weights over Loadout by name. Karambit and Bazooka are never a bot's main weapon, so
+	/// bots never carry the heavy weapon (it is Demolisher-only).</summary>
+	private static float[] BuildWeights(float ak, float m4, float p90, float kriss, float glock, float deagle, float shotgun)
+	{
+		var weights = new float[WeaponSwitcher.Loadout.Length];
+		weights[LoadoutIndex("AK-47")] = ak;
+		weights[LoadoutIndex("M4")] = m4;
+		weights[LoadoutIndex("P90")] = p90;
+		weights[LoadoutIndex("Kriss Vector")] = kriss;
+		weights[LoadoutIndex("Glock 19")] = glock;
+		weights[LoadoutIndex("Desert Eagle")] = deagle;
+		weights[LoadoutIndex("Shotgun")] = shotgun;
+		return weights;
+	}
 
 	private int _primary;
 	private int _secondary = GlockIndex;
@@ -64,18 +93,16 @@ public partial class BotBrain
 	/// <summary>Picks what this bot carries this life. Weak bots choose more oddly, like beginners do.</summary>
 	private void PickLoadout()
 	{
-		// weights over the Loadout indices: AK-47, M4, P90, Glock, Desert Eagle, Shotgun, (Karambit and
-		// Bazooka are never a bot's main weapon), Kriss Vector
 		float[] weights;
 		switch (Level)
 		{
-			case BotDifficulty.Easy: weights = new float[] { 20, 15, 20, 15, 10, 20, 0, 0, 12 }; break;
-			case BotDifficulty.Advanced: weights = new float[] { 42, 42, 10, 0, 0, 6, 0, 0, 10 }; break;
-			default: weights = new float[] { 30, 30, 20, 5, 5, 10, 0, 0, 15 }; break;
+			case BotDifficulty.Easy: weights = BuildWeights(ak: 20, m4: 15, p90: 20, kriss: 12, glock: 15, deagle: 10, shotgun: 20); break;
+			case BotDifficulty.Advanced: weights = BuildWeights(ak: 42, m4: 42, p90: 10, kriss: 10, glock: 0, deagle: 0, shotgun: 6); break;
+			default: weights = BuildWeights(ak: 30, m4: 30, p90: 20, kriss: 15, glock: 5, deagle: 5, shotgun: 10); break;
 		}
 		_primary = WeightedIndex(weights);
 		_secondary = _primary == GlockIndex ? 0 : GlockIndex;
-		if (Level == BotDifficulty.Advanced && _rng.Randf() < 0.25f && _primary != 4) _secondary = 4;
+		if (Level == BotDifficulty.Advanced && _rng.Randf() < 0.25f && _primary != DesertEagleIndex) _secondary = DesertEagleIndex;
 
 		_weapon.ReplicatedWeaponIndex = _primary;
 		_lastAmmo = -1;

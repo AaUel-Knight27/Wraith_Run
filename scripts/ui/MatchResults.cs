@@ -60,7 +60,7 @@ public partial class MatchResults : CanvasLayer
     {
         if (_leaving) return;
         _leaving = true;
-        GameSession.LeaveToMainMenu(GetTree());
+        GameSession.ReturnToHub(GetTree());
     }
 
     private void Build()

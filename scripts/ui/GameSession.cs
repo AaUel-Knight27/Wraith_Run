@@ -15,12 +15,27 @@ using Godot;
 public static class GameSession
 {
     public const string MainMenuScene = "res://scenes/MainMenu.tscn";
+    public const string HubScene = "res://scenes/Hub.tscn";
 
+    /// <summary>Leaving a match for good (QUIT GAME in the pause menu): the connection is closed and
+    /// you land in your own private hub - the hub replaced the old full-screen main menu.</summary>
     public static void LeaveToMainMenu(SceneTree tree)
     {
         TearDownSession(tree);
-        Error error = tree.ChangeSceneToFile(MainMenuScene);
-        if (error != Error.Ok) GD.PushError($"Could not return to the main menu ({MainMenuScene}): {error}");
+        Error error = tree.ChangeSceneToFile(HubScene);
+        if (error != Error.Ok) GD.PushError($"Could not return to the hub ({HubScene}): {error}");
+    }
+
+    /// <summary>After a match: everybody meets again in the warehouse. The connection, the host's
+    /// rules and the teams are kept, so the same people can ready up for the next one.</summary>
+    public static void ReturnToHub(SceneTree tree)
+    {
+        GameUiState.Reset();
+        if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
+        CareerTracker.Instance?.FinishMatch();
+        MatchStats.Instance?.Reset();
+        Error error = tree.ChangeSceneToFile(HubScene);
+        if (error != Error.Ok) GD.PushError($"Could not return to the hub ({HubScene}): {error}");
     }
 
     public static void QuitToDesktop(SceneTree tree)

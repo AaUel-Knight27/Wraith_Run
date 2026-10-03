@@ -1,0 +1,932 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Godot;
+
+/// <summary>
+/// The tablet: the hub's one menu. Press Esc (or the MENU button on a phone) and the player lifts
+/// the tablet; there is no full-screen menu any more. Sections:
+///   PLAY      not in a lobby: HOST / JOIN. In a lobby: the lobby (host: map, bots, START GAME; others: READY).
+///   OPERATOR  pick and customise the operator (the same screens the old main menu used).
+///   STATUS    who is in the room, which side they are on, who is ready.
+///   CHAT      the lobby text chat (your team only in team modes).
+///   SETTINGS  the normal settings panel.
+/// Weapons are chosen at the weapon wall in the room, not here.
+///
+/// A small chat feed stays on screen while the tablet is down; Enter opens the message line.
+/// </summary>
+public partial class HubTablet : CanvasLayer
+{
+    public static HubTablet? Instance { get; private set; }
+
+    private enum Section { Home, Play, Operator, Status, Chat, Settings }
+    private enum PlayStep { Home, Host, Join }
+
+    private const int MaxFeedLines = 7;
+
+    private Control _root = null!;
+    private HBoxContainer _topBar = null!;
+    private Control? _feedRoot;
+    private Control _content = null!;
+    private TabletDevice? _device;
+    private bool _pointerInside;
+    private Vector2 _lastPixel;
+    private HubController _hub = null!;
+
+    private Section _section = Section.Home;
+    private PlayStep _playStep = PlayStep.Home;
+    private bool _open;
+    private string? _operatorPreview;
+
+    // chat
+    private readonly List<(string Sender, int Team, string Text)> _log = new();
+    private Label? _feed;
+    private LineEdit? _quickChat;
+    private bool _typing;
+    private RichTextLabel? _chatLog;
+
+    // host settings picked before the lobby exists
+    private string _gameName = "Wraith Run";
+
+    // join screen
+    private PacketPeerUdp? _listener;
+    private readonly Dictionary<string, (string Name, string Host, int Players, string Map, string Mode, ulong Seen)> _games = new();
+    private VBoxContainer? _gamesList;
+    private Label? _joinStatus;
+    private double _pollTimer;
+    private string _manualAddress = string.Empty;
+
+    // live refresh of lobby / status screens
+    private readonly Dictionary<long, bool> _lastReady = new();
+    private double _liveTimer;
+    private bool _lobbyDirty;
+
+    public override void _Ready()
+    {
+        Instance = this;
+        Layer = 30;
+        ProcessMode = ProcessModeEnum.Always;
+        _hub = HubController.Instance!;
+        BuildShell();
+        BuildChatFeed();
+        _hub.ChatReceived += OnChat;
+        _hub.RosterChanged += () => _lobbyDirty = true;
+        if (MatchManager.Instance != null) MatchManager.Instance.LobbyChanged += OnLobbyChanged;
+        AttachTabletModel();
+    }
+
+    public override void _ExitTree()
+    {
+        if (Instance == this) Instance = null;
+        StopListening();
+        if (_open) GameUiState.Reset();
+        if (MatchManager.Instance != null) MatchManager.Instance.LobbyChanged -= OnLobbyChanged;
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Open / close
+    // -------------------------------------------------------------------------------------------
+
+    public void Toggle()
+    {
+        if (_open) Close(); else Open();
+    }
+
+    private void Open()
+    {
+        if (_open || GameUiState.ResultsOpen) return;
+        Camera3D? camera = LocalCamera();
+        if (_device == null || camera == null) return; // the player is not in the room yet
+        if (_typing) EndQuickChat(send: false);
+        _open = true;
+        _device.Fit(camera);
+        GameUiState.SetMenuOpen(true);
+        if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
+        _device.Raise();
+        SetOverlays(true);
+        _root.Visible = true;
+        ShowSection(_section);
+    }
+
+    private void Close()
+    {
+        if (!_open) return;
+        _open = false;
+        StopListening();
+        GameUiState.SetMenuOpen(false);
+        _root.Visible = false;
+        if (_device != null && IsInstanceValid(_device)) _device.Lower();
+        SetOverlays(false);
+        _pointerInside = false;
+        if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Captured;
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        // While the tablet is up, pointer and keyboard go to ITS screen, through the glass.
+        if (_open && _device != null)
+        {
+            if (@event is InputEventKey hot && hot.Pressed && !hot.Echo && !TypingOnScreen())
+            {
+                if (hot.PhysicalKeycode == Key.Q) { GetViewport().SetInputAsHandled(); CycleTab(-1); return; }
+                if (hot.PhysicalKeycode == Key.E) { GetViewport().SetInputAsHandled(); CycleTab(1); return; }
+                if (hot.PhysicalKeycode == Key.Space) { GetViewport().SetInputAsHandled(); PrimaryAction(); return; }
+            }
+            bool closing = @event.IsActionPressed(GameUiState.PauseAction) || @event.IsActionPressed("ui_cancel");
+            if (!closing && ForwardToScreen(@event))
+            {
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+        }
+        if (@event is InputEventKey key && key.Pressed && !key.Echo)
+        {
+            if (_typing)
+            {
+                if (key.Keycode == Key.Enter || key.Keycode == Key.KpEnter) { GetViewport().SetInputAsHandled(); EndQuickChat(send: true); }
+                else if (key.Keycode == Key.Escape) { GetViewport().SetInputAsHandled(); EndQuickChat(send: false); }
+                return;
+            }
+            if (!_open && (key.Keycode == Key.Enter || key.Keycode == Key.KpEnter))
+            {
+                GetViewport().SetInputAsHandled();
+                BeginQuickChat();
+                return;
+            }
+        }
+        bool pause = @event.IsActionPressed(GameUiState.PauseAction);
+        bool back = _open && @event.IsActionPressed("ui_cancel");
+        if (!pause && !back) return;
+        if (GameUiState.ResultsOpen) return;
+        GetViewport().SetInputAsHandled();
+        if (_open && _section == Section.Play && _playStep != PlayStep.Home && !_hub.InSession)
+        {
+            // one step back inside HOST / JOIN before the tablet closes
+            _playStep = PlayStep.Home;
+            ShowSection(Section.Play);
+            return;
+        }
+        Toggle();
+    }
+
+    public override void _Notification(int what)
+    {
+        if (what == (int)Node.NotificationWMGoBackRequest && !GameUiState.ResultsOpen) Toggle();
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_open && _section == Section.Play && _playStep == PlayStep.Join) PollDiscovery(delta);
+
+        _liveTimer += delta;
+        if (_liveTimer < 0.5) return;
+        _liveTimer = 0;
+        if (_open && (_lobbyDirty || _section == Section.Status || (_section == Section.Play && _hub.InSession)))
+        {
+            if (_lobbyDirty) BuildTopBar();
+            _lobbyDirty = false;
+            RefreshLiveSection();
+        }
+    }
+
+    private void OnLobbyChanged()
+    {
+        // Live notification feed: tell everybody when somebody flips READY.
+        MatchManager? match = MatchManager.Instance;
+        if (match == null) return;
+        foreach (long id in match.LobbyPeerIds())
+        {
+            bool ready = match.IsPeerReady(id);
+            if (id != 1 && _lastReady.TryGetValue(id, out bool before) && before != ready)
+                AddLog("", -1, $"{GameUiState.PlayerName(id)} is {(ready ? "READY" : "NOT READY")}");
+            _lastReady[id] = ready;
+        }
+        _lobbyDirty = true;
+    }
+
+    private void RefreshLiveSection()
+    {
+        // Only the cheap-to-rebuild screens are rebuilt live.
+        if (_section == Section.Status || _section == Section.Home || (_section == Section.Play && _hub.InSession && _playStep == PlayStep.Home))
+            ShowSection(_section);
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Shell
+    // -------------------------------------------------------------------------------------------
+
+    private void BuildShell()
+    {
+        // The menu is drawn into the tablet's own screen (a fixed-size viewport), so everything here is
+        // laid out for that screen - not for the game window. Layout: one top bar (back, PLAY, tabs,
+        // status chips) and the whole rest of the glass for the page.
+        _device = new TabletDevice();
+        _root = new Control { MouseFilter = Control.MouseFilterEnum.Stop, Visible = false };
+        MenuStyle.Fill(_root);
+        _device.Screen.AddChild(_root);
+
+        var gradient = new Gradient();
+        gradient.SetColor(0, new Color(0.085f, 0.022f, 0.025f));
+        gradient.SetColor(1, new Color(0.012f, 0.014f, 0.018f));
+        var backdrop = new TextureRect
+        {
+            Texture = new GradientTexture2D { Gradient = gradient, FillFrom = new Vector2(0.15f, 0.0f), FillTo = new Vector2(0.55f, 1.0f), Width = 256, Height = 256 },
+            StretchMode = TextureRect.StretchModeEnum.Scale,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        MenuStyle.Fill(backdrop);
+        _root.AddChild(backdrop);
+
+        var page = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Fill(page);
+        page.OffsetLeft = 26; page.OffsetRight = -26; page.OffsetTop = 18; page.OffsetBottom = -22;
+        page.AddThemeConstantOverride("separation", 14);
+        _root.AddChild(page);
+
+        _topBar = new HBoxContainer { CustomMinimumSize = new Vector2(0, 52) };
+        _topBar.AddThemeConstantOverride("separation", 14);
+        page.AddChild(_topBar);
+
+        _content = new Control { SizeFlagsVertical = Control.SizeFlags.ExpandFill, ClipContents = true };
+        page.AddChild(_content);
+    }
+
+    private Camera3D? LocalCamera() =>
+        GetTree().CurrentScene?.GetNodeOrNull<Camera3D>($"Players/Player_{Multiplayer.GetUniqueId()}/Head/FirstPersonCamera");
+
+    /// <summary>Hang the tablet on the local player's camera as soon as that camera exists.</summary>
+    private void AttachTabletModel() => CallDeferred(nameof(MountDevice));
+
+    private void MountDevice()
+    {
+        if (_device == null || !IsInstanceValid(_device)) return;
+        Camera3D? camera = LocalCamera();
+        if (camera == null)
+        {
+            // the hub spawns the player a moment after this scene is ready; try again shortly
+            GetTree().CreateTimer(0.4).Timeout += MountDevice;
+            return;
+        }
+        if (_device.GetParent() == null) camera.AddChild(_device);
+    }
+
+    private bool TypingOnScreen() => _device != null && _device.Screen.GuiGetFocusOwner() is LineEdit or TextEdit;
+
+    private void SetOverlays(bool tabletUp)
+    {
+        if (_feedRoot != null) _feedRoot.Visible = !tabletUp;
+        var hud = GetTree().CurrentScene?.GetNodeOrNull<CanvasLayer>($"Players/Player_{Multiplayer.GetUniqueId()}/Hud");
+        if (hud != null) hud.Visible = !tabletUp;
+    }
+
+    private bool ForwardToScreen(InputEvent e)
+    {
+        if (_device == null) return false;
+        switch (e)
+        {
+            case InputEventMouseMotion or InputEventMouseButton:
+            {
+                Camera3D? camera = LocalCamera();
+                if (camera == null) return true;
+                Vector2 window = e is InputEventMouseMotion motion ? motion.Position : ((InputEventMouseButton)e).Position;
+                if (!_device.ScreenPoint(camera, window, out Vector2 pixel))
+                {
+                    if (_pointerInside)
+                    {
+                        _pointerInside = false; // let go of any hover on the screen
+                        _device.Screen.PushInput(new InputEventMouseMotion { Position = new Vector2(-300, -300), GlobalPosition = new Vector2(-300, -300) }, true);
+                    }
+                    return true;
+                }
+                _pointerInside = true;
+                var copy = (InputEventMouse)e.Duplicate();
+                copy.Position = pixel;
+                copy.GlobalPosition = pixel;
+                if (copy is InputEventMouseMotion moved) moved.Relative = pixel - _lastPixel;
+                _lastPixel = pixel;
+                _device.Screen.PushInput(copy, true);
+                return true;
+            }
+            case InputEventKey:
+                _device.Screen.PushInput(e, true);
+                return true;
+        }
+        return false;
+    }
+
+    private static readonly Section[] TabOrder = { Section.Home, Section.Operator, Section.Status, Section.Chat, Section.Settings };
+
+    private static Button Sized(Button button, float width)
+    {
+        button.CustomMinimumSize = new Vector2(width, button.CustomMinimumSize.Y);
+        return button;
+    }
+
+    private static Control KeyCap(string key) => MenuStyle.Chip(key, new Color(0.95f, 0.93f, 0.93f), 12, true);
+
+    private Button Tab(string label, Section section)
+    {
+        bool active = _section == section;
+        var button = new Button { Text = label, Flat = true, FocusMode = Control.FocusModeEnum.None, CustomMinimumSize = new Vector2(0, 46) };
+        button.AddThemeFontOverride("font", MenuStyle.Bold);
+        button.AddThemeFontSizeOverride("font_size", 21);
+        foreach (string color in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_focus_color" })
+            button.AddThemeColorOverride(color, active ? MenuStyle.TextMain : (color == "font_color" ? MenuStyle.TextDim : MenuStyle.TextMain));
+        var underline = new StyleBoxFlat { BgColor = new Color(0, 0, 0, 0), BorderColor = MenuStyle.Accent, BorderWidthBottom = active ? 4 : 0, ContentMarginLeft = 10, ContentMarginRight = 10, ContentMarginBottom = 4 };
+        foreach (string box in new[] { "normal", "hover", "pressed", "focus" })
+            button.AddThemeStyleboxOverride(box, underline);
+        button.Pressed += () => { _playStep = PlayStep.Home; ShowSection(section); };
+        return button;
+    }
+
+    private string PrimaryLabel()
+    {
+        if (!_hub.InSession) return "PLAY";
+        if (Multiplayer.IsServer()) return "START";
+        return MatchManager.Instance.LocalPlayerReady ? "UNREADY" : "READY";
+    }
+
+    /// <summary>The big red button: PLAY before there is a lobby, then START GAME (host) or READY (others).</summary>
+    private void PrimaryAction()
+    {
+        MatchManager match = MatchManager.Instance;
+        if (!_hub.InSession) { _playStep = PlayStep.Home; ShowSection(Section.Play); return; }
+        if (Multiplayer.IsServer())
+        {
+            if (match.CanHostStartMatch) _hub.StartMatch();
+            else { _playStep = PlayStep.Home; ShowSection(Section.Play); } // the lobby page says what is missing
+            return;
+        }
+        match.SetLocalReady(!match.LocalPlayerReady);
+        CallDeferred(nameof(RebuildTopBar));
+    }
+
+    private void RebuildTopBar() { if (_open) BuildTopBar(); }
+
+    private void BackPressed()
+    {
+        if (_section == Section.Play && !_hub.InSession && _playStep != PlayStep.Home) { _playStep = PlayStep.Home; ShowSection(Section.Play); }
+        else if (_section != Section.Home) { _playStep = PlayStep.Home; ShowSection(Section.Home); }
+        else Close();
+    }
+
+    private void CycleTab(int direction)
+    {
+        int index = System.Array.IndexOf(TabOrder, _section);
+        index = index < 0 ? 0 : (index + direction + TabOrder.Length) % TabOrder.Length;
+        _playStep = PlayStep.Home;
+        ShowSection(TabOrder[index]);
+    }
+
+    private void BuildTopBar()
+    {
+        foreach (Node child in _topBar.GetChildren()) { _topBar.RemoveChild(child); child.QueueFree(); }
+
+        _topBar.AddChild(Sized(MenuStyle.Outline("BACK", BackPressed, "arrow-left", 46), 130));
+
+        var play = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkCenter };
+        play.AddThemeConstantOverride("separation", 6);
+        play.AddChild(KeyCap("SPACE"));
+        play.AddChild(MenuStyle.Primary(PrimaryLabel(), new Vector2(160, 46), PrimaryAction));
+        _topBar.AddChild(play);
+
+        var tabs = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkCenter };
+        tabs.AddThemeConstantOverride("separation", 4);
+        tabs.AddChild(KeyCap("Q"));
+        tabs.AddChild(Tab("HOME", Section.Home));
+        tabs.AddChild(Tab("OPERATOR", Section.Operator));
+        tabs.AddChild(Tab("PLAYERS", Section.Status));
+        tabs.AddChild(Tab("CHAT", Section.Chat));
+        tabs.AddChild(KeyCap("E"));
+        _topBar.AddChild(tabs);
+
+        _topBar.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
+
+        // who is in the room, settings, quit
+        var people = new PanelContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkCenter, MouseFilter = Control.MouseFilterEnum.Ignore };
+        people.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0, 0, 0, 0.35f), BorderColor = MenuStyle.Hairline,
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            ContentMarginLeft = 10, ContentMarginRight = 10, ContentMarginTop = 6, ContentMarginBottom = 6,
+        });
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 8);
+        row.AddChild(MenuStyle.Icon("users", 18));
+        int inRoom = Math.Max(1, MatchManager.Instance.LobbyPeerIds().Length);
+        row.AddChild(MenuStyle.Text(inRoom.ToString(), 20, MenuStyle.TextMain, MenuStyle.Bold));
+        people.AddChild(row);
+        _topBar.AddChild(people);
+
+        _topBar.AddChild(MenuStyle.IconButton("settings", 24, _section == Section.Settings ? MenuStyle.Accent : MenuStyle.TextMain, () => { _playStep = PlayStep.Home; ShowSection(Section.Settings); }));
+        _topBar.AddChild(MenuStyle.IconButton("power", 24, MenuStyle.TextMain, () => GameSession.QuitToDesktop(GetTree())));
+    }
+
+    private void LeaveForTraining()
+    {
+        GameUiState.Reset();
+        if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
+        _hub.LeaveSession(false);
+        LoadingScreen.Instance?.Show();
+        GetTree().ChangeSceneToFile("res://scenes/training/TrainingCenter.tscn");
+    }
+
+    private void ShowSection(Section section)
+    {
+        _section = section;
+        StopListening();
+        foreach (Node child in _content.GetChildren()) { _content.RemoveChild(child); child.QueueFree(); }
+        BuildTopBar();
+        switch (section)
+        {
+            case Section.Home: BuildHome(); break;
+            case Section.Play: BuildPlay(); break;
+            case Section.Operator: BuildOperator(); break;
+            case Section.Status: Scrolled(BuildStatus); break;
+            case Section.Chat: BuildChat(); break;
+            case Section.Settings:
+                var settings = new SettingsPanel();
+                MenuStyle.Fill(settings);
+                _content.AddChild(settings);
+                break;
+        }
+    }
+
+    private void Scrolled(Action<VBoxContainer> build)
+    {
+        var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, MouseFilter = Control.MouseFilterEnum.Pass };
+        MenuStyle.Fill(scroll);
+        _content.AddChild(scroll);
+        var column = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        column.AddThemeConstantOverride("separation", 12);
+        scroll.AddChild(column);
+        build(column);
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // PLAY
+    // -------------------------------------------------------------------------------------------
+
+    private void BuildPlay()
+    {
+        if (_hub.InSession) { Scrolled(BuildLobby); return; }
+        switch (_playStep)
+        {
+            case PlayStep.Host: Scrolled(BuildHost); break;
+            case PlayStep.Join: BuildJoin(); break;
+            default: BuildPlayHome(); break;
+        }
+    }
+
+    private void BuildHome()
+    {
+        MatchManager match = MatchManager.Instance;
+        bool inSession = _hub.InSession;
+        var mark = MenuStyle.Text("WRAITH RUN", 150, new Color(1f, 0.1f, 0.1f, 0.06f), MenuStyle.Bold);
+        MenuStyle.Place(mark, 0, 0, 1, 0, 0, 10, 0, 220);
+        mark.MouseFilter = Control.MouseFilterEnum.Ignore;
+        _content.AddChild(mark);
+
+        var column = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Place(column, 0, 1, 0.78f, 1, 6, -330, 0, -6);
+        column.Alignment = BoxContainer.AlignmentMode.End;
+        column.AddThemeConstantOverride("separation", 10);
+        _content.AddChild(column);
+
+        var tag = MenuStyle.Chip(inSession ? (Multiplayer.IsServer() ? "YOU ARE HOSTING" : "IN A LOBBY") : "THE HUB", MenuStyle.Accent, 14, true);
+        tag.SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin;
+        column.AddChild(tag);
+
+        string title = inSession ? $"{match.ModeRules.DisplayName.ToUpperInvariant()}  -  {match.MapDisplayName.ToUpperInvariant()}" : "WELCOME TO THE WAREHOUSE";
+        column.AddChild(MenuStyle.Wrapped(title, 34, MenuStyle.TextMain, MenuStyle.Bold));
+
+        if (inSession)
+        {
+            string who = HubController.SplitRooms(match)
+                ? $"You are on {MatchManager.TeamName(match.GetTeam(Multiplayer.GetUniqueId()))}. Your team has its own warehouse: the other side cannot see or hear you until the match starts."
+                : "Everyone is in the same warehouse until the match starts.";
+            column.AddChild(MenuStyle.Wrapped(who, 19, MenuStyle.TextDim, MenuStyle.Medium));
+            column.AddChild(MenuStyle.Wrapped(Multiplayer.IsServer()
+                ? "Pick your weapons at the wall, then press START GAME once everyone is ready."
+                : "Pick your weapons at the wall, then press READY.", 19, MenuStyle.TextDim, MenuStyle.Medium));
+        }
+        else
+        {
+            column.AddChild(MenuStyle.Wrapped("This is your home base. Walk around, take weapons off the wall (look at one and press E), then host a game or join one on this Wi-Fi.", 19, MenuStyle.TextDim, MenuStyle.Medium));
+            column.AddChild(MenuStyle.Wrapped("You carry two primary weapons, one pistol and a knife. Only the Demolisher can carry the Bazooka.", 17, MenuStyle.TextMuted, MenuStyle.Medium));
+        }
+        if (!string.IsNullOrEmpty(_hub.StatusLine))
+            column.AddChild(MenuStyle.Text(_hub.StatusLine, 18, MenuStyle.Accent, MenuStyle.SemiBold));
+
+        var buttons = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin };
+        buttons.AddThemeConstantOverride("separation", 12);
+        if (inSession)
+        {
+            buttons.AddChild(Sized(MenuStyle.Outline("LOBBY", () => { _playStep = PlayStep.Home; ShowSection(Section.Play); }, "wifi", 46), 170));
+            buttons.AddChild(Sized(MenuStyle.Outline("LEAVE LOBBY", () => _hub.LeaveSession(), "power", 46), 220));
+        }
+        else
+        {
+            buttons.AddChild(Sized(MenuStyle.Outline("HOST", () => { _playStep = PlayStep.Host; ShowSection(Section.Play); }, "server", 46), 150));
+            buttons.AddChild(Sized(MenuStyle.Outline("JOIN", () => { _playStep = PlayStep.Join; ShowSection(Section.Play); }, "wifi", 46), 150));
+            buttons.AddChild(Sized(MenuStyle.Outline("TRAINING", LeaveForTraining, "crosshair", 46), 190));
+        }
+        column.AddChild(buttons);
+    }
+
+    private void BuildPlayHome()
+    {
+        var box = new VBoxContainer();
+        MenuStyle.Place(box, 0.5f, 0.5f, 0.5f, 0.5f, -330, -150, 330, 150);
+        box.AddThemeConstantOverride("separation", 16);
+        _content.AddChild(box);
+        box.AddChild(MenuStyle.Text("Walk the warehouse, pick weapons off the wall, then host a game or join one.", 18, MenuStyle.TextDim, MenuStyle.Medium));
+        box.AddChild(MenuStyle.Hero("HOST", "Pick the mode and map, others join you here", new Vector2(660, 92), () => { _playStep = PlayStep.Host; ShowSection(Section.Play); }));
+        box.AddChild(MenuStyle.Hero("JOIN", "Find a game on this Wi-Fi", new Vector2(660, 92), () => { _playStep = PlayStep.Join; ShowSection(Section.Play); }));
+        if (!string.IsNullOrEmpty(_hub.StatusLine))
+            box.AddChild(MenuStyle.Text(_hub.StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold));
+    }
+
+    private void BuildHost(VBoxContainer column)
+    {
+        MatchManager match = MatchManager.Instance;
+        var modes = MenuStyle.Panel("GAME MODE", "crosshair", out VBoxContainer modeBody);
+        var hubModes = new List<MatchManager.Mode> { MatchManager.Mode.TeamDeathmatch };
+        hubModes.AddRange(MatchManager.SelectableModes);
+        foreach (MatchManager.Mode candidate in hubModes)
+        {
+            MatchManager.Mode chosen = candidate;
+            GameModeBase rules = GameModeBase.For(chosen);
+            modeBody.AddChild(MenuStyle.SelectRow(rules.UsesTeams ? "users" : "user",
+                $"{rules.DisplayName}   -   {rules.PlayerFormat}", match.GameMode == chosen, () => { match.GameMode = chosen; ShowSection(Section.Play); }));
+        }
+        column.AddChild(modes);
+
+        var maps = MenuStyle.Panel("MAP", "map", out VBoxContainer mapBody);
+        foreach (MatchManager.ArenaMap candidate in MatchManager.SelectableMaps)
+        {
+            MatchManager.ArenaMap chosen = candidate;
+            mapBody.AddChild(MenuStyle.SelectRow("map", MatchManager.MapName(chosen), match.SelectedMap == chosen, () => { match.SelectedMap = chosen; ShowSection(Section.Play); }));
+        }
+        column.AddChild(maps);
+
+        var setup = MenuStyle.Panel("LOBBY", "wifi", out VBoxContainer setupBody);
+        var name = new LineEdit { PlaceholderText = "Game name", Text = _gameName, MaxLength = 32 };
+        MenuStyle.StyleLineEdit(name);
+        name.TextChanged += text => _gameName = text;
+        setupBody.AddChild(name);
+        setupBody.AddChild(BotStepper(refresh: () => ShowSection(Section.Play)));
+        var status = MenuStyle.Text(_hub.StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold);
+        setupBody.AddChild(status);
+        setupBody.AddChild(MenuStyle.Primary("CREATE LOBBY", new Vector2(320, 64), () =>
+        {
+            if (_hub.HostSession(_gameName)) { _playStep = PlayStep.Home; ShowSection(Section.Play); }
+            else status.Text = _hub.StatusLine;
+        }));
+        column.AddChild(setup);
+    }
+
+    /// <summary>Bots fill a lobby that is short of people (the host is the only one who can add them).</summary>
+    private Control BotStepper(Action refresh)
+    {
+        MatchManager match = MatchManager.Instance;
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 12);
+        row.AddChild(MenuStyle.Text("BOTS", 18, MenuStyle.TextMain, MenuStyle.SemiBold));
+        row.AddChild(MenuStyle.Outline("-", () => { match.BotCount = Math.Max(0, match.BotCount - 1); SyncLobbySize(); refresh(); }, null, 40));
+        row.AddChild(MenuStyle.Text(match.BotCount.ToString(), 22, MenuStyle.TextMain, MenuStyle.Bold, HorizontalAlignment.Center));
+        row.AddChild(MenuStyle.Outline("+", () => { match.BotCount = Math.Min(11, match.BotCount + 1); SyncLobbySize(); refresh(); }, null, 40));
+        return row;
+    }
+
+    private static void SyncLobbySize()
+    {
+        MatchManager match = MatchManager.Instance;
+        int humans = match.LobbyPeerIds().Length;
+        if (humans < 1) humans = 1;
+        match.LobbyPlayerCount = Math.Clamp(humans + match.BotCount, match.ModeRules.MinimumPlayers, match.ModeRules.MaximumPlayers);
+    }
+
+    private void BuildLobby(VBoxContainer column)
+    {
+        MatchManager match = MatchManager.Instance;
+        GameModeBase rules = match.ModeRules;
+        bool host = Multiplayer.IsServer();
+
+        var about = MenuStyle.Panel(rules.DisplayName.ToUpperInvariant(), "crosshair", out VBoxContainer aboutBody);
+        aboutBody.AddChild(MenuStyle.Wrapped($"{rules.PlayerFormat}\nMap: {match.MapDisplayName}", 19, MenuStyle.TextDim));
+        if (HubController.SplitRooms(match))
+            aboutBody.AddChild(MenuStyle.Wrapped($"You are on {MatchManager.TeamName(match.GetTeam(Multiplayer.GetUniqueId()))}. Your team has its own warehouse: the other side cannot see or hear you until the match starts.", 17, MenuStyle.TextMuted));
+        column.AddChild(about);
+
+        if (host)
+        {
+            var settings = MenuStyle.Panel("HOST CONTROLS", "settings", out VBoxContainer hostBody);
+            hostBody.AddChild(MenuStyle.Text("MAP", 14, MenuStyle.TextMuted, MenuStyle.Bold));
+            foreach (MatchManager.ArenaMap candidate in MatchManager.SelectableMaps)
+            {
+                MatchManager.ArenaMap chosen = candidate;
+                hostBody.AddChild(MenuStyle.SelectRow("map", MatchManager.MapName(chosen), match.SelectedMap == chosen, () =>
+                {
+                    match.SelectedMap = chosen;
+                    match.BroadcastHostConfig();
+                    ShowSection(Section.Play);
+                }));
+            }
+            hostBody.AddChild(BotStepper(refresh: () => { match.BroadcastHostConfig(); ShowSection(Section.Play); }));
+            column.AddChild(settings);
+        }
+
+        var players = MenuStyle.Panel("PLAYERS", "users", out VBoxContainer playersBody);
+        FillPlayerRows(playersBody);
+        column.AddChild(players);
+
+        string need = ReadyBlocker(match);
+        if (host)
+        {
+            Button start = MenuStyle.Primary("START GAME", new Vector2(340, 70), () => _hub.StartMatch());
+            start.Disabled = !match.CanHostStartMatch;
+            column.AddChild(start);
+            column.AddChild(MenuStyle.Text(need.Length == 0 ? "Everyone is ready." : need, 17, need.Length == 0 ? MenuStyle.TextDim : MenuStyle.Accent, MenuStyle.SemiBold));
+        }
+        else
+        {
+            bool ready = match.LocalPlayerReady;
+            column.AddChild(MenuStyle.Primary(ready ? "NOT READY" : "READY", new Vector2(340, 70), () =>
+            {
+                match.SetLocalReady(!ready);
+                // the host's reply refreshes this screen; flip it right away so the click feels instant
+                CallDeferred(nameof(RefreshLiveSectionDeferred));
+            }));
+            column.AddChild(MenuStyle.Text(ready ? "You are ready. Waiting for the host." : "Pick your weapons at the wall, then press READY.", 17, MenuStyle.TextDim, MenuStyle.SemiBold));
+        }
+    }
+
+    private void RefreshLiveSectionDeferred() { if (_open) ShowSection(_section); }
+
+    private string ReadyBlocker(MatchManager match)
+    {
+        if (!Multiplayer.IsServer()) return string.Empty;
+        int humans = Multiplayer.GetPeers().Length + 1;
+        if (humans + match.BotCount < match.ModeRules.MinimumPlayers)
+            return $"Needs {match.ModeRules.MinimumPlayers} players: wait for friends or add bots.";
+        foreach (int peer in Multiplayer.GetPeers())
+            if (!match.IsPeerReady(peer)) return $"{GameUiState.PlayerName(peer)} is not ready.";
+        return string.Empty;
+    }
+
+    // ---- JOIN ---------------------------------------------------------------------------------
+
+    private void BuildJoin()
+    {
+        var column = new VBoxContainer();
+        MenuStyle.Fill(column);
+        column.AddThemeConstantOverride("separation", 12);
+        _content.AddChild(column);
+
+        var panel = MenuStyle.Panel("LAN GAMES", "wifi", out VBoxContainer body);
+        panel.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        column.AddChild(panel);
+        _joinStatus = MenuStyle.Text("Listening for games on this Wi-Fi...", 17, MenuStyle.TextDim, MenuStyle.Medium);
+        body.AddChild(_joinStatus);
+        var scroll = new ScrollContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        body.AddChild(scroll);
+        _gamesList = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        _gamesList.AddThemeConstantOverride("separation", 8);
+        scroll.AddChild(_gamesList);
+
+        var manual = new HBoxContainer();
+        manual.AddThemeConstantOverride("separation", 10);
+        var address = new LineEdit { PlaceholderText = "or type the host's IP address", Text = _manualAddress, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        MenuStyle.StyleLineEdit(address);
+        address.TextChanged += text => _manualAddress = text;
+        manual.AddChild(address);
+        manual.AddChild(MenuStyle.Outline("CONNECT", () => { if (!string.IsNullOrWhiteSpace(address.Text)) JoinGame(address.Text); }, null, 46));
+        column.AddChild(manual);
+
+        StartListening();
+        RefreshGames();
+    }
+
+    private void StartListening()
+    {
+        StopListening();
+        _games.Clear();
+        _listener = new PacketPeerUdp();
+        Error error = _listener.Bind(LanSession.DiscoveryPort, "0.0.0.0");
+        if (error != Error.Ok)
+        {
+            if (_joinStatus != null) _joinStatus.Text = $"Discovery unavailable ({error}). Type the host's IP instead.";
+            _listener = null;
+        }
+    }
+
+    private void StopListening()
+    {
+        _listener?.Close();
+        _listener = null;
+    }
+
+    private void PollDiscovery(double delta)
+    {
+        _pollTimer += delta;
+        if (_pollTimer < 0.5 || _listener == null) return;
+        _pollTimer = 0;
+        bool changed = false;
+        while (_listener.GetAvailablePacketCount() > 0)
+        {
+            Variant parsed = Json.ParseString(Encoding.UTF8.GetString(_listener.GetPacket()));
+            if (parsed.VariantType != Variant.Type.Dictionary) continue;
+            var packet = parsed.AsGodotDictionary();
+            string advertised = packet.GetValueOrDefault("host", "").AsString();
+            string source = _listener.GetPacketIP();
+            string host = string.IsNullOrWhiteSpace(source) ? advertised : source;
+            if (string.IsNullOrEmpty(host)) continue;
+            string session = packet.GetValueOrDefault("session", host).AsString();
+            var entry = (
+                packet.GetValueOrDefault("name", "Wraith Run").AsString(), host,
+                (int)packet.GetValueOrDefault("players", 1).AsInt64(),
+                packet.GetValueOrDefault("map", "").AsString(), packet.GetValueOrDefault("mode", "").AsString(),
+                Time.GetTicksMsec());
+            if (!_games.TryGetValue(session, out var prior) || prior.Name != entry.Item1 || prior.Players != entry.Item3 || prior.Map != entry.Item4) changed = true;
+            _games[session] = entry;
+        }
+        foreach (string key in new List<string>(_games.Keys))
+            if (Time.GetTicksMsec() - _games[key].Seen > 3000) { _games.Remove(key); changed = true; }
+        if (changed) RefreshGames();
+    }
+
+    private void RefreshGames()
+    {
+        if (_gamesList == null || !IsInstanceValid(_gamesList)) return;
+        foreach (Node child in _gamesList.GetChildren()) { _gamesList.RemoveChild(child); child.QueueFree(); }
+        if (_joinStatus != null) _joinStatus.Text = _games.Count == 0 ? "Listening for games on this Wi-Fi..." : $"{_games.Count} game(s) found";
+        foreach (var game in _games.Values)
+        {
+            string host = game.Host;
+            _gamesList.AddChild(MenuStyle.Row(game.Name, $"{game.Mode}  |  {game.Map}  |  {game.Players} in room", () => JoinGame(host)));
+        }
+    }
+
+    private void JoinGame(string address)
+    {
+        if (_hub.JoinSession(address))
+        {
+            if (_joinStatus != null) _joinStatus.Text = $"Connecting to {address}...";
+            Close();
+        }
+        else if (_joinStatus != null) _joinStatus.Text = _hub.StatusLine;
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // OPERATOR / STATUS / CHAT
+    // -------------------------------------------------------------------------------------------
+
+    private void BuildOperator()
+    {
+        var host = new Control { ClipContents = true };
+        MenuStyle.Fill(host);
+        _content.AddChild(host);
+        // These two screens were drawn for a full window; ask them to fit the tablet's glass instead.
+        LoadoutLayout.Compact = true;
+        try
+        {
+            new OperatorScreen(_operatorPreview, id =>
+            {
+                foreach (Node child in host.GetChildren()) { host.RemoveChild(child); child.QueueFree(); }
+                LoadoutLayout.Compact = true;
+                try { new CustomizeScreen(id).Build(host); }
+                finally { LoadoutLayout.Compact = false; }
+            }).Build(host);
+        }
+        finally { LoadoutLayout.Compact = false; }
+    }
+
+    private void BuildStatus(VBoxContainer column)
+    {
+        var panel = MenuStyle.Panel("IN THE ROOM", "users", out VBoxContainer body);
+        FillPlayerRows(body);
+        column.AddChild(panel);
+        if (!_hub.InSession)
+            column.AddChild(MenuStyle.Wrapped("You are alone in the warehouse. Host a game or join one to meet other players.", 18, MenuStyle.TextMuted));
+    }
+
+    private void FillPlayerRows(VBoxContainer body)
+    {
+        MatchManager match = MatchManager.Instance;
+        long[] ids = match.LobbyPeerIds();
+        if (ids.Length == 0) ids = new long[] { Multiplayer.GetUniqueId() };
+        foreach (long id in ids)
+        {
+            bool ready = id == 1 || match.IsPeerReady(id);
+            int team = match.IsTeamMode ? match.GetTeam(id) : -1; // crews also show their side
+            string who = GameUiState.PlayerName(id) + (id == Multiplayer.GetUniqueId() ? "  (you)" : "") + (id == 1 ? "  -  host" : "");
+            // The host is shown ready, as in the lobby: only the people who have to press READY matter.
+            var row = new HBoxContainer();
+            row.AddThemeConstantOverride("separation", 12);
+            row.AddChild(MenuStyle.Text(ready ? "READY" : "NOT READY", 15, ready ? new Color(0.35f, 0.85f, 0.4f) : new Color(0.95f, 0.3f, 0.25f), MenuStyle.Bold));
+            row.AddChild(MenuStyle.Text(who, 20, MenuStyle.TextMain, MenuStyle.SemiBold));
+            if (team >= 0)
+                row.AddChild(MenuStyle.Chip(MatchManager.TeamName(team), team == 0 ? new Color(0.3f, 0.6f, 1f) : new Color(1f, 0.55f, 0.2f), 13, false));
+            body.AddChild(row);
+        }
+        if (match.BotCount > 0) body.AddChild(MenuStyle.Text($"+ {match.BotCount} bot(s) when the match starts", 16, MenuStyle.TextMuted, MenuStyle.Medium));
+    }
+
+    private void BuildChat()
+    {
+        var column = new VBoxContainer();
+        MenuStyle.Fill(column);
+        column.AddThemeConstantOverride("separation", 10);
+        _content.AddChild(column);
+        MatchManager match = MatchManager.Instance;
+        string channel = HubController.SplitRooms(match) && _hub.InSession ? $"{MatchManager.TeamName(match.GetTeam(Multiplayer.GetUniqueId()))} only" : "everyone in the room";
+        column.AddChild(MenuStyle.Text($"Messages go to: {channel}", 16, MenuStyle.TextMuted, MenuStyle.SemiBold));
+
+        _chatLog = new RichTextLabel { BbcodeEnabled = true, ScrollFollowing = true, SizeFlagsVertical = Control.SizeFlags.ExpandFill, FitContent = false };
+        _chatLog.AddThemeFontOverride("normal_font", MenuStyle.Medium);
+        _chatLog.AddThemeFontSizeOverride("normal_font_size", 18);
+        column.AddChild(_chatLog);
+        foreach (var line in _log) AppendLogLine(_chatLog, line.Sender, line.Team, line.Text);
+
+        var input = new LineEdit { PlaceholderText = "Type a message and press Enter", MaxLength = 140 };
+        MenuStyle.StyleLineEdit(input);
+        input.TextSubmitted += text => { _hub.SendChat(text); input.Text = string.Empty; input.GrabFocus(); };
+        column.AddChild(input);
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Chat feed (always on screen) and quick message
+    // -------------------------------------------------------------------------------------------
+
+    private void BuildChatFeed()
+    {
+        var feedRoot = new Control { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Fill(feedRoot);
+        AddChild(feedRoot);
+        _feedRoot = feedRoot;
+        _feed = MenuStyle.Text("", 18, MenuStyle.TextMain, MenuStyle.Medium);
+        _feed.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        MenuStyle.Place(_feed, 0, 1, 0, 1, 24, -250, 560, -64);
+        _feed.VerticalAlignment = VerticalAlignment.Bottom;
+        feedRoot.AddChild(_feed);
+
+        _quickChat = new LineEdit { PlaceholderText = "Message (Enter to send, Esc to cancel)", MaxLength = 140, Visible = false };
+        MenuStyle.StyleLineEdit(_quickChat);
+        MenuStyle.Place(_quickChat, 0, 1, 0, 1, 24, -56, 560, -16);
+        feedRoot.AddChild(_quickChat);
+
+        var hint = MenuStyle.Text("ESC  tablet     ENTER  chat     E  weapon wall", 14, MenuStyle.TextMuted, MenuStyle.SemiBold);
+        MenuStyle.Place(hint, 0.5f, 1, 0.5f, 1, -200, -34, 200, -10);
+        hint.HorizontalAlignment = HorizontalAlignment.Center;
+        feedRoot.AddChild(hint);
+    }
+
+    private void BeginQuickChat()
+    {
+        if (_quickChat == null || !_hub.InSession) { AddLog("", -1, "Chat opens once you host or join a lobby."); return; }
+        _typing = true;
+        GameUiState.SetMenuOpen(true);
+        _quickChat.Text = string.Empty;
+        _quickChat.Visible = true;
+        _quickChat.GrabFocus();
+    }
+
+    private void EndQuickChat(bool send)
+    {
+        if (_quickChat == null) return;
+        string text = _quickChat.Text;
+        _quickChat.Visible = false;
+        _quickChat.ReleaseFocus();
+        _typing = false;
+        GameUiState.SetMenuOpen(false);
+        if (send) _hub.SendChat(text);
+    }
+
+    private void OnChat(string sender, int team, string text) => AddLog(sender, team, text);
+
+    private void AddLog(string sender, int team, string text)
+    {
+        _log.Add((sender, team, text));
+        if (_log.Count > 80) _log.RemoveAt(0);
+        if (_feed != null)
+        {
+            var sb = new StringBuilder();
+            int start = Math.Max(0, _log.Count - MaxFeedLines);
+            for (int i = start; i < _log.Count; i++)
+                sb.AppendLine(string.IsNullOrEmpty(_log[i].Sender) ? _log[i].Text : $"{_log[i].Sender}: {_log[i].Text}");
+            _feed.Text = sb.ToString().TrimEnd();
+        }
+        if (_chatLog != null && IsInstanceValid(_chatLog)) AppendLogLine(_chatLog, sender, team, text);
+    }
+
+    private static void AppendLogLine(RichTextLabel label, string sender, int team, string text)
+    {
+        if (string.IsNullOrEmpty(sender)) { label.AppendText($"[color=#9a9a9a]{Escape(text)}[/color]\n"); return; }
+        string color = team == 0 ? "#6aa8ff" : team == 1 ? "#ff9a40" : "#e8e8e8";
+        label.AppendText($"[color={color}]{Escape(sender)}[/color]: {Escape(text)}\n");
+    }
+
+    private static string Escape(string text) => text.Replace("[", "[lb]");
+}

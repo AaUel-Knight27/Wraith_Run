@@ -20,6 +20,7 @@ public enum WeaponCategory
     AssaultRifle,
     Smg,
     Shotgun,
+    Sniper,
     Pistol,
     Melee,
     Heavy,
@@ -74,7 +75,7 @@ public static class WeaponRules
     public static WeaponCategory[] CategoriesFor(WeaponSlot slot) => slot switch
     {
         WeaponSlot.Primary1 or WeaponSlot.Primary2 =>
-            new[] { WeaponCategory.AssaultRifle, WeaponCategory.Smg, WeaponCategory.Shotgun },
+            new[] { WeaponCategory.AssaultRifle, WeaponCategory.Smg, WeaponCategory.Shotgun, WeaponCategory.Sniper },
         WeaponSlot.Pistol => new[] { WeaponCategory.Pistol },
         WeaponSlot.Melee => new[] { WeaponCategory.Melee },
         _ => new[] { WeaponCategory.Heavy },
@@ -87,6 +88,7 @@ public static class WeaponRules
         WeaponCategory.AssaultRifle => "ASSAULT RIFLES",
         WeaponCategory.Smg => "SMGS",
         WeaponCategory.Shotgun => "SHOTGUNS",
+        WeaponCategory.Sniper => "SNIPER RIFLES",
         WeaponCategory.Pistol => "PISTOLS",
         WeaponCategory.Melee => "MELEE",
         WeaponCategory.Heavy => "HEAVY",
@@ -98,6 +100,7 @@ public static class WeaponRules
         WeaponCategory.AssaultRifle => "rifle",
         WeaponCategory.Smg => "wpn-smg",
         WeaponCategory.Shotgun => "wpn-shotgun",
+        WeaponCategory.Sniper => "rifle",
         WeaponCategory.Pistol => "wpn-pistol",
         WeaponCategory.Melee => "wpn-melee",
         WeaponCategory.Heavy => "wpn-launcher",
@@ -112,6 +115,9 @@ public static class WeaponRules
             case "assaultrifle": return WeaponCategory.AssaultRifle;
             case "smg": return WeaponCategory.Smg;
             case "shotgun": return WeaponCategory.Shotgun;
+            case "sniper":
+            case "sniperrifle":
+            case "marksmanrifle": return WeaponCategory.Sniper;
             case "pistol":
             case "sidearm": return WeaponCategory.Pistol;
             case "melee": return WeaponCategory.Melee;

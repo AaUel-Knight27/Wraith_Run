@@ -9,6 +9,10 @@ public partial class GameWorld : Node3D
     private const string SpawnPointGroup = "spawn_point";
 
     [Export] public PackedScene PlayerScene { get; set; } = null!;
+    /// <summary>True for Hub.tscn: the walkable warehouse home base. Same spawning and map code as a
+    /// match, but no match rules, no bots, no clock and no scoring.</summary>
+    [Export] public bool IsHub { get; set; }
+    private const string HubMapPath = "res://scenes/maps/DefaultWarehouse.tscn";
     private MultiplayerSpawner _spawner = null!;
 
 	private const int MaxBots = 11;
@@ -25,8 +29,18 @@ public partial class GameWorld : Node3D
         _spawner.SpawnFunction = new Callable(this, nameof(SpawnPlayer));
         Multiplayer.PeerConnected += OnPeerConnected;
         Multiplayer.PeerDisconnected += OnPeerDisconnected;
-        MatchManager.Instance?.EnsureSessionActive();
-        CareerTracker.Instance?.BeginMatch();
+        HubState.Active = IsHub;
+        if (IsHub)
+        {
+            // The hub reads the same spawner but spawns people itself (see HubController) so that a
+            // peer is only spawned once its own copy of the hub exists.
+            AddChild(new HubController { Name = "HubController" });
+        }
+        else
+        {
+            MatchManager.Instance?.EnsureSessionActive();
+            CareerTracker.Instance?.BeginMatch();
+        }
         InitializeMatchWorldAsync();
     }
 
@@ -34,7 +48,7 @@ public partial class GameWorld : Node3D
     {
         MatchManager? match = MatchManager.Instance;
         GameModeBase rules = match?.ModeRules ?? GameModeBase.For(MatchManager.Mode.Default);
-        string mapScenePath = match?.MapScenePath ?? "res://scenes/maps/Warzone.tscn";
+        string mapScenePath = IsHub ? HubMapPath : match?.MapScenePath ?? "res://scenes/maps/Warzone.tscn";
         var packed = ResourceLoader.Load<PackedScene>(mapScenePath);
         if (packed == null)
         {
@@ -44,6 +58,66 @@ public partial class GameWorld : Node3D
         var map = packed.Instantiate<Node3D>();
         map.Name = "Map";
         AddChild(map);
+        BuildMapCollisions(map, IsHub ? MatchManager.ArenaMap.Warehouse : match?.SelectedMap ?? MatchManager.ArenaMap.Warehouse);
+    }
+
+    /// <summary>Imported GLBs are visual meshes without physics. Add inexpensive box proxies to
+    /// their mesh bounds and a broad walkable floor so the high-detail art stays usable on mobile.</summary>
+    private static void BuildMapCollisions(Node3D map, MatchManager.ArenaMap mapKind)
+    {
+        // The warehouse GLB is several million triangles and its four imported mesh bounds span
+        // whole wall sections. A box around each complete mesh blocks the centre of the room, so
+        // the free-roam home uses a clear deck and perimeter walls instead of those art bounds.
+        if (mapKind != MatchManager.ArenaMap.Warehouse)
+        {
+            foreach (Node node in map.FindChildren("*", "MeshInstance3D", true, false))
+            {
+                var mesh = node as MeshInstance3D;
+                if (mesh?.Mesh == null || mesh.Mesh.GetSurfaceCount() == 0) continue;
+                var body = new StaticBody3D { Name = "MapCollision" };
+                var bounds = mesh.Mesh.GetAabb();
+                Vector3 size = bounds.Size;
+                size = new Vector3(Mathf.Max(size.X, 0.025f), Mathf.Max(size.Y, 0.025f), Mathf.Max(size.Z, 0.025f));
+                var shape = new CollisionShape3D
+                {
+                    Shape = new BoxShape3D { Size = size },
+                    Position = bounds.Position + bounds.Size * 0.5f,
+                };
+                body.AddChild(shape);
+                mesh.AddChild(body);
+            }
+        }
+
+        bool warehouse = mapKind == MatchManager.ArenaMap.Warehouse;
+        // The supplied art is a compact GLB shell; this collision deck gives the interior a
+        // continuous floor and catches players at the edge without asking mobile GPUs/CPUs to
+        // cook millions of source triangles into a trimesh collider.
+        var floor = new StaticBody3D { Name = "WalkableDeck" };
+        var floorShape = new CollisionShape3D
+        {
+            Shape = new BoxShape3D { Size = new Vector3(warehouse ? 18.0f : 80.0f, 0.5f, warehouse ? 18.0f : 80.0f) },
+            Position = new Vector3(0.0f, -0.3f, 0.0f),
+        };
+        floor.AddChild(floorShape);
+        map.AddChild(floor);
+
+        if (warehouse)
+        {
+            // The room art is scaled to a roughly 16 m footprint. These four boundaries keep the
+            // player in the warehouse while leaving the entire interior unobstructed for roaming.
+            AddRoomWall(map, new Vector3(0.0f, 2.5f, -8.6f), new Vector3(18.0f, 5.0f, 0.4f));
+            AddRoomWall(map, new Vector3(0.0f, 2.5f, 8.6f), new Vector3(18.0f, 5.0f, 0.4f));
+            AddRoomWall(map, new Vector3(-8.6f, 2.5f, 0.0f), new Vector3(0.4f, 5.0f, 18.0f));
+            AddRoomWall(map, new Vector3(8.6f, 2.5f, 0.0f), new Vector3(0.4f, 5.0f, 18.0f));
+        }
+    }
+
+    private static void AddRoomWall(Node3D parent, Vector3 position, Vector3 size)
+    {
+        var wall = new StaticBody3D { Name = "WarehouseBoundary" };
+        wall.Position = position;
+        wall.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = size } });
+        parent.AddChild(wall);
     }
 
     private async void InitializeMatchWorldAsync()
@@ -69,6 +143,14 @@ public partial class GameWorld : Node3D
         await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
         if (!IsInsideTree()) return;
         _mapReady = true;
+        if (IsHub)
+        {
+            // The hub spawns people through HubController once every connected peer has its own
+            // copy of the hub up (see there); no bots, no scoring.
+            LoadingScreen.Instance?.Hide();
+            GetNodeOrNull<HubController>("HubController")?.OnWorldReady();
+            return;
+        }
         bool wantBots = false;
         if (Multiplayer.IsServer())
         {
@@ -196,6 +278,7 @@ public partial class GameWorld : Node3D
     private void OnPeerConnected(long peerId)
     {
         if (!Multiplayer.IsServer()) return;
+        if (IsHub) return; // HubController spawns a peer when that peer reports its hub is ready
         if (_mapReady) SpawnForPeer((int)peerId);
         else _pendingPeerSpawns.Add(peerId);
     }
@@ -218,6 +301,47 @@ public partial class GameWorld : Node3D
     /// the same pattern SpawnBots below already uses for a bot's random start position - avoids that
     /// pop entirely.
     /// </summary>
+    /// <summary>Hub only: spawn this person's player (server). Safe to call twice.</summary>
+    public void SpawnHubPlayer(int peerId) => SpawnForPeer(peerId);
+
+    /// <summary>Hub only: a client that just connected to someone else's hub drops the player it
+    /// spawned for itself while it was alone; the host spawns its real one.</summary>
+    public void RemoveSoloHubPlayer()
+    {
+        var solo = GetNodeOrNull<Node>("Players/Player_1");
+        if (solo != null) { solo.Name = "Player_1_discarded"; solo.QueueFree(); }
+        _spawnedPeers.Remove(1);
+    }
+
+    /// <summary>Hub only: where somebody stands. Team modes put each side in its own copy of the room,
+    /// so both teams use the same spots; the slot is the person's order within their own team.</summary>
+    private (Vector3 Position, float Yaw) ComputeHubSpawn(int peerId)
+    {
+        MatchManager? match = MatchManager.Instance;
+        int myTeam = HubController.SplitRooms(match) ? match!.GetTeam(peerId) : -1;
+        int slot = 0;
+        if (Multiplayer.HasMultiplayerPeer())
+        {
+            var ids = new List<int> { 1 };
+            foreach (int id in Multiplayer.GetPeers()) ids.Add(id);
+            ids.Sort();
+            foreach (int id in ids)
+            {
+                if (id >= peerId) break;
+                if (myTeam < 0 || (match != null && match.GetTeam(id) == myTeam)) slot++;
+            }
+        }
+        return (HubSpawnPoint(slot), 0.0f);
+    }
+
+    /// <summary>Spawn grid in the middle of the room, 3 wide, clear of the props along the walls.</summary>
+    public static Vector3 HubSpawnPoint(int slot)
+    {
+        float x = (slot % 3 - 1) * 1.2f;
+        float z = ((slot / 3) % 4) * 1.2f - 0.6f;
+        return new Vector3(x, 0.08f, z);
+    }
+
     private void SpawnForPeer(int peerId)
     {
         if (!_spawnedPeers.Add(peerId)) return;
@@ -247,7 +371,15 @@ public partial class GameWorld : Node3D
     /// </summary>
     private (Vector3 Position, float Yaw) ComputeHumanSpawnTransform(int peerId)
     {
+        if (IsHub) return ComputeHubSpawn(peerId);
         MatchManager? match = MatchManager.Instance;
+        if (match?.SelectedMap is MatchManager.ArenaMap.Warehouse or MatchManager.ArenaMap.DefaultMap)
+        {
+            int slot = Math.Max(0, peerId - 1);
+            float x = (slot % 3 - 1) * 1.1f;
+            float z = ((slot / 3) % 3 - 1) * 1.1f;
+            return (new Vector3(x, 0.08f, z), 0.0f);
+        }
         if (match != null && match.IsTeamMode)
         {
             int team = match.GetTeam(peerId);
@@ -283,6 +415,13 @@ public partial class GameWorld : Node3D
         player.Position = d["pos"].AsVector3();
         player.Rotation = new Vector3(0.0f, d["yaw"].AsSingle(), 0.0f);
         EnsureTeamIndicator(player);
+        // Hub: nobody is told about this player until HubController says who may see them (the same
+        // team, or everyone in a solo mode). A peer that is not told never even spawns the node.
+        if (IsHub && Multiplayer.IsServer())
+        {
+            var sync = player.GetNodeOrNull<MultiplayerSynchronizer>("MultiplayerSynchronizer");
+            if (sync != null) sync.PublicVisibility = false;
+        }
         return player;
     }
 

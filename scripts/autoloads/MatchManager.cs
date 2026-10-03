@@ -31,19 +31,21 @@ public partial class MatchManager : Node
         ConvoyAssault = 6, DuoBuggy = 7
     }
 
-    public enum ArenaMap { Warzone = 0, Ashfields = 1, Depot = 2, Lab = 3 }
+    public enum ArenaMap { Warzone = 0, Ashfields = 1, Depot = 2, Lab = 3, Warehouse = 4, DefaultMap = 5 }
 
     public static readonly ArenaMap[] SelectableMaps =
     {
-        ArenaMap.Warzone, ArenaMap.Ashfields, ArenaMap.Depot, ArenaMap.Lab
+        ArenaMap.Warehouse, ArenaMap.DefaultMap, ArenaMap.Warzone, ArenaMap.Ashfields, ArenaMap.Depot, ArenaMap.Lab
     };
 
-    public ArenaMap SelectedMap = ArenaMap.Warzone;
+    public ArenaMap SelectedMap = ArenaMap.Warehouse;
     public string MapScenePath => SelectedMap switch
     {
         ArenaMap.Ashfields => "res://scenes/maps/Ashfields.tscn",
         ArenaMap.Depot => "res://scenes/maps/Depot.tscn",
         ArenaMap.Lab => "res://scenes/maps/Lab.tscn",
+        ArenaMap.Warehouse => "res://scenes/maps/DefaultWarehouse.tscn",
+        ArenaMap.DefaultMap => "res://scenes/maps/DefaultMap.tscn",
         _ => "res://scenes/maps/Warzone.tscn",
     };
     public string MapDisplayName => SelectedMap switch
@@ -51,6 +53,8 @@ public partial class MatchManager : Node
         ArenaMap.Ashfields => "Ashfields",
         ArenaMap.Depot => "Depot",
         ArenaMap.Lab => "Lab",
+        ArenaMap.Warehouse => "Warehouse",
+        ArenaMap.DefaultMap => "Outer Perimeter",
         _ => "Warzone",
     };
     public static string MapName(ArenaMap map) => map switch
@@ -58,6 +62,8 @@ public partial class MatchManager : Node
         ArenaMap.Ashfields => "Ashfields",
         ArenaMap.Depot => "Depot",
         ArenaMap.Lab => "Lab",
+        ArenaMap.Warehouse => "Warehouse",
+        ArenaMap.DefaultMap => "Outer Perimeter",
         _ => "Warzone",
     };
 
@@ -94,6 +100,10 @@ public partial class MatchManager : Node
     [Signal] public delegate void MatchEndedEventHandler(int winningTeam, string reason);
     [Signal] public delegate void LobbyChangedEventHandler();
     [Signal] public delegate void MatchStartingEventHandler();
+    /// <summary>Server only: a peer's copy of the hub is up and can be told about its teammates.</summary>
+    [Signal] public delegate void HubReadyReportedEventHandler(long peerId);
+    /// <summary>Client only: the host's hub is up - report in again if yours is.</summary>
+    [Signal] public delegate void HubReportRequestedEventHandler();
 
     public static MatchManager Instance { get; private set; } = null!;
 
@@ -143,6 +153,25 @@ public partial class MatchManager : Node
                 if (!_lobbyReady.TryGetValue(peerId, out bool ready) || !ready) return false;
             return true;
         }
+    }
+
+    /// <summary>Everyone currently in the lobby (host included), lowest id first.</summary>
+    public long[] LobbyPeerIds()
+    {
+        var ids = new List<long>(_lobbyReady.Keys);
+        ids.Sort();
+        return ids.ToArray();
+    }
+
+    public bool IsPeerReady(long peerId) => _lobbyReady.TryGetValue(peerId, out bool ready) && ready;
+
+    /// <summary>Host only: re-send the rules (mode, map, limits) to everyone already connected, after
+    /// the host changed one of them while people are standing in the hub.</summary>
+    public void BroadcastHostConfig()
+    {
+        if (!Multiplayer.HasMultiplayerPeer() || !Multiplayer.IsServer()) return;
+        Rpc(MethodName.ReceiveHostConfig, (int)GameMode, FriendlyFire, TeamIndicators,
+            ScoreLimit, TimeLimitMinutes, (int)SelectedMap, LobbyPlayerCount, _elapsedSeconds);
     }
 
     public string LobbyReadySummary
@@ -215,9 +244,11 @@ public partial class MatchManager : Node
     /// screen and are left alone here; everything that belongs to one match run is reset so a
     /// second match started later in the same app session (once a return-to-lobby flow exists)
     /// never inherits the previous match's teams or score.</summary>
-    public void PrepareHostMatch()
+    public void PrepareHostMatch(bool keepTeams = false)
     {
-        _peerTeams.Clear();
+        // The hub assigns teams while people stand in the warehouse; the match must use those same
+        // teams, so the lobby -> match handoff (ReceiveMatchStart) keeps them.
+        if (!keepTeams) _peerTeams.Clear();
         _lobbyReady.Clear();
         _teamScores[0] = 0;
         _teamScores[1] = 0;
@@ -267,7 +298,59 @@ public partial class MatchManager : Node
         _lobbyReady[1] = true;
         foreach (int peerId in Multiplayer.GetPeers()) _lobbyReady[peerId] = false;
         BroadcastLobbyState();
+        // Team modes: the host takes a side before anyone else connects, so the split stays balanced.
+        if (Multiplayer.HasMultiplayerPeer() && Multiplayer.IsServer()) AssignTeamAndBroadcast(1);
     }
+
+    /// <summary>Everyone is back in the hub after a match: clear the finished match's clock, score and
+    /// result but keep the connection, the host's rules and the teams. The host stays ready and
+    /// everyone else has to press READY again for the next match.</summary>
+    public void ResetForHub()
+    {
+        _teamScores[0] = 0;
+        _teamScores[1] = 0;
+        _elapsedSeconds = 0.0f;
+        _matchEnded = false;
+        WinningTeam = -1;
+        _sessionActive = false;
+        MatchStats.Instance?.Reset();
+        if (!Multiplayer.HasMultiplayerPeer()) return;
+        if (Multiplayer.IsServer())
+        {
+            _lobbyReady.Clear();
+            _lobbyReady[1] = true;
+            foreach (int peerId in Multiplayer.GetPeers()) _lobbyReady[peerId] = false;
+            BroadcastLobbyState();
+        }
+    }
+
+    // ---- hub handshake ------------------------------------------------------------------------
+    // These live here (an autoload every peer always has) rather than on the hub scene, because after
+    // a match people reach the hub at different moments: a message sent to a hub that is not loaded
+    // yet would be an "RPC node not found" error and the person would never be spawned.
+
+    public void ReportHubReadyToHost()
+    {
+        if (!Multiplayer.HasMultiplayerPeer() || Multiplayer.IsServer()) return;
+        RpcId(1, MethodName.ReportHubReady);
+    }
+
+    public void AskPeersToReportHub()
+    {
+        if (!Multiplayer.HasMultiplayerPeer() || !Multiplayer.IsServer()) return;
+        Rpc(MethodName.AskHubReport);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    public void ReportHubReady()
+    {
+        if (!Multiplayer.IsServer()) return;
+        long sender = Multiplayer.GetRemoteSenderId();
+        if (sender > 1) EmitSignal(SignalName.HubReadyReported, sender);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    public void AskHubReport() => EmitSignal(SignalName.HubReportRequested);
 
     public void SetLocalReady(bool ready)
     {
@@ -317,7 +400,7 @@ public partial class MatchManager : Node
     public void ReceiveMatchStart()
     {
         if (!Multiplayer.IsServer() && !HostConfigReceived) return;
-        PrepareHostMatch();
+        PrepareHostMatch(keepTeams: true);
         EmitSignal(SignalName.MatchStarting);
     }
 
@@ -363,6 +446,8 @@ public partial class MatchManager : Node
     public void AssignTeamAndBroadcast(long peerId)
     {
         if (!IsTeamMode) return;
+        // Already placed (in the hub, before the match): keep the side they have.
+        if (_peerTeams.ContainsKey(peerId)) return;
 
         int countAlpha = 0, countBravo = 0;
         foreach (int assignedTeam in _peerTeams.Values)
