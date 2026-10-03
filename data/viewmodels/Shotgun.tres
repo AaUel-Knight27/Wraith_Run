@@ -1,23 +1,26 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/shotgun_rig.tscn" id="2_rig"]
-[ext_resource type="PackedScene" path="res://art/weapons/Shotgun/shootgun mossberg.glb" id="3_model"]
 [ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/ak_rig.tscn" id="4_reference"]
+[ext_resource type="Material" path="res://art/animations/player/combat/viewmodels/materials/Benelli_Sleeve.tres" id="5_sleeve"]
+[ext_resource type="Material" path="res://art/animations/player/combat/viewmodels/materials/Benelli_Glove.tres" id="6_glove"]
+[ext_resource type="Material" path="res://art/animations/player/combat/viewmodels/materials/Benelli_Gun.tres" id="7_gun"]
+[ext_resource type="Material" path="res://art/animations/player/combat/viewmodels/materials/Benelli_Shell.tres" id="8_shell"]
 
 [resource]
 script = ExtResource("1_script")
 WeaponName = "Shotgun"
 RigScene = ExtResource("2_rig")
-WeaponModelScene = ExtResource("3_model")
 AttachBoneName = "Main"
 AttachPosition = Vector3(0, 0, 0)
 AttachRotationDegrees = Vector3(-90, 0, 0)
 AttachScale = Vector3(0.2, 0.2, 0.2)
-ViewPosition = Vector3(0.0053, -0.1479, -0.48)
+ViewPosition = Vector3(0.08, -0.53, -0.48)
 ViewRotationDegrees = Vector3(0, 180, 0)
 ArmMeshNames = PackedStringArray("sleeve", "hardknuckle")
 OriginalWeaponMeshNames = PackedStringArray("12g_12gauge_0", "benelli_m4_TTI_Benelli_M4_0")
+HideOriginalWeapon = false
 OriginalMagazineMeshNames = PackedStringArray()
 ClipMap = {
 "idle": "Rig|M4_Idle",
@@ -29,6 +32,13 @@ ClipMap = {
 }
 IdlePoseTime = 0.0
 NormalizationReferenceRig = ExtResource("4_reference")
+MeshMaterials = {
+"sleeve": ExtResource("5_sleeve"),
+"hardknuckle": ExtResource("6_glove"),
+"benelli_m4_TTI_Benelli_M4_0": ExtResource("7_gun"),
+"12g_12gauge_0": ExtResource("8_shell")
+}
+EmbeddedWeaponScales = { "benelli_m4_TTI_Benelli_M4_0": Vector3(5, 5, 5) }
 NormalizationReferenceArmMeshNames = PackedStringArray("arms")
 CullMargin = 1.0
 MuzzlePointOffset = Vector3(0, 0, -0.75)

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b6d5dxc6vhjsv"
-path="res://.godot/imported/Benelli FPS Anims.fbx-d6917a5c752fe7a9afc1ee0076034bcc.scn"
+uid="uid://lfoos4xggncu"
+path="res://.godot/imported/RustwheelMorrow.fbx-d09b8fc490b8ce55c2824425d6c2988d.scn"
 
 [deps]
 
-source_file="res://art/animations/player/combat/Benelli FPS Anims.fbx"
-dest_files=["res://.godot/imported/Benelli FPS Anims.fbx-d6917a5c752fe7a9afc1ee0076034bcc.scn"]
+source_file="res://art/characters/RustwheelMorrow.fbx"
+dest_files=["res://.godot/imported/RustwheelMorrow.fbx-d09b8fc490b8ce55c2824425d6c2988d.scn"]
 
 [params]
 

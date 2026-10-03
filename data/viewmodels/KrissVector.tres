@@ -4,17 +4,19 @@
 [ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/ak_rig.tscn" id="2_rig"]
 [ext_resource type="PackedScene" path="res://art/weapons/SMGs/KRISS VECTOR.glb" id="3_model"]
 [ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/ak_rig.tscn" id="4_reference"]
+[ext_resource type="Material" path="res://art/animations/player/combat/viewmodels/materials/AK_Arms.tres" id="5_arms"]
 
 [resource]
 script = ExtResource("1_script")
 WeaponName = "Kriss Vector"
+VisualReviewRequired = true
 RigScene = ExtResource("2_rig")
 WeaponModelScene = ExtResource("3_model")
 AttachBoneName = "PBody"
 AttachPosition = Vector3(0, 0, 0)
-AttachRotationDegrees = Vector3(0, 0, 0)
-AttachScale = Vector3(0.55, 0.55, 0.55)
-ViewPosition = Vector3(0.0053, -0.1479, -0.2292)
+AttachRotationDegrees = Vector3(0, 0, 90)
+AttachScale = Vector3(0.007, 0.007, 0.007)
+ViewPosition = Vector3(0.08, -0.35, -0.2292)
 ViewRotationDegrees = Vector3(0, 180, 0)
 ArmMeshNames = PackedStringArray("arms")
 OriginalWeaponMeshNames = PackedStringArray("Ak")
@@ -31,6 +33,7 @@ ClipMap = {
 IdlePoseTime = 0.0
 NormalizationReferenceRig = ExtResource("4_reference")
 NormalizationReferenceArmMeshNames = PackedStringArray("arms")
+MeshMaterials = { "arms": ExtResource("5_arms") }
 CullMargin = 1.0
 MuzzlePointOffset = Vector3(0, 0, -0.58)
 MagazineNodeName = "krissVector_Magazine_Low"

@@ -6,6 +6,7 @@ public partial class ViewModelWeaponData : Resource
 {
 	[Export] public string WeaponName { get; set; } = string.Empty;
 	[Export] public bool UseViewModel { get; set; } = true;
+	[Export] public bool VisualReviewRequired { get; set; }
 	[Export] public PackedScene? RigScene { get; set; }
 	[Export] public PackedScene? WeaponModelScene { get; set; }
 	[Export] public string AttachBoneName { get; set; } = string.Empty;
@@ -16,6 +17,8 @@ public partial class ViewModelWeaponData : Resource
 	[Export] public Vector3 ViewRotationDegrees { get; set; } = Vector3.Zero;
 	[Export] public Vector3 ViewScale { get; set; } = Vector3.One;
 	[Export] public Godot.Collections.Array<string> ArmMeshNames { get; set; } = new();
+	[Export] public Godot.Collections.Dictionary<string, Material> MeshMaterials { get; set; } = new();
+	[Export] public Godot.Collections.Dictionary<string, Vector3> EmbeddedWeaponScales { get; set; } = new();
 	[Export] public Godot.Collections.Array<string> OriginalWeaponMeshNames { get; set; } = new();
 	[Export] public Godot.Collections.Array<string> OriginalMagazineMeshNames { get; set; } = new();
 	[Export] public bool HideOriginalWeapon { get; set; } = true;

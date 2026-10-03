@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cmlc6ysb0ib63"
-path="res://.godot/imported/AK FPS Anims.fbx-a6dadf583047999c41276faf26766a8c.scn"
+uid="uid://k20qyo3vic"
+path="res://.godot/imported/FPS_Anims.fbx-0353eaecff3f36dfbe2b850ce235f4b3.scn"
 
 [deps]
 
-source_file="res://art/animations/player/combat/AK FPS Anims.fbx"
-dest_files=["res://.godot/imported/AK FPS Anims.fbx-a6dadf583047999c41276faf26766a8c.scn"]
+source_file="res://fn 502/source/FPS_Anims.fbx"
+dest_files=["res://.godot/imported/FPS_Anims.fbx-0353eaecff3f36dfbe2b850ce235f4b3.scn"]
 
 [params]
 

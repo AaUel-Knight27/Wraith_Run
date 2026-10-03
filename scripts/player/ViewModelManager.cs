@@ -33,10 +33,14 @@ public partial class ViewModelManager : Node3D
 		if (!_localHuman || weaponName == _activeWeapon) return;
 		_activeWeapon = weaponName;
 		ClearViewModel();
-		if (!_weaponData.TryGetValue(weaponName, out ViewModelWeaponData? data) || !data.UseViewModel) return;
-		if (data.RigScene == null || data.WeaponModelScene == null)
+		if (!_weaponData.TryGetValue(weaponName, out ViewModelWeaponData? data) || !data.UseViewModel)
 		{
-			GD.PushWarning($"{weaponName}: viewmodel data is enabled but rig/model scene is missing.");
+			GD.Print($"VIEWMODEL SWITCH weapon='{weaponName}' live={GetLiveViewModelCount()}");
+			return;
+		}
+		if (data.RigScene == null)
+		{
+			GD.PushWarning($"{weaponName}: viewmodel data is enabled but rig scene is missing.");
 			return;
 		}
 		var viewModel = new ViewModelBase { Name = $"{weaponName.Replace(" ", string.Empty)}ViewModel" };
@@ -48,6 +52,17 @@ public partial class ViewModelManager : Node3D
 		if (_armature != null) _armature.Visible = false;
 		_cameraMotion?.SetViewModel(viewModel);
 		if (!viewModel.Play("draw")) viewModel.Play("idle");
+		GD.Print($"VIEWMODEL SWITCH weapon='{weaponName}' live={GetLiveViewModelCount()}");
+	}
+
+	/// <summary>Counts currently attached viewmodel roots; used by the runtime diagnostic.</summary>
+	public int GetLiveViewModelCount()
+	{
+		int count = 0;
+		Node root = _camera is Node cameraNode ? cameraNode : this;
+		foreach (Node child in root.GetChildren())
+			if (child is ViewModelBase && !child.IsQueuedForDeletion()) count++;
+		return count;
 	}
 
 	public void Play(string genericName, float speed = 1.0f)
@@ -120,7 +135,7 @@ public partial class ViewModelManager : Node3D
 				Node model = data.WeaponModelScene.Instantiate();
 				if (model.FindChild(data.MagazineNodeName, true, false) == null)
 					GD.PushWarning($"{data.WeaponName}: magazine node '{data.MagazineNodeName}' is missing in {data.WeaponModelScene.ResourcePath}.");
-				model.Free();
+				model.QueueFree();
 			}
 			string rigPath = data.RigScene.ResourcePath;
 			if (!clipNamesByRig.ContainsKey(rigPath))
@@ -131,7 +146,7 @@ public partial class ViewModelManager : Node3D
 				var bones = new Godot.Collections.Array<string>();
 				if (skeleton != null) for (int i = 0; i < skeleton.GetBoneCount(); i++) bones.Add(skeleton.GetBoneName(i));
 				clipNamesByRig[rigPath] = (animations?.GetAnimationList() ?? System.Array.Empty<string>(), bones);
-				rig.Free();
+				rig.QueueFree();
 			}
 			var rigInfo = clipNamesByRig[rigPath];
 			var resolved = new List<string>();
@@ -160,11 +175,23 @@ public partial class ViewModelManager : Node3D
 
 	private void ClearViewModel()
 	{
-		if (_activeViewModel != null && IsInstanceValid(_activeViewModel)) _activeViewModel.QueueFree();
+		if (_activeViewModel != null && IsInstanceValid(_activeViewModel))
+		{
+			_activeViewModel.Visible = false;
+			_animationPlayerStop(_activeViewModel);
+			_activeViewModel.GetParent()?.RemoveChild(_activeViewModel);
+			_activeViewModel.QueueFree();
+		}
 		_activeViewModel = null;
 		_lastMovementClip = string.Empty;
 		_cameraMotion?.SetViewModel(null);
 		if (_armature != null && IsInstanceValid(_armature)) _armature.Visible = true;
+	}
+
+	private static void _animationPlayerStop(ViewModelBase viewModel)
+	{
+		if (viewModel.FindChild("AnimationPlayer", true, false) is AnimationPlayer animationPlayer)
+			animationPlayer.Stop();
 	}
 
 	private static string FormatClipMap(Godot.Collections.Dictionary<string, string> map)

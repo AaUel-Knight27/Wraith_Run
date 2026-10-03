@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://byqt8cvbrlvve"
-path="res://.godot/imported/FN 502 FPS Anims.fbx-ea52f432ba9754fed6d6361348f6f055.scn"
+uid="uid://6jalcudbkkrs"
+path="res://.godot/imported/GravediggerKral.fbx-53bb1d60b97a7416606752b7a42acc7b.scn"
 
 [deps]
 
-source_file="res://art/animations/player/combat/FN 502 FPS Anims.fbx"
-dest_files=["res://.godot/imported/FN 502 FPS Anims.fbx-ea52f432ba9754fed6d6361348f6f055.scn"]
+source_file="res://art/characters/GravediggerKral.fbx"
+dest_files=["res://.godot/imported/GravediggerKral.fbx-53bb1d60b97a7416606752b7a42acc7b.scn"]
 
 [params]
 

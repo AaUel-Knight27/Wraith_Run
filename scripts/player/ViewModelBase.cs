@@ -70,9 +70,16 @@ public partial class ViewModelBase : Node3D
 			if (child is MeshInstance3D mesh)
 			{
 				mesh.ExtraCullMargin = Mathf.Max(mesh.ExtraCullMargin, Data.CullMargin);
+				if (Data.MeshMaterials.TryGetValue(mesh.Name.ToString(), out Material? material))
+					mesh.MaterialOverride = material;
+				if (Data.EmbeddedWeaponScales.TryGetValue(mesh.Name.ToString(), out Vector3 embeddedScale))
+					mesh.Scale *= embeddedScale;
 				// Each imported pack bundles a weapon into its own rig. Keep only the configured
 				// arm/sleeve/glove meshes; the selected project weapon is attached below.
-				if (Data.ArmMeshNames.Count > 0 && !ContainsName(Data.ArmMeshNames, mesh.Name)) mesh.Visible = false;
+				bool isArm = ContainsName(Data.ArmMeshNames, mesh.Name);
+				bool keepRigWeapon = !Data.HideOriginalWeapon && ContainsName(Data.OriginalWeaponMeshNames, mesh.Name);
+				bool keepRigMagazine = !Data.HideOriginalMagazine && ContainsName(Data.OriginalMagazineMeshNames, mesh.Name);
+				if (Data.ArmMeshNames.Count > 0 && !isArm && !keepRigWeapon && !keepRigMagazine) mesh.Visible = false;
 				if (Data.HideOriginalWeapon && ContainsName(Data.OriginalWeaponMeshNames, mesh.Name)) mesh.Visible = false;
 				if (Data.HideOriginalMagazine && ContainsName(Data.OriginalMagazineMeshNames, mesh.Name)) mesh.Visible = false;
 			}
@@ -98,7 +105,8 @@ public partial class ViewModelBase : Node3D
 			Node referenceRoot = Data.NormalizationReferenceRig.Instantiate();
 			AddChild(referenceRoot);
 			reference = MeasureMeshExtent(referenceRoot, Data.NormalizationReferenceArmMeshNames);
-			referenceRoot.Free();
+			if (referenceRoot is Node3D referenceNode) referenceNode.Visible = false;
+			referenceRoot.QueueFree();
 		}
 		if (current <= 0.000001f || reference <= 0.000001f)
 		{

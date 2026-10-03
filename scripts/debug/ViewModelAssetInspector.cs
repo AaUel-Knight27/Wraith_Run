@@ -6,9 +6,9 @@ public partial class ViewModelAssetInspector : Node
 {
 	[Export] public Godot.Collections.Array<string> ScenePaths { get; set; } = new()
 	{
-		"res://art/animations/player/combat/AK FPS Anims.fbx",
-		"res://art/animations/player/combat/FN 502 FPS Anims.fbx",
-		"res://art/animations/player/combat/Benelli FPS Anims.fbx",
+		"res://art/animations/player/combat/AK/source/AK FPS Anims.fbx",
+		"res://art/animations/player/combat/fn 502/source/Pistol FPS Anims.fbx",
+		"res://art/animations/player/combat/benelli m4/source/Shot Gun FPS Anims.fbx",
 	};
 	[Export] public Godot.Collections.Array<string> WeaponModelPaths { get; set; } = new()
 	{
@@ -134,7 +134,9 @@ public partial class ViewModelAssetInspector : Node
 		for (int track = 0; track < animation.GetTrackCount(); track++)
 		{
 			string path = animation.TrackGetPath(track).ToString();
-			if (!path.Contains("scale", StringComparison.OrdinalIgnoreCase)) continue;
+			bool scaleLike = path.Contains("scale", StringComparison.OrdinalIgnoreCase);
+			bool safetyTrack = path.Contains("Safety", StringComparison.OrdinalIgnoreCase);
+			if (!scaleLike && !safetyTrack) continue;
 			GD.Print($"  SCALE_TRACK {path} type={animation.TrackGetType(track)}");
 			for (int key = 0; key < animation.TrackGetKeyCount(track); key++)
 				GD.Print($"    key{key} t={animation.TrackGetKeyTime(track, key):0.###} value={animation.TrackGetKeyValue(track, key)}");
