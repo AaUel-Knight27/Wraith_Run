@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 /// <summary>Small two-seat gameplay vehicle. The host owns the chassis; clients send driver
 /// controls to it, while the two seat IDs and vehicle transform are replicated to every peer.</summary>
@@ -83,18 +84,40 @@ public partial class GameVehicle : CharacterBody3D
         }
         var model = packed.Instantiate<Node3D>();
         _visual.AddChild(model);
+        FixMaterials(model);
         FitModel(model);
+    }
+
+    private static void FixMaterials(Node root)
+    {
+        var pending = new Stack<Node>();
+        pending.Push(root);
+        while (pending.Count > 0)
+        {
+            Node node = pending.Pop();
+            foreach (Node child in node.GetChildren()) pending.Push(child);
+            if (node is not MeshInstance3D mesh || mesh.Mesh == null) continue;
+            for (int i = 0; i < mesh.Mesh.GetSurfaceCount(); i++)
+            {
+                if (mesh.GetActiveMaterial(i) is not BaseMaterial3D source) continue;
+                var material = (BaseMaterial3D)source.Duplicate();
+                material.Transparency = BaseMaterial3D.TransparencyEnum.Disabled;
+                material.CullMode = BaseMaterial3D.CullModeEnum.Back;
+                mesh.SetSurfaceOverrideMaterial(i, material);
+            }
+        }
     }
 
     private void FitModel(Node3D model)
     {
         var meshes = model.FindChildren("*", "MeshInstance3D", true, false);
+        Transform3D toModel = model.GlobalTransform.AffineInverse();
         var bounds = new Aabb();
         bool found = false;
         foreach (Node item in meshes)
         {
             if (item is not MeshInstance3D mesh || mesh.Mesh == null) continue;
-            Aabb box = mesh.Transform * mesh.Mesh.GetAabb();
+            Aabb box = toModel * mesh.GlobalTransform * mesh.Mesh.GetAabb();
             bounds = found ? bounds.Merge(box) : box;
             found = true;
         }
@@ -110,7 +133,7 @@ public partial class GameVehicle : CharacterBody3D
         foreach (Node item in meshes)
         {
             if (item is not MeshInstance3D mesh || mesh.Mesh == null) continue;
-            Aabb box = mesh.Transform * mesh.Mesh.GetAabb();
+            Aabb box = toModel * mesh.GlobalTransform * mesh.Mesh.GetAabb();
             float centre = longX ? box.GetCenter().X : box.GetCenter().Z;
             float pivot = longX ? bounds.Position.X + bounds.Size.X * 0.5f : bounds.Position.Z + bounds.Size.Z * 0.5f;
             if (centre < pivot) lowY = Mathf.Max(lowY, box.End.Y);
@@ -118,7 +141,8 @@ public partial class GameVehicle : CharacterBody3D
         }
         float yaw = longX ? (lowY < highY ? -90f : 90f) : (lowY < highY ? 0f : 180f);
         _visual.RotationDegrees = new Vector3(0, yaw, 0);
-        _visual.Position = new Vector3(-bounds.GetCenter().X * scale, -bounds.Position.Y * scale, -bounds.GetCenter().Z * scale);
+        Vector3 rotatedCentre = new Basis(Vector3.Up, Mathf.DegToRad(yaw)) * bounds.GetCenter();
+        _visual.Position = new Vector3(-rotatedCentre.X * scale, -bounds.Position.Y * scale, -rotatedCentre.Z * scale);
         if (DisplayName == "Raider Buggy")
         {
             // The source buggy is an open two-seat side-by-side rig. Keep the collision width and
@@ -187,7 +211,8 @@ public partial class GameVehicle : CharacterBody3D
     private void RpcRequestSeatChange(int peerId)
     {
         if (!Multiplayer.IsServer()) return;
-        RequestSeatChange(peerId);
+        int sender = Multiplayer.GetRemoteSenderId();
+        if (sender == peerId) RequestSeatChange(sender);
     }
 
     private void RequestSeatChange(int peerId)
@@ -195,9 +220,9 @@ public partial class GameVehicle : CharacterBody3D
         if (!Multiplayer.IsServer() && Multiplayer.HasMultiplayerPeer()) return;
         if (HasSeat(peerId))
         {
-            if (IsDriver(peerId) && Mathf.Abs(_speed) > 1.0f) return;
+            if (Mathf.Abs(_speed) > 1.0f) return;
             Vector3 exit = SeatExitPosition(peerId);
-            Rpc(MethodName.RpcSetSeats, DriverPeerId == peerId ? 0 : DriverPeerId,
+            BroadcastSeatChange(DriverPeerId == peerId ? 0 : DriverPeerId,
                 PassengerPeerId == peerId ? 0 : PassengerPeerId, peerId, exit);
             return;
         }
@@ -206,7 +231,13 @@ public partial class GameVehicle : CharacterBody3D
         bool driver = DriverPeerId == 0;
         int newDriver = driver ? peerId : DriverPeerId;
         int newPassenger = driver ? PassengerPeerId : peerId;
-        Rpc(MethodName.RpcSetSeats, newDriver, newPassenger, 0, Vector3.Zero);
+        BroadcastSeatChange(newDriver, newPassenger, 0, Vector3.Zero);
+    }
+
+    private void BroadcastSeatChange(int driver, int passenger, int exitingPeer, Vector3 exitPosition)
+    {
+        if (Multiplayer.HasMultiplayerPeer()) Rpc(MethodName.RpcSetSeats, driver, passenger, exitingPeer, exitPosition);
+        else RpcSetSeats(driver, passenger, exitingPeer, exitPosition);
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
@@ -250,6 +281,7 @@ public partial class GameVehicle : CharacterBody3D
         if (!IsOnFloor()) Velocity += Gravity * dt;
         else if (Velocity.Y < 0) Velocity = new Vector3(Velocity.X, -0.1f, Velocity.Z);
         MoveAndSlide();
+        RefreshSeatLocks();
     }
 
     private void RefreshSeatLocks()

@@ -269,7 +269,7 @@ public partial class PlayerMovement : CharacterBody3D
             GlobalPosition = CurrentVehicle!.SeatPosition((int)GetMultiplayerAuthority());
             GlobalRotation = new Vector3(0, CurrentVehicle.GlobalRotation.Y, 0);
             Velocity = Vector3.Zero;
-            State = MovementState.Idle;
+            State = MovementState.Crouch;
             IsAiming = AimHeld();
             UpdateHeadAim((float)deltaValue);
             _animationController.SetMovementState(State);

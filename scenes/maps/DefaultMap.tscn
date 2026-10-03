@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://mekod7q7pql8"]
 
-[ext_resource type="PackedScene" path="res://art/maps/default_map.glb" id="1"]
+[ext_resource type="PackedScene" uid="uid://dm17ygi66w6kl" path="res://art/maps/default_map.glb" id="1"]
 
 [sub_resource type="Environment" id="Environment_perimeter"]
 background_mode = 1
@@ -16,7 +16,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.473402, 0, 0)
 environment = SubResource("Environment_perimeter")
 
 [node name="MapModel" parent="." unique_id=1869146083 instance=ExtResource("1")]
-transform = Transform3D(6, 0, 0, 0, 6, 0, 0, 0, 6, 0, 0, 0)
+transform = Transform3D(6, 0, 0, 0, 6, 0, 0, 0, 6, 0, -1.2768333, 0)
 
 [node name="KeyLight" type="DirectionalLight3D" parent="." unique_id=2018299664]
 transform = Transform3D(0.921061, -0.26544264, 0.28493306, 0, 0.73168886, 0.6816388, -0.38941833, -0.62783086, 0.67393005, 0, 0, 0)

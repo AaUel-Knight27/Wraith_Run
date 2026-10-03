@@ -13,8 +13,8 @@
 [ext_resource type="Script" uid="uid://bnk2rfyi00vdx" path="res://scripts/player/PlayerAudio.cs" id="12"]
 [ext_resource type="Script" uid="uid://c364gffy50o2t" path="res://scripts/debug/WeaponGripTuner.cs" id="13"]
 [ext_resource type="Script" uid="uid://cqvvj4h5cvx1x" path="res://scripts/player/TouchControls.cs" id="14"]
-[ext_resource type="Script" path="res://scripts/debug/CharacterRigTuner.cs" id="15"]
-[ext_resource type="Script" path="res://scripts/debug/WeaponSoundTuner.cs" id="16"]
+[ext_resource type="Script" uid="uid://dsgal1w2b3nq3" path="res://scripts/debug/CharacterRigTuner.cs" id="15"]
+[ext_resource type="Script" uid="uid://dbp87dk8oe3rn" path="res://scripts/debug/WeaponSoundTuner.cs" id="16"]
 [ext_resource type="Script" uid="uid://cxg1yq5hqar8y" path="res://scripts/player/CharacterLoadout.cs" id="17"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
@@ -109,10 +109,10 @@ script = ExtResource("12")
 [node name="WeaponGripTuner" type="Node" parent="." unique_id=1403424432]
 script = ExtResource("13")
 
-[node name="CharacterRigTuner" type="Node" parent="."]
+[node name="CharacterRigTuner" type="Node" parent="." unique_id=499083890]
 script = ExtResource("15")
 
-[node name="WeaponSoundTuner" type="Node" parent="."]
+[node name="WeaponSoundTuner" type="Node" parent="." unique_id=576238125]
 script = ExtResource("16")
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1596748861]

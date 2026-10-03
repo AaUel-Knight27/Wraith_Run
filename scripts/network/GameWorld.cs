@@ -196,7 +196,7 @@ public partial class GameWorld : Node3D
                 ["display"] = display,
                 ["length"] = length,
                 ["pos"] = new Vector3(side * (buggyMode ? 5.0f : 7.0f), 0.1f, 3.5f),
-                ["yaw"] = side < 0 ? 0.0f : Mathf.Pi,
+                ["yaw"] = Mathf.Atan2(side * (buggyMode ? 5.0f : 7.0f), 3.5f),
                 ["slot"] = i,
             };
             if (_vehicleSpawner.Spawn(data) == null)

@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://cvfkghykqqfpo"]
 
-[ext_resource type="PackedScene" path="res://art/maps/default_warehouse.glb" id="1"]
+[ext_resource type="PackedScene" uid="uid://q1er1tg5xuwc" path="res://art/maps/default_warehouse.glb" id="1"]
 
 [sub_resource type="Environment" id="Environment_warehouse"]
 background_mode = 1
@@ -9,20 +9,19 @@ ambient_light_source = 2
 ambient_light_color = Color(0.48, 0.59, 0.56, 1)
 ambient_light_energy = 0.72
 
-[node name="Warehouse" type="Node3D"]
+[node name="Warehouse" type="Node3D" unique_id=2061883454]
 
-[node name="WarehouseEnvironment" type="WorldEnvironment" parent="."]
+[node name="WarehouseEnvironment" type="WorldEnvironment" parent="." unique_id=1443000987]
 environment = SubResource("Environment_warehouse")
 
-[node name="WarehouseModel" parent="." instance=ExtResource("1")]
-scale = Vector3(2, 2, 2)
+[node name="WarehouseModel" parent="." unique_id=1232343899 instance=ExtResource("1")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, -0.3859653, 0)
 
-[node name="KeyLight" type="DirectionalLight3D" parent="."]
-rotation = Vector3(-0.8, -0.55, 0)
+[node name="KeyLight" type="DirectionalLight3D" parent="." unique_id=1333539518]
+transform = Transform3D(0.8525245, 0.37495288, -0.36415973, 0, 0.6967067, 0.7173561, 0.52268726, -0.6115636, 0.59395957, 0, 0, 0)
 light_color = Color(0.82, 0.9, 0.85, 1)
 light_energy = 1.8
 shadow_enabled = true
 
-[node name="WarehouseStart" type="Marker3D" parent="."]
-position = Vector3(0, 0.08, 0)
-groups = [&"spawn_point"]
+[node name="WarehouseStart" type="Marker3D" parent="." unique_id=547437905]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)

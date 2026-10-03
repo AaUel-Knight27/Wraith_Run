@@ -33,6 +33,8 @@ public partial class TouchControls : CanvasLayer
     private bool _adsOn;
     private VirtualJoystick? _joystick;
     private Button? _sprintButton;
+    private Button? _carButton;
+    private bool _lastVehicleMode;
 
     public override void _Ready()
     {
@@ -51,10 +53,18 @@ public partial class TouchControls : CanvasLayer
         }
 
         Build();
+        _lastVehicleMode = _movement.IsInVehicle;
     }
 
     public override void _Process(double delta)
     {
+        if (_movement.IsInVehicle != _lastVehicleMode)
+        {
+            _lastVehicleMode = _movement.IsInVehicle;
+            ReleaseAllHeld();
+            Build();
+        }
+        UpdateCarButton();
         SettingsManager settings = SettingsManager.Instance;
         if (settings.Gyroscope == SettingsManager.GyroMode.Off) return;
         if (settings.Gyroscope == SettingsManager.GyroMode.AdsOnly && !_movement.IsAiming) return;
@@ -69,8 +79,14 @@ public partial class TouchControls : CanvasLayer
 
     private void Build()
     {
+        if (_root != null && IsInstanceValid(_root)) _root.QueueFree();
         SettingsManager settings = SettingsManager.Instance;
         float scale = settings.ButtonScale;
+        if (_movement.IsInVehicle)
+        {
+            BuildVehicleControls(scale);
+            return;
+        }
         // Right-handed (default): joystick bottom-left, fire cluster bottom-right. Mirrored for
         // left-handed play. The utility stack (sprint/weapon-switch/melee) lives on the joystick
         // side, since the movement thumb has more idle moments mid-firefight than the fire thumb.
@@ -88,6 +104,56 @@ public partial class TouchControls : CanvasLayer
         BuildSystemButtons(scale);
     }
 
+    private void BuildVehicleControls(float scale)
+    {
+        _root = new Control { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Fill(_root);
+        _root.Modulate = new Color(1f, 1f, 1f, Mathf.Clamp(SettingsManager.Instance.ButtonOpacity, 0.1f, 1.0f));
+        AddChild(_root);
+        float size = 82f * scale;
+        bool driver = _movement.IsVehicleDriver;
+        if (driver)
+        {
+            VehicleHold("LEFT", "vehicle_left", 0f, 1f, 20f, -size * 1.2f, 20f + size, -20f);
+            VehicleHold("RIGHT", "vehicle_right", 0f, 1f, 30f + size, -size * 1.2f, 30f + size * 2f, -20f);
+            VehicleHold("GAS", "vehicle_gas", 1f, 1f, -size * 1.1f, -size * 2.25f, -size * 0.1f, -size * 1.25f);
+            VehicleHold("BRAKE", "vehicle_brake", 1f, 1f, -size * 2.2f, -size * 1.2f, -size * 1.2f, -size * 0.2f);
+            VehicleHold("HANDBRAKE", "vehicle_handbrake", 1f, 1f, -size * 3.3f, -size * 2.25f, -size * 2.3f, -size * 1.25f);
+            var camera = VehicleButton("CAM ◉", size * 0.78f);
+            MenuStyle.Place(camera, 0f, 0f, 0f, 0f, 22f, 100f, 22f + size * 0.78f, 100f + size * 0.78f);
+            camera.ButtonDown += () => _movement.CurrentVehicle?.ToggleDriverCamera((int)_player.GetMultiplayerAuthority());
+        }
+        else
+        {
+            var fire = VehicleButton("FIRE", size * 1.15f);
+            PlaceCorner(fire, !SettingsManager.Instance.LeftHandedLayout, true, size * 1.15f, size * 1.15f, EdgeMargin, EdgeMargin);
+            WireHoldOrTap(fire, "fire", () => SettingsManager.Instance.HoldToFire);
+            var aim = VehicleButton("AIM", size);
+            PlaceCorner(aim, !SettingsManager.Instance.LeftHandedLayout, true, size, size, EdgeMargin + size * 1.3f, EdgeMargin);
+            aim.ButtonDown += () => OnAdsDown(SettingsManager.Instance);
+            aim.ButtonUp += () => { if (SettingsManager.Instance.HoldToAds) Input.ActionRelease("aim"); };
+        }
+        var exit = VehicleButton("EXIT", size * 0.72f);
+        MenuStyle.Place(exit, 0f, 0f, 0f, 0f, 22f, 100f + size, 22f + size * 0.72f, 100f + size * 1.72f);
+        exit.ButtonDown += () => Pulse("vehicle_interact");
+    }
+
+    private void VehicleHold(string label, string action, float anchorX, float anchorY,
+        float left, float top, float right, float bottom)
+    {
+        var button = VehicleButton(label, 82f * SettingsManager.Instance.ButtonScale);
+        MenuStyle.Place(button, anchorX, anchorY, anchorX, anchorY, left, top, right, bottom);
+        button.ButtonDown += () => Input.ActionPress(action);
+        button.ButtonUp += () => Input.ActionRelease(action);
+    }
+
+    private Button VehicleButton(string label, float size)
+    {
+        var button = NewButton(label, null, size);
+        _root.AddChild(button);
+        return button;
+    }
+
     /// <summary>MENU (opens the pause menu) is at the upper-left; SCORE (toggles the scoreboard)
     /// stays at top center, where a phone user's thumbs can reach them.
     /// Sits below the Team Deathmatch score line PlayerHud draws at the very top. A phone has no Esc
@@ -96,6 +162,7 @@ public partial class TouchControls : CanvasLayer
     /// this layer is built.</summary>
     private void BuildSystemButtons(float scale)
     {
+        VehicleInput.EnsureRegistered();
         float size = 60f * scale;
         float half = 4f;
         float top = 24f;
@@ -116,6 +183,25 @@ public partial class TouchControls : CanvasLayer
         var score = NewButton("SCORE", null, size);
         MenuStyle.Place(score, 0.5f, 0f, 0.5f, 0f, half, top, half + size, top + size);
         score.ButtonDown += () => _player.GetNodeOrNull<Scoreboard>("Hud/Scoreboard")?.ToggleTouch();
+
+        _carButton = NewButton("CAR", null, size * 0.82f);
+        MenuStyle.Place(_carButton, 1f, 0f, 1f, 0f, -size * 0.95f, top + size + 12f, -12f, top + size * 1.82f + 12f);
+        _carButton.ButtonDown += () => Pulse("vehicle_interact");
+    }
+
+    private void UpdateCarButton()
+    {
+        if (_carButton == null || _movement.IsInVehicle) return;
+        bool near = false;
+        foreach (Node node in GetTree().GetNodesInGroup("gameplay_vehicles"))
+        {
+            if (node is GameVehicle car && car.GlobalPosition.DistanceTo(_player.GlobalPosition) <= 3.4f)
+            {
+                near = true;
+                break;
+            }
+        }
+        _carButton.Visible = near;
     }
 
     /// <summary>Called when the pause menu opens. Its full-screen overlay swallows every touch from
@@ -127,7 +213,7 @@ public partial class TouchControls : CanvasLayer
     {
         if (_root == null) return; // touch controls are off on this device
         _joystick?.ResetTouch();
-        foreach (string action in new[] { "fire", "aim", "jump", "crouch", "sprint", "reload" })
+        foreach (string action in new[] { "fire", "aim", "jump", "crouch", "sprint", "reload", "vehicle_left", "vehicle_right", "vehicle_gas", "vehicle_brake", "vehicle_handbrake", "vehicle_interact" })
             Input.ActionRelease(action);
         _sprintOn = false;
         _adsOn = false;
