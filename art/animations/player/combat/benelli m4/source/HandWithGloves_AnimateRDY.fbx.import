@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bwvs0enppbnft"
-path="res://.godot/imported/HandWithGloves_AnimateRDY.fbx-65eeeea083b0e8ffcce399c8962657c6.scn"
+uid="uid://cbfggap5gd1m1"
+path="res://.godot/imported/HandWithGloves_AnimateRDY.fbx-ea9b7ed52e9e2136cc228d12bc564388.scn"
 
 [deps]
 
-source_file="res://benelli m4/source/HandWithGloves_AnimateRDY.fbx"
-dest_files=["res://.godot/imported/HandWithGloves_AnimateRDY.fbx-65eeeea083b0e8ffcce399c8962657c6.scn"]
+source_file="res://art/animations/player/combat/benelli m4/source/HandWithGloves_AnimateRDY.fbx"
+dest_files=["res://.godot/imported/HandWithGloves_AnimateRDY.fbx-ea9b7ed52e9e2136cc228d12bc564388.scn"]
 
 [params]
 

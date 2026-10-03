@@ -128,7 +128,7 @@ public partial class ViewModelManager : Node3D
 				GD.Print($"VIEWMODEL RESOLVED weapon='{data.WeaponName}' rig='none' attach='none' clips=<disabled>");
 				continue;
 			}
-			if (data.WeaponModelScene == null)
+			if (data.WeaponModelScene == null && data.HideOriginalWeapon)
 				GD.PushWarning($"{data.WeaponName}: no weapon model scene is configured.");
 			else if (!string.IsNullOrEmpty(data.MagazineNodeName))
 			{

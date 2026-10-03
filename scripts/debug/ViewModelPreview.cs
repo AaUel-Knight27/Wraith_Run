@@ -43,7 +43,7 @@ public partial class ViewModelPreview : Node3D
 	{
 		_camera = new Camera3D { Name = "PreviewCamera", Position = new Vector3(0, 1.55f, 0), Fov = 65, Near = 0.03f, Current = true };
 		AddChild(_camera);
-		var light = new DirectionalLight3D { RotationDegrees = new Vector3(-45, -25, 0), ShadowEnabled = true };
+		var light = new DirectionalLight3D { RotationDegrees = new Vector3(-45, -25, 0), ShadowEnabled = false };
 		AddChild(light);
 		var floor = new MeshInstance3D { Name = "GroundPlane", Position = new Vector3(0, 0, -1.5f), CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
 		floor.Mesh = new PlaneMesh { Size = new Vector2(30, 30) };
@@ -98,7 +98,7 @@ public partial class ViewModelPreview : Node3D
 		if (_active != null) { _active.QueueFree(); _active = null; }
 		foreach (Node node in _clipList.GetChildren()) node.QueueFree();
 		var data = _data[index];
-		if (!data.UseViewModel || data.RigScene == null || data.WeaponModelScene == null)
+		if (!data.UseViewModel || data.RigScene == null)
 		{
 			_status.Text = $"{data.WeaponName}: no first-person viewmodel configured.";
 			return;

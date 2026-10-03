@@ -2,19 +2,17 @@ using System;
 using Godot;
 
 /// <summary>
-/// A small self-contained 3D viewport for the menus: shows either an operator standing in the
-/// idle pose (optionally holding a weapon) or a single weapon model turning slowly. It draws onto
+/// A small self-contained 3D viewport for the menus: shows a static operator model (optionally
+/// holding a weapon) or a single weapon model turning slowly. It draws onto
 /// a transparent background so the red-smoke menu backdrop shows through around the figure.
 ///
-/// The operator is the locomotion animation file's own copy of the Manny mesh + skeleton (it
-/// carries the mesh and every locomotion clip, so no AnimationTree is needed in a menu), painted
+/// The operator uses the static Manny mesh + skeleton with animation import disabled, painted
 /// and tinted by CharacterAppearance exactly like the in-match body. The weapon is held by the
 /// same WeaponAttachment the match uses, so the grip in the lobby is the grip in the game.
 /// </summary>
 public partial class OperatorStage : SubViewportContainer
 {
-	private const string CharacterScenePath = "res://art/animations/player/locomotion/player animation locomotion.glb";
-	private const string IdleClip = "locomotion_idle";
+	private const string CharacterScenePath = "res://art/characters/manny.glb";
 	private const float OperatorBaseYaw = 16.0f;
 	private const float WeaponFitLength = 1.5f;
 
@@ -26,7 +24,6 @@ public partial class OperatorStage : SubViewportContainer
 	private Node3D? _model;
 	private ShaderMaterial? _tint;
 	private WeaponAttachment? _attachment;
-	private AnimationPlayer? _animation;
 	private Action? _pending;
 
 	private bool _built;
@@ -200,9 +197,6 @@ public partial class OperatorStage : SubViewportContainer
 		}
 		_model = root;
 		_pivot.AddChild(root);
-
-		_animation = root.FindChild("AnimationPlayer", true, false) as AnimationPlayer;
-		PlayIdle();
 
 		_tint = CharacterAppearance.Apply(root, jacket, pants, accent);
 		SetHeldWeapon(weapon);
@@ -457,38 +451,6 @@ public partial class OperatorStage : SubViewportContainer
 		_model = null;
 		_tint = null;
 		_attachment = null;
-		_animation = null;
-	}
-
-	private void PlayIdle()
-	{
-		if (_animation == null) return;
-		string? clip = FindClip(_animation, IdleClip);
-		if (clip == null)
-		{
-			GD.PushWarning($"OperatorStage: clip '{IdleClip}' not found; the operator will stand in the bind pose.");
-			return;
-		}
-		AnimationPlayer player = _animation;
-		// Imported clips only loop when named "..._loop", so restart by hand instead of editing
-		// the shared Animation resource.
-		player.AnimationFinished += _ =>
-		{
-			if (IsInstanceValid(player) && player.IsInsideTree()) player.Play(clip);
-		};
-		player.Play(clip);
-	}
-
-	private static string? FindClip(AnimationPlayer player, string clip)
-	{
-		foreach (StringName libraryName in player.GetAnimationLibraryList())
-		{
-			AnimationLibrary? library = player.GetAnimationLibrary(libraryName);
-			if (library == null || !library.HasAnimation(clip)) continue;
-			string prefix = libraryName.ToString();
-			return prefix.Length == 0 ? clip : $"{prefix}/{clip}";
-		}
-		return null;
 	}
 
 	/// <summary>Merges the bounds of every mesh under node into one box, in the space of the node

@@ -1,9 +1,0 @@
-[gd_resource type="StandardMaterial3D" load_steps=3 format=3]
-
-[ext_resource type="Texture2D" path="res://art/animations/player/combat/fn 502/textures/material_diffuse.png" id="1"]
-[ext_resource type="Texture2D" path="res://art/animations/player/combat/fn 502/textures/material_normal.png" id="2"]
-
-[resource]
-albedo_texture = ExtResource("1")
-normal_enabled = true
-normal_texture = ExtResource("2")

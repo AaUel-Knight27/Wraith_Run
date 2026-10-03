@@ -18,7 +18,6 @@ public partial class ViewModelWeaponData : Resource
 	[Export] public Vector3 ViewScale { get; set; } = Vector3.One;
 	[Export] public Godot.Collections.Array<string> ArmMeshNames { get; set; } = new();
 	[Export] public Godot.Collections.Dictionary<string, Material> MeshMaterials { get; set; } = new();
-	[Export] public Godot.Collections.Dictionary<string, Vector3> EmbeddedWeaponScales { get; set; } = new();
 	[Export] public Godot.Collections.Array<string> OriginalWeaponMeshNames { get; set; } = new();
 	[Export] public Godot.Collections.Array<string> OriginalMagazineMeshNames { get; set; } = new();
 	[Export] public bool HideOriginalWeapon { get; set; } = true;

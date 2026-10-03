@@ -61,7 +61,7 @@ core/      TrainingSession (root, lifecycle, spawn helpers)   TrainingDrill (bas
            TrainingKit (class baseline numbers)   TrainingStats   TrainingProgress   TrainingDamage   TrainingAnchors/Anchor/Zone
            MannyOnly   TrainingInput   TrainingUtil   TrainingWeapons   TrainingTypes
 mechanics/ HealSystem  RepairSystem  ExplosiveSystem(+PlacedCharge)  SmokeSystem  SpikeStripSystem  CalloutSystem  HoldChannel
-actors/    TrainingActor (enemy/friend Manny)  TrainingTarget  TrainingCar  BreachWall  MannyAnimator
+actors/    TrainingActor (static Manny enemy/friend)  TrainingTarget  TrainingCar  BreachWall
 ports/     Ports.cs   (the interfaces the real game systems plug into)
 ui/        TrainingHud  TrainingMenu  TrainingMapView
 drills/    one file per drill
@@ -144,7 +144,7 @@ practice spike strip for the demolisher (baseline classes don't have them). Chan
      (auto-detected from the hood height), and makes its material opaque + back-face-culled so a seated player can see out. If it drives
      **backwards**, tick `Flip Model Front` on the car (or set it in `TrainingCar.cs`). The three 4096² textures are heavy for mobile —
      consider importing at 2048².
-   * **Bots animate** (run/aim/death) and hold weapons — `MannyAnimator` retargets your three clip files the same way `PlayerAnimationController` does.
+   * **Bots are static** and hold weapons. Manny locomotion, combat, and death clips were removed globally; first-person weapon rigs use their supplied FPS clips.
    * **Seat swap:** *Drive → Seat Swap*; stop under 2 m/s, press **E**.
    * **Heal / repair / plant** show a progress bar and a prompt; the **G** key sends the drill's context callout.
    * Anything printed in red in Godot's Output panel when a drill starts.

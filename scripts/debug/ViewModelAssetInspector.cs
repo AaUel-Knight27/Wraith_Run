@@ -10,23 +10,10 @@ public partial class ViewModelAssetInspector : Node
 		"res://art/animations/player/combat/fn 502/source/Pistol FPS Anims.fbx",
 		"res://art/animations/player/combat/benelli m4/source/Shot Gun FPS Anims.fbx",
 	};
-	[Export] public Godot.Collections.Array<string> WeaponModelPaths { get; set; } = new()
-	{
-		"res://art/weapons/AssaultRifle/AK47.glb",
-		"res://art/weapons/AssaultRifle/M4.glb",
-		"res://art/weapons/SMGs/p90_-_stargate.glb",
-		"res://art/weapons/SMGs/KRISS VECTOR.glb",
-		"res://art/weapons/Pistols/Glock 19.glb",
-		"res://art/weapons/Pistols/Desert Eagle.glb",
-		"res://art/weapons/Shotgun/shootgun mossberg.glb",
-		"res://art/weapons/Melee/Karambit.glb",
-		"res://art/weapons/RPG/RPG.glb",
-	};
-
 	public override void _Ready()
 	{
 		foreach (string path in ScenePaths) InspectPackedScene(path, inspectAnimations: true);
-		foreach (string path in WeaponModelPaths) InspectPackedScene(path, inspectAnimations: false);
+		GetTree().Quit();
 	}
 
 	private void InspectPackedScene(string path, bool inspectAnimations)
@@ -48,7 +35,7 @@ public partial class ViewModelAssetInspector : Node
 		if (sourceCamera != null)
 			GD.Print($"  SOURCE_CAMERA {sourceCamera.GetPath()} world={sourceCamera.GlobalTransform} near={sourceCamera.Near}");
 		if (skeleton != null) InspectSkeleton(skeleton, inspectAnimations ? animationPlayer : null);
-		InspectMeshes(instance, sourceCamera?.GlobalPosition ?? Vector3.Zero);
+		InspectMeshes(instance, sourceCamera?.GlobalPosition ?? Vector3.Zero, skeleton);
 		if (inspectAnimations && animationPlayer != null && skeleton != null) InspectAnimations(animationPlayer, skeleton);
 		instance.QueueFree();
 	}
@@ -65,7 +52,7 @@ public partial class ViewModelAssetInspector : Node
 		}
 	}
 
-	private static void InspectMeshes(Node root, Vector3 cameraPosition)
+	private static void InspectMeshes(Node root, Vector3 cameraPosition, Skeleton3D? skeleton)
 	{
 		foreach (MeshInstance3D mesh in FindAll<MeshInstance3D>(root))
 		{
@@ -75,6 +62,14 @@ public partial class ViewModelAssetInspector : Node
 			float distance = world.GetCenter().DistanceTo(cameraPosition);
 			string skin = mesh.Skin == null ? "none" : $"binds={mesh.Skin.GetBindCount()}";
 			GD.Print($"  MESH {mesh.GetPath()} world_aabb={world} size={size} center_distance={distance:0.###} skeleton='{mesh.Skeleton}' skin={skin}");
+			if (mesh.Skin != null && skeleton != null && mesh.Name.ToString() is "sleeve" or "hardknuckle")
+				for (int bind = 0; bind < mesh.Skin.GetBindCount(); bind++)
+				{
+					string bindName = mesh.Skin.GetBindName(bind).ToString();
+					int boneByName = skeleton.FindBone(bindName);
+					int bindBone = mesh.Skin.GetBindBone(bind);
+					GD.Print($"  SKIN_BIND mesh={mesh.Name} slot={bind} name='{bindName}' bind_bone={bindBone} skeleton_name_index={boneByName}");
+				}
 		}
 	}
 
@@ -134,9 +129,8 @@ public partial class ViewModelAssetInspector : Node
 		for (int track = 0; track < animation.GetTrackCount(); track++)
 		{
 			string path = animation.TrackGetPath(track).ToString();
-			bool scaleLike = path.Contains("scale", StringComparison.OrdinalIgnoreCase);
 			bool safetyTrack = path.Contains("Safety", StringComparison.OrdinalIgnoreCase);
-			if (!scaleLike && !safetyTrack) continue;
+			if (animation.TrackGetType(track) != Animation.TrackType.Scale3D && !safetyTrack) continue;
 			GD.Print($"  SCALE_TRACK {path} type={animation.TrackGetType(track)}");
 			for (int key = 0; key < animation.TrackGetKeyCount(track); key++)
 				GD.Print($"    key{key} t={animation.TrackGetKeyTime(track, key):0.###} value={animation.TrackGetKeyValue(track, key)}");

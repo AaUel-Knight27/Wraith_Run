@@ -1,21 +1,17 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
-[ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/pistol_rig.tscn" id="2_rig"]
-[ext_resource type="PackedScene" path="res://art/weapons/Pistols/Desert Eagle.glb" id="3_model"]
-[ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/ak_rig.tscn" id="4_reference"]
-[ext_resource type="Material" path="res://art/animations/player/combat/viewmodels/materials/FN_Arms.tres" id="5_arms"]
-[ext_resource type="Material" path="res://art/animations/player/combat/viewmodels/materials/FN_Pistol.tres" id="6_fn_gun"]
+[ext_resource type="PackedScene" path="res://art/animations/player/combat/fn 502/source/Pistol FPS Anims.fbx" id="2_rig"]
+[ext_resource type="PackedScene" path="res://art/animations/player/combat/AK/source/AK FPS Anims.fbx" id="4_reference"]
 
 [resource]
 script = ExtResource("1_script")
 WeaponName = "Desert Eagle"
 RigScene = ExtResource("2_rig")
-WeaponModelScene = ExtResource("3_model")
 AttachBoneName = "Main"
-AttachPosition = Vector3(0, 0, 0)
+AttachPosition = Vector3(-0.05, 0.07, 0.15)
 AttachRotationDegrees = Vector3(-90, 0, 0)
-AttachScale = Vector3(0.005, 0.005, 0.005)
+AttachScale = Vector3(0.5, 0.5, 0.5)
 ViewPosition = Vector3(0.08, -0.29, -0.2758)
 ViewRotationDegrees = Vector3(0, 180, 0)
 ArmMeshNames = PackedStringArray("arms")
@@ -32,8 +28,10 @@ ClipMap = {
 IdlePoseTime = 0.0
 NormalizationReferenceRig = ExtResource("4_reference")
 NormalizationReferenceArmMeshNames = PackedStringArray("arms")
-MeshMaterials = { "arms": ExtResource("5_arms"), "502_1_low_001": ExtResource("6_fn_gun") }
+HideOriginalWeapon = false
+HideOriginalMagazine = false
+MeshMaterials = {}
 CullMargin = 1.0
 MuzzlePointOffset = Vector3(0, 0, -0.4)
-MagazineNodeName = "Magazine"
-MagazineBoneName = "Mag"
+MagazineNodeName = ""
+MagazineBoneName = ""

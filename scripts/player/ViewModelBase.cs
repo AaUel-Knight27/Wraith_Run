@@ -18,12 +18,14 @@ public partial class ViewModelBase : Node3D
 	private Skeleton3D? _skeleton;
 	private AnimationPlayer? _animationPlayer;
 	private Node3D? _muzzlePoint;
+	private Node3D? _weaponModel;
 	private readonly Dictionary<string, string> _resolvedClips = new();
 	private string _idleClip = string.Empty;
 	private string _activeMovementClip = string.Empty;
 	private string _activeMovementGeneric = "idle";
 	private float _normalizationScale = 1.0f;
 	private Camera3D? _viewCamera;
+	private Texture2D? _neutralAlbedo;
 
 	public Skeleton3D? Skeleton => _skeleton;
 	public Node3D? MuzzlePoint => _muzzlePoint;
@@ -44,6 +46,7 @@ public partial class ViewModelBase : Node3D
 		RotationDegrees = RotationOffsetDegrees;
 		Scale = ScaleOffset;
 		_viewCamera = GetParent() as Camera3D;
+		_neutralAlbedo = CreateNeutralAlbedoTexture();
 		if (Data?.RigScene == null)
 		{
 			GD.PushWarning($"{Name}: missing rig scene in ViewModelWeaponData.");
@@ -63,25 +66,48 @@ public partial class ViewModelBase : Node3D
 		// Never let an imported autoplay/default animation leave a weapon halfway through a clip.
 		_animationPlayer.Stop();
 		_skeleton.ResetBonePoses();
+		// Keep the FBX-authored scale tracks. The bundled rifle/pistol/shotgun meshes are
+		// animated with the rig; stripping all Skeleton3D scale tracks also removed valid
+		// twist-bone tracks (and the included weapon's own keyed scale).
 		foreach (Node child in GetDescendants(_rig))
 		{
 			if (child is Camera3D camera) { camera.Current = false; camera.Visible = false; }
 			if (child is Light3D light) light.Visible = false;
 			if (child is MeshInstance3D mesh)
 			{
-				mesh.ExtraCullMargin = Mathf.Max(mesh.ExtraCullMargin, Data.CullMargin);
-				if (Data.MeshMaterials.TryGetValue(mesh.Name.ToString(), out Material? material))
-					mesh.MaterialOverride = material;
-				if (Data.EmbeddedWeaponScales.TryGetValue(mesh.Name.ToString(), out Vector3 embeddedScale))
-					mesh.Scale *= embeddedScale;
-				// Each imported pack bundles a weapon into its own rig. Keep only the configured
-				// arm/sleeve/glove meshes; the selected project weapon is attached below.
 				bool isArm = ContainsName(Data.ArmMeshNames, mesh.Name);
+				mesh.CastShadow = GeometryInstance3D.ShadowCastingSetting.Off;
+				mesh.ExtraCullMargin = Mathf.Max(mesh.ExtraCullMargin, Data.CullMargin);
+				if (isArm && Data.MeshMaterials.TryGetValue(mesh.Name.ToString(), out Material? material))
+					mesh.MaterialOverride = material;
+				// Keep the configured arm/sleeve/glove meshes and the FBX's own hand-bound weapon.
 				bool keepRigWeapon = !Data.HideOriginalWeapon && ContainsName(Data.OriginalWeaponMeshNames, mesh.Name);
 				bool keepRigMagazine = !Data.HideOriginalMagazine && ContainsName(Data.OriginalMagazineMeshNames, mesh.Name);
 				if (Data.ArmMeshNames.Count > 0 && !isArm && !keepRigWeapon && !keepRigMagazine) mesh.Visible = false;
+				if (isArm)
+				{
+					mesh.Visible = true;
+					mesh.Layers = 1;
+					// The Benelli FBX's arm skin has an imported AABB in a different scale space
+					// from its 1142x skeleton. A generous local box prevents it disappearing when
+					// the animated skin moves outside the bind-pose AABB.
+					mesh.CustomAabb = new Aabb(new Vector3(-1000, -1000, -1000), new Vector3(2000, 2000, 2000));
+					if (mesh.MaterialOverride is BaseMaterial3D armMaterial)
+					{
+						BaseMaterial3D twoSided = (BaseMaterial3D)armMaterial.Duplicate(true);
+						twoSided.CullMode = BaseMaterial3D.CullModeEnum.Disabled;
+						mesh.MaterialOverride = twoSided;
+					}
+				}
 				if (Data.HideOriginalWeapon && ContainsName(Data.OriginalWeaponMeshNames, mesh.Name)) mesh.Visible = false;
 				if (Data.HideOriginalMagazine && ContainsName(Data.OriginalMagazineMeshNames, mesh.Name)) mesh.Visible = false;
+				if (isArm)
+				{
+					// Imported Benelli meshes carry a non-default render layer in the FBX scene.
+					// Viewmodels use the player's camera layer so camera culling cannot drop them.
+					mesh.Layers = 1;
+					EnsureAlbedoTexture(mesh);
+				}
 			}
 		}
 
@@ -89,6 +115,7 @@ public partial class ViewModelBase : Node3D
 		ResolveAndConfigureClips();
 		_animationPlayer.AnimationFinished += OnAnimationFinished;
 		AttachWeaponModel();
+		ProcessPriority = 100;
 		RefreshDebugGeometry();
 		GD.Print($"VIEWMODEL weapon='{Data.WeaponName}' rig='{Data.RigScene.ResourcePath}' attach='{Data.AttachBoneName}' clips={FormatResolvedClips()} arm_extent={GetArmExtent():F4}m normalization={_normalizationScale:F6}");
 		ReportMeshBounds();
@@ -129,8 +156,6 @@ public partial class ViewModelBase : Node3D
 				continue;
 			}
 			_resolvedClips[mapping.Key] = resolved;
-			Animation animation = _animationPlayer.GetAnimation(resolved);
-			if (mapping.Key is "idle" or "walk" or "run") animation.LoopMode = Animation.LoopModeEnum.Linear;
 		}
 		if (!string.IsNullOrEmpty(Data.AttachBoneName) && _skeleton?.FindBone(Data.AttachBoneName) < 0)
 			GD.PushWarning($"{Data.WeaponName}: attach bone '{Data.AttachBoneName}' is missing in rig '{Data.RigScene?.ResourcePath}'.");
@@ -140,14 +165,15 @@ public partial class ViewModelBase : Node3D
 	private void AttachWeaponModel()
 	{
 		if (Data == null || _skeleton == null || Data.WeaponModelScene == null || string.IsNullOrEmpty(Data.AttachBoneName)) return;
-		var attachment = MakeAttachment("WeaponAttachment", Data.AttachBoneName);
-		if (attachment == null) return;
+		if (_skeleton.FindBone(Data.AttachBoneName) < 0) return;
 		var model = Data.WeaponModelScene.Instantiate<Node3D>();
 		model.Name = "WeaponModel";
-		attachment.AddChild(model);
+		AddChild(model);
+		_weaponModel = model;
 		model.Position = Data.AttachPosition;
 		model.RotationDegrees = Data.AttachRotationDegrees;
 		model.Scale = Data.AttachScale;
+		ReportWeaponLocalBounds(model);
 		GD.Print($"VIEWMODEL ATTACH weapon='{Data.WeaponName}' model='{Data.WeaponModelScene.ResourcePath}' scene_children={model.GetChildCount()} visible={model.Visible}");
 		if (!string.IsNullOrEmpty(Data.MagazineNodeName) && !string.IsNullOrEmpty(Data.MagazineBoneName))
 		{
@@ -170,6 +196,67 @@ public partial class ViewModelBase : Node3D
 		}
 		_muzzlePoint = new Node3D { Name = "MuzzlePoint", Position = Data.MuzzlePointOffset };
 		model.AddChild(_muzzlePoint);
+	}
+
+	private void EnsureAlbedoTexture(MeshInstance3D mesh)
+	{
+		if (_neutralAlbedo == null || mesh.Mesh == null) return;
+		if (mesh.MaterialOverride is BaseMaterial3D wholeMaterial && wholeMaterial.AlbedoTexture == null)
+		{
+			BaseMaterial3D copy = (BaseMaterial3D)wholeMaterial.Duplicate(true);
+			copy.AlbedoTexture = _neutralAlbedo;
+			mesh.MaterialOverride = copy;
+		}
+		for (int surface = 0; surface < mesh.Mesh.GetSurfaceCount(); surface++)
+		{
+			Material? active = mesh.MaterialOverride ?? mesh.GetSurfaceOverrideMaterial(surface) ?? mesh.Mesh.SurfaceGetMaterial(surface);
+			if (active is BaseMaterial3D baseMaterial && baseMaterial.AlbedoTexture != null) continue;
+			BaseMaterial3D copy = active is BaseMaterial3D source
+				? (BaseMaterial3D)source.Duplicate(true)
+				: new StandardMaterial3D();
+			copy.AlbedoTexture = ResolveEmbeddedAlbedo(mesh.Name) ?? _neutralAlbedo;
+			if (mesh.MaterialOverride == null) mesh.SetSurfaceOverrideMaterial(surface, copy);
+		}
+	}
+
+	private Texture2D? ResolveEmbeddedAlbedo(StringName meshName)
+	{
+		if (Data == null) return null;
+		string path = Data.WeaponName switch
+		{
+			"AK-47" when meshName.ToString() is "Ak" or "Mag_2" => "res://art/animations/player/combat/AK/textures/ak74m_AlbedoTransparency.png",
+			"Glock 19" or "Desert Eagle" when meshName.ToString() == "502_1_low_001" => "res://art/animations/player/combat/fn 502/textures/material_diffuse.png",
+			"Shotgun" when meshName.ToString().StartsWith("12g_", StringComparison.Ordinal) => "res://art/animations/player/combat/benelli m4/textures/12gauge_BaseColor_red.png",
+			"Shotgun" when meshName.ToString().StartsWith("matchsaverz", StringComparison.OrdinalIgnoreCase) => "res://art/animations/player/combat/benelli m4/textures/matchsaverz_BaseColor_black_brand_friendly.png",
+			"Shotgun" when meshName.ToString().StartsWith("benelli_m4_", StringComparison.OrdinalIgnoreCase) => "res://art/animations/player/combat/benelli m4/textures/TTI_Benelli_M4_BaseColor_brand_friendly.png",
+			_ => string.Empty
+		};
+		return string.IsNullOrEmpty(path) ? null : GD.Load<Texture2D>(path);
+	}
+
+	private static Texture2D CreateNeutralAlbedoTexture()
+	{
+		Image image = Image.CreateEmpty(2, 2, false, Image.Format.Rgba8);
+		image.Fill(Colors.White);
+		return ImageTexture.CreateFromImage(image);
+	}
+
+	private void ReportWeaponLocalBounds(Node3D model)
+	{
+		Aabb? bounds = null;
+		Transform3D rootInverse = model.GlobalTransform.AffineInverse();
+		foreach (Node node in GetDescendants(model))
+			if (node is MeshInstance3D mesh)
+			{
+				Aabb local = TransformAabb(mesh.GetAabb(), rootInverse * mesh.GlobalTransform);
+				bounds = bounds.HasValue ? bounds.Value.Merge(local) : local;
+			}
+		if (bounds.HasValue)
+		{
+			Vector3 size = bounds.Value.Size;
+			Vector3 axis = size.X >= size.Y && size.X >= size.Z ? Vector3.Right : size.Y >= size.Z ? Vector3.Up : Vector3.Back;
+			GD.Print($"VIEWMODEL MODEL_LOCAL weapon='{Data?.WeaponName}' size={size} longest_axis={axis}");
+		}
 	}
 
 	private BoneAttachment3D? MakeAttachment(string attachmentName, string boneName)

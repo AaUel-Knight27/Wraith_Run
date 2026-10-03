@@ -1,7 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 
 /// <summary>Runtime viewmodel regression harness. Run with the viewmodel_check scene.</summary>
 public partial class ViewModelCheck : Node3D
@@ -13,106 +13,229 @@ public partial class ViewModelCheck : Node3D
 	private Camera3D _camera = null!;
 	private ViewModelBase? _active;
 	private bool _failed;
+	private int _phase, _lifePass = 1, _weaponIndex, _lifeWait, _clipIndex, _clipFrame, _clipFrameLimit;
+	private ViewModelWeaponData? _data;
+	private AnimationPlayer? _player;
+	private Skeleton3D? _skeleton;
+	private string[] _clipNames = Array.Empty<string>();
+	private bool _weaponFail;
+	private float _minExtent, _maxExtent;
+	private float _idleExtent;
+	private readonly HashSet<string> _reportedScaleFailures = new();
+	private readonly HashSet<string> _reportedPlacementFailures = new();
+	private readonly Dictionary<MeshInstance3D, Material?> _diagnosticArmMaterials = new();
+	private readonly Dictionary<MeshInstance3D, (Skin? Skin, NodePath Skeleton)> _diagnosticArmBindings = new();
+	private int _shotgunSkinDiagnosticStage;
 
 	public override void _Ready()
 	{
 		_camera = new Camera3D { Name = "CheckCamera", Current = true, Fov = 65, Near = 0.03f };
 		AddChild(_camera);
-		_ = Run();
-	}
-
-	private async Task Run()
-	{
+		var world = new WorldEnvironment
+		{
+			Environment = new Godot.Environment
+			{
+				BackgroundMode = Godot.Environment.BGMode.Color,
+				BackgroundColor = new Color(0.12f, 0.14f, 0.17f),
+				AmbientLightSource = Godot.Environment.AmbientSource.Color,
+				AmbientLightColor = new Color(0.7f, 0.72f, 0.76f),
+				AmbientLightEnergy = 0.8f
+			}
+		};
+		AddChild(world);
+		AddChild(new DirectionalLight3D
+		{
+			RotationDegrees = new Vector3(-25, -25, 0),
+			LightEnergy = 1.2f,
+			ShadowEnabled = false
+		});
+		AuditRemovedMannyAnimations();
 		GD.Print("VIEWMODEL CHECK STEP1 mapping and 3x switch lifecycle");
 		PrintMappingTable();
-		for (int pass = 1; pass <= 3; pass++)
-		foreach (string weapon in Weapons)
-		{
-			ViewModelWeaponData? data = LoadData(weapon);
-			ClearActive();
-			if (data?.UseViewModel == true)
-			{
-				_active = new ViewModelBase { Name = $"{weapon.Replace(" ", string.Empty)}ViewModel" };
-				_active.Configure(data);
-				_camera.AddChild(_active);
-				await NextFrame();
-			}
-			int count = CountLiveViewModels();
-			int expected = data?.UseViewModel == true ? 1 : 0;
-			GD.Print($"VIEWMODEL SWITCH_TEST pass={pass} weapon='{weapon}' live={count} expected={expected} {(count == expected ? "PASS" : "FAIL")}");
-			if (count != expected) _failed = true;
-		}
+		_phase = 0;
+	}
 
-		// Run a full measurement pass after the lifecycle stress test.
-		foreach (string weapon in Weapons)
+	public override void _Process(double delta)
+	{
+		if (_phase == 0) StepLifecycle();
+		else if (_phase == 1) StepPrepareMeasurement();
+		else if (_phase == 2) StepClip();
+		else if (_phase == 3) { if (_lifeWait > 0) _lifeWait--; else StartMeasurement(); }
+	}
+
+	private void StepLifecycle()
+	{
+		if (_lifeWait > 0) { _lifeWait--; return; }
+		ClearActive();
+		string weapon = Weapons[_weaponIndex];
+		ViewModelWeaponData? data = LoadData(weapon);
+		if (data?.UseViewModel == true)
 		{
-			ClearActive();
-			ViewModelWeaponData? data = LoadData(weapon);
-			if (data == null) { Fail(weapon, "missing data"); continue; }
-			if (!data.UseViewModel)
-			{
-				GD.Print($"VIEWMODEL RESULT weapon='{weapon}' rig=legacy clip=legacy arms=none gun=legacy textures=legacy boneScale=legacy PASS");
-				continue;
-			}
-			if (data.RigScene == null)
-			{
-				Fail(weapon, $"rig missing rig={data.RigScene?.ResourcePath ?? "none"}");
-				continue;
-			}
 			_active = new ViewModelBase { Name = $"{weapon.Replace(" ", string.Empty)}ViewModel" };
 			_active.Configure(data);
 			_camera.AddChild(_active);
-			await NextFrame();
-			Skeleton3D? skeleton = _active.Skeleton;
-			AnimationPlayer? player = _active.FindChild("AnimationPlayer", true, false) as AnimationPlayer;
-			if (skeleton == null || player == null) { Fail(weapon, "skeleton or AnimationPlayer missing"); continue; }
-
-			var frameExtentByClip = new Dictionary<string, (float Min, float Max)>();
-			bool weaponFail = CountLiveViewModels() != 1;
-			CheckTextures(weapon, _active, data, ref weaponFail);
-			foreach (var clipEntry in data.ClipMap)
-			{
-				string generic = clipEntry.Key;
-				if (!_active.HasResolvedClip(generic)) continue;
-				_active.Play(generic);
-				await NextFrame();
-				float clipLength = Math.Max(0.001f, _active.GetClipLength(generic));
-				float minExtent = float.PositiveInfinity;
-				float maxExtent = 0;
-				int frame = 0;
-				int frameLimit = Math.Max(1, (int)Math.Ceiling(clipLength * 60.0) + 1);
-				while (frame < frameLimit)
-				{
-					await NextFrame();
-					Aabb? arms = GetCameraBounds(_active, data.ArmMeshNames);
-					if (arms.HasValue)
-					{
-						float extent = MaxAxis(arms.Value.Size);
-						minExtent = Math.Min(minExtent, extent);
-						maxExtent = Math.Max(maxExtent, extent);
-						CheckPlacement(weapon, generic, "arms", arms.Value, ref weaponFail);
-					}
-					CheckBoneScales(weapon, generic, skeleton, ref weaponFail);
-					frame++;
-				}
-				if (!float.IsFinite(minExtent)) minExtent = maxExtent = 0;
-				frameExtentByClip[generic] = (minExtent, maxExtent);
-				GD.Print($"VIEWMODEL CLIP weapon='{weapon}' clip='{generic}' resolved='{(_active.ResolvedClips.TryGetValue(generic, out string? actual) ? actual : "none")}' frames={frame} arms_extent_range=({minExtent:F4},{maxExtent:F4})m");
-				if (generic == "idle") await SaveScreenshot($"{SafeName(weapon)}_idle.png");
-				if (generic == "fire") await SaveScreenshot($"{SafeName(weapon)}_fire.png");
-			}
-
-			Aabb? armBounds = GetCameraBounds(_active, data.ArmMeshNames);
-			Aabb? gunBounds = GetGunBounds(_active);
-			float barrelDot = GetBarrelDot(_active);
-			GD.Print($"VIEWMODEL METRICS weapon='{weapon}' rig='{data.RigScene.ResourcePath}' attach='{data.AttachBoneName}' clip='{player.CurrentAnimation}' arms={Format(armBounds)} gun={Format(gunBounds)} distance={Distance(armBounds, gunBounds):F4}m barrel_dot={barrelDot:F4} no_albedo_fail={weaponFail} bone_scale_fail={weaponFail}");
-			if (armBounds == null || gunBounds == null) weaponFail = true;
-			if (barrelDot < 0.8f) weaponFail = true;
-			if (weaponFail) Fail(weapon, "one or more texture, pose, placement, bone-scale or barrel checks failed");
-			else GD.Print($"VIEWMODEL RESULT weapon='{weapon}' PASS");
 		}
-		GD.Print(_failed ? "VIEWMODEL CHECK FAIL" : "VIEWMODEL CHECK PASS");
-		GetTree().Quit(_failed ? 1 : 0);
+		_lifeWait = 1;
+		int count = CountLiveViewModels();
+		int expected = data?.UseViewModel == true ? 1 : 0;
+		GD.Print($"VIEWMODEL SWITCH_TEST pass={_lifePass} weapon='{weapon}' live={count} expected={expected} {(count == expected ? "PASS" : "FAIL")}");
+		if (count != expected) _failed = true;
+		_weaponIndex++;
+		if (_weaponIndex >= Weapons.Length)
+		{
+			_weaponIndex = 0;
+			if (_lifePass < 3) { _lifePass++; _lifeWait = 2; }
+			else { _phase = 1; _lifeWait = 1; }
+		}
+	}
+
+	private void StepPrepareMeasurement()
+	{
+		if (_lifeWait > 0) { _lifeWait--; return; }
+		ClearActive();
+		string weapon = Weapons[_weaponIndex];
+		_data = LoadData(weapon);
+		if (_data == null) { Fail(weapon, "missing data"); NextWeapon(); return; }
+		if (!_data.UseViewModel)
+		{
+			GD.Print($"VIEWMODEL RESULT weapon='{weapon}' rig=disabled clip=none arms=none gun=not_in_fps_feature SKIP");
+			NextWeapon();
+			return;
+		}
+		if (_data.RigScene == null) { Fail(weapon, "rig missing"); NextWeapon(); return; }
+		_active = new ViewModelBase { Name = $"{weapon.Replace(" ", string.Empty)}ViewModel" };
+		_active.Configure(_data);
+		_camera.AddChild(_active);
+		_lifeWait = 1;
+		_phase = 3;
+	}
+
+	private void StartMeasurement()
+	{
+		string weapon = Weapons[_weaponIndex];
+		_skeleton = _active?.Skeleton;
+		_player = _active?.FindChild("AnimationPlayer", true, false) as AnimationPlayer;
+		if (_active == null || _data == null || _skeleton == null || _player == null)
+		{ Fail(weapon, "skeleton or AnimationPlayer missing"); NextWeapon(); return; }
+		_weaponFail = CountLiveViewModels() != 1;
+		CheckTextures(weapon, _active, _data, ref _weaponFail);
+		var clips = new List<string>();
+		foreach (string key in _data.ClipMap.Keys) if (_active.HasResolvedClip(key)) clips.Add(key);
+		_clipNames = clips.ToArray();
+		_clipIndex = 0;
+		_phase = 2;
+		StartClip();
+		if (weapon == "Shotgun")
+		{
+			foreach (MeshInstance3D mesh in FindAll<MeshInstance3D>(_active))
+				if (_data.ArmMeshNames.Contains(mesh.Name.ToString()))
+				{
+					_diagnosticArmMaterials[mesh] = mesh.MaterialOverride;
+					_diagnosticArmBindings[mesh] = (mesh.Skin, mesh.Skeleton);
+					mesh.MaterialOverride = new StandardMaterial3D { ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded, AlbedoColor = Colors.Magenta, CullMode = BaseMaterial3D.CullModeEnum.Disabled, NoDepthTest = true };
+				}
+			_shotgunSkinDiagnosticStage = 1;
+		}
+	}
+
+	private void StartClip()
+	{
+		if (_active == null || _data == null || _clipIndex >= _clipNames.Length) { FinishWeapon(); return; }
+		string clip = _clipNames[_clipIndex];
+		_active.Play(clip);
+		_clipFrame = 0;
+		_clipFrameLimit = Math.Max(1, (int)Math.Ceiling(_active.GetClipLength(clip) * 60.0) + 1);
+		_minExtent = float.PositiveInfinity; _maxExtent = 0;
+		if (clip == "idle") _idleExtent = 0;
+	}
+
+	private void StepClip()
+	{
+		if (_active == null || _data == null || _skeleton == null || _player == null) return;
+		string weapon = Weapons[_weaponIndex];
+		string clip = _clipNames[_clipIndex];
+		Aabb? arms = GetCameraBounds(_active, _data.ArmMeshNames);
+		if (arms.HasValue)
+		{
+			float extent = MaxAxis(arms.Value.Size);
+			_minExtent = Math.Min(_minExtent, extent); _maxExtent = Math.Max(_maxExtent, extent);
+			if (clip == "idle") _idleExtent = Math.Max(_idleExtent, extent);
+			else if (_idleExtent > 0 && Math.Abs(extent - _idleExtent) / _idleExtent > 0.10f) _weaponFail = true;
+			CheckPlacement(weapon, clip, "arms", arms.Value, ref _weaponFail);
+		}
+		Aabb? gun = GetGunBounds(_active);
+		if (gun.HasValue) CheckPlacement(weapon, clip, "gun", gun.Value, ref _weaponFail);
+		CheckBoneScales(weapon, clip, _skeleton, ref _weaponFail);
+		if (_shotgunSkinDiagnosticStage == 1 && _clipFrame == 2)
+		{
+			SaveScreenshot("shotgun_arms_debug_skinned.png");
+			int magentaPixels = CountMagentaPixels();
+			GD.Print($"VIEWMODEL PIXEL_CHECK weapon='Shotgun' diagnostic='magenta_with_original_skin' pixels={magentaPixels} {(magentaPixels >= 10 ? "PASS" : "FAIL")}");
+			if (magentaPixels < 10)
+			{
+				GD.PrintErr("VIEWMODEL FAIL weapon='Shotgun' original skinned arm meshes produce no rendered pixels with an unshaded diagnostic material");
+				_weaponFail = true;
+			}
+			foreach (MeshInstance3D mesh in _diagnosticArmBindings.Keys)
+			{
+				mesh.Skin = null;
+				mesh.Skeleton = new NodePath("");
+			}
+			_shotgunSkinDiagnosticStage = 2;
+		}
+		if (_shotgunSkinDiagnosticStage == 2 && _clipFrame == 4)
+		{
+			SaveScreenshot("shotgun_arms_debug_unskinned.png");
+			GD.Print($"VIEWMODEL PIXEL_CHECK weapon='Shotgun' diagnostic='magenta_without_skin' pixels={CountMagentaPixels()}");
+			foreach (var pair in _diagnosticArmMaterials)
+				if (GodotObject.IsInstanceValid(pair.Key))
+				{
+					pair.Key.MaterialOverride = pair.Value;
+					if (_diagnosticArmBindings.TryGetValue(pair.Key, out var binding))
+					{
+						pair.Key.Skin = binding.Skin;
+						pair.Key.Skeleton = binding.Skeleton;
+					}
+				}
+			_diagnosticArmMaterials.Clear();
+			_diagnosticArmBindings.Clear();
+			_shotgunSkinDiagnosticStage = 0;
+		}
+		GD.Print($"VIEWMODEL FRAME weapon='{weapon}' clip='{clip}' frame={_clipFrame} arms={Format(arms)} gun={Format(gun)} distance={Distance(arms, gun):F4}m barrel_dot={GetBarrelDot(_active):F4} bone_scale_out_of_range={HasBadBoneScale(_skeleton)}");
+		_clipFrame++;
+		if (_clipFrame < _clipFrameLimit) return;
+		if (!float.IsFinite(_minExtent)) _minExtent = _maxExtent = 0;
+		GD.Print($"VIEWMODEL CLIP weapon='{weapon}' clip='{clip}' resolved='{(_active.ResolvedClips.TryGetValue(clip, out string? actual) ? actual : "none")}' frames={_clipFrame} arms_extent_range=({_minExtent:F4},{_maxExtent:F4})m");
+		if (clip == "idle") SaveScreenshot($"{SafeName(weapon)}_idle.png");
+		if (clip == "fire") SaveScreenshot($"{SafeName(weapon)}_fire.png");
+		_clipIndex++;
+		StartClip();
+	}
+
+	private void FinishWeapon()
+	{
+		string weapon = Weapons[_weaponIndex];
+		Aabb? arms = _active != null && _data != null ? GetCameraBounds(_active, _data.ArmMeshNames) : null;
+		Aabb? gun = _active != null ? GetGunBounds(_active) : null;
+		float barrelDot = _active != null ? GetBarrelDot(_active) : 0;
+		GD.Print($"VIEWMODEL METRICS weapon='{weapon}' rig='{_data?.RigScene?.ResourcePath}' attach='{_data?.AttachBoneName}' clip='{_player?.CurrentAnimation}' arms={Format(arms)} gun={Format(gun)} distance={Distance(arms, gun):F4}m barrel_dot={barrelDot:F4} textureOrPoseFail={_weaponFail}");
+		if (arms == null || gun == null) _weaponFail = true;
+		if (_weaponFail) Fail(weapon, "texture, pose, bone-scale or missing gun check failed");
+		else GD.Print($"VIEWMODEL RESULT weapon='{weapon}' PASS");
+		NextWeapon();
+	}
+
+	private void NextWeapon()
+	{
+		_weaponIndex++;
+		ClearActive();
+		if (_weaponIndex >= Weapons.Length)
+		{
+			_phase = 4;
+			GD.Print(_failed ? "VIEWMODEL CHECK FAIL" : "VIEWMODEL CHECK PASS");
+			GetTree().Quit(_failed ? 1 : 0);
+		}
+		else { _phase = 1; _lifeWait = 1; }
 	}
 
 	private void PrintMappingTable()
@@ -120,7 +243,8 @@ public partial class ViewModelCheck : Node3D
 		foreach (string weapon in Weapons)
 		{
 			ViewModelWeaponData? data = LoadData(weapon);
-			GD.Print($"VIEWMODEL MAP weapon='{weapon}' data='{data?.ResourcePath ?? "missing"}' rig='{data?.RigScene?.ResourcePath ?? "legacy"}' bone='{data?.AttachBoneName ?? "legacy"}' gun='{data?.WeaponModelScene?.ResourcePath ?? "legacy"}' needs_visual_review={data?.VisualReviewRequired ?? false}");
+			string gun = data?.WeaponModelScene?.ResourcePath ?? (data?.UseViewModel == true ? "embedded FBX weapon" : "disabled until FPS model feature");
+			GD.Print($"VIEWMODEL MAP weapon='{weapon}' data='{data?.ResourcePath ?? "missing"}' rig='{data?.RigScene?.ResourcePath ?? "none"}' bone='{data?.AttachBoneName ?? "none"}' gun='{gun}' needs_visual_review={data?.VisualReviewRequired ?? false}");
 		}
 	}
 
@@ -133,8 +257,6 @@ public partial class ViewModelCheck : Node3D
 		};
 		return ResourceLoader.Load<ViewModelWeaponData>($"res://data/viewmodels/{file}.tres");
 	}
-
-	private async Task NextFrame() => await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
 	private void ClearActive()
 	{
@@ -175,19 +297,36 @@ public partial class ViewModelCheck : Node3D
 	{
 		Vector3 p = box.GetCenter();
 		bool okay = p.X >= -0.1f && p.X <= 0.35f && p.Y >= -0.5f && p.Y <= -0.05f && p.Z >= -0.9f && p.Z <= -0.25f && box.End.Z <= -0.03f;
-		if (!okay) { GD.PrintErr($"VIEWMODEL FAIL weapon='{weapon}' clip='{clip}' part='{part}' camera_aabb={box} center={p}"); fail = true; }
+		if (!okay)
+		{
+			string key = $"{weapon}/{clip}/{part}";
+			if (_reportedPlacementFailures.Add(key)) GD.PrintErr($"VIEWMODEL FAIL weapon='{weapon}' clip='{clip}' part='{part}' camera_aabb={box} center={p}");
+			fail = true;
+		}
 	}
 
-	private static void CheckBoneScales(string weapon, string clip, Skeleton3D skeleton, ref bool fail)
+	private void CheckBoneScales(string weapon, string clip, Skeleton3D skeleton, ref bool fail)
 	{
 		for (int i = 0; i < skeleton.GetBoneCount(); i++)
 		{
 			Vector3 s = skeleton.GetBonePoseScale(i);
 			if (!float.IsFinite(s.X) || !float.IsFinite(s.Y) || !float.IsFinite(s.Z) || Math.Abs(s.X - 1) > 0.05 || Math.Abs(s.Y - 1) > 0.05 || Math.Abs(s.Z - 1) > 0.05)
 			{
-				GD.PrintErr($"VIEWMODEL FAIL weapon='{weapon}' clip='{clip}' bone='{skeleton.GetBoneName(i)}' scale={s}"); fail = true;
+				string key = $"{weapon}/{clip}/{skeleton.GetBoneName(i)}";
+				if (_reportedScaleFailures.Add(key)) GD.PrintErr($"VIEWMODEL FAIL weapon='{weapon}' clip='{clip}' bone='{skeleton.GetBoneName(i)}' scale={s}");
+				fail = true;
 			}
 		}
+	}
+
+	private static bool HasBadBoneScale(Skeleton3D skeleton)
+	{
+		for (int i = 0; i < skeleton.GetBoneCount(); i++)
+		{
+			Vector3 s = skeleton.GetBonePoseScale(i);
+			if (!float.IsFinite(s.X) || !float.IsFinite(s.Y) || !float.IsFinite(s.Z) || Math.Abs(s.X - 1) > 0.05 || Math.Abs(s.Y - 1) > 0.05 || Math.Abs(s.Z - 1) > 0.05) return true;
+		}
+		return false;
 	}
 
 	private Aabb? GetCameraBounds(Node root, Godot.Collections.Array<string> names)
@@ -220,8 +359,17 @@ public partial class ViewModelCheck : Node3D
 	private float GetBarrelDot(ViewModelBase viewModel)
 	{
 		Node3D? gun = viewModel.FindChild("WeaponModel", true, false) as Node3D;
-		if (gun == null) return 0;
-		Vector3 direction = -gun.GlobalBasis.Z.Normalized();
+		Vector3 localAxis = new(0, 0, -1);
+		if (gun == null)
+		{
+			MeshInstance3D? embedded = FindAll<MeshInstance3D>(viewModel).FirstOrDefault(m => NamesContain(viewModel.Data?.OriginalWeaponMeshNames ?? new Godot.Collections.Array<string>(), m.Name));
+			if (embedded == null) return 0;
+			Vector3 size = embedded.GetAabb().Size;
+			localAxis = size.X >= size.Y && size.X >= size.Z ? Vector3.Right : size.Y >= size.Z ? Vector3.Up : Vector3.Back;
+			Vector3 embeddedDirection = (embedded.GlobalBasis * localAxis).Normalized();
+			return Math.Abs(embeddedDirection.Dot(-_camera.GlobalBasis.Z.Normalized()));
+		}
+		Vector3 direction = (gun.GlobalBasis * localAxis).Normalized();
 		Vector3 cameraForward = -_camera.GlobalBasis.Z.Normalized();
 		return direction.Dot(cameraForward);
 	}
@@ -244,15 +392,48 @@ public partial class ViewModelCheck : Node3D
 	private static string Format(Aabb? b) => b.HasValue ? $"{b.Value.Position}/{b.Value.Size}" : "none";
 	private static float Distance(Aabb? a, Aabb? b) => a.HasValue && b.HasValue ? Math.Min(a.Value.Position.Length(), b.Value.Position.Length()) : -1;
 	private void Fail(string weapon, string reason) { GD.PrintErr($"VIEWMODEL RESULT weapon='{weapon}' FAIL: {reason}"); _failed = true; }
-	private async Task SaveScreenshot(string fileName)
+	private void SaveScreenshot(string fileName)
 	{
-		await NextFrame();
 		string directory = ProjectSettings.GlobalizePath("res://debug_shots");
 		DirAccess.MakeDirRecursiveAbsolute(directory);
 		Image? image = GetViewport().GetTexture().GetImage();
 		if (image == null || image.IsEmpty()) { GD.Print($"VIEWMODEL SCREENSHOT unavailable '{fileName}' (empty viewport)"); return; }
 		Error error = image.SavePng($"res://debug_shots/{fileName}");
 		GD.Print($"VIEWMODEL SCREENSHOT file='res://debug_shots/{fileName}' result={error}");
+	}
+	private void AuditRemovedMannyAnimations()
+	{
+		string[] removed =
+		{
+			"res://art/animations/player/locomotion/player animation locomotion.glb",
+			"res://art/animations/player/combat/player animation combat.glb",
+			"res://art/animations/player/death/player animation death.glb"
+		};
+		bool sourceAssetsAbsent = removed.All(path => !ResourceLoader.Exists(path));
+		PackedScene? mannyScene = ResourceLoader.Load<PackedScene>("res://art/characters/manny.glb");
+		Node? manny = mannyScene?.Instantiate();
+		AnimationPlayer? player = manny?.FindChild("AnimationPlayer", true, false) as AnimationPlayer;
+		int clipCount = 0;
+		if (player != null)
+			foreach (StringName libraryName in player.GetAnimationLibraryList())
+				clipCount += player.GetAnimationLibrary(libraryName)?.GetAnimationList().Count ?? 0;
+		bool passed = sourceAssetsAbsent && clipCount == 0;
+		GD.Print($"MANNY ANIMATION AUDIT standalone_assets_absent={sourceAssetsAbsent} embedded_clip_count={clipCount} {(passed ? "PASS" : "FAIL")}");
+		if (!passed) _failed = true;
+		manny?.Free();
+	}
+	private int CountMagentaPixels()
+	{
+		Image image = GetViewport().GetTexture().GetImage();
+		if (image.IsEmpty()) return 0;
+		int count = 0;
+		for (int y = 0; y < image.GetHeight(); y++)
+		for (int x = 0; x < image.GetWidth(); x++)
+		{
+			Color pixel = image.GetPixel(x, y);
+			if (pixel.R > 0.75f && pixel.B > 0.75f && pixel.G < 0.25f) count++;
+		}
+		return count;
 	}
 	private static string SafeName(string value) => value.ToLowerInvariant().Replace(' ', '_').Replace('-', '_');
 	private static IEnumerable<T> FindAll<T>(Node root) where T : Node

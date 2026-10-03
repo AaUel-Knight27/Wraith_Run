@@ -68,7 +68,6 @@ public partial class TrainingActor : CharacterBody3D, IShootable, IHealable, IEx
 
     private Node3D _armature = null!;
     private Node3D _head = null!;
-    private MannyAnimator _animator = null!;
     private WeaponAttachment? _weapon;
     private Label3D _label = null!;
     private MeshInstance3D _ring = null!;
@@ -123,11 +122,6 @@ public partial class TrainingActor : CharacterBody3D, IShootable, IHealable, IEx
 
         _head = new Node3D { Name = "Head", Position = new Vector3(0, 1.62f, 0) };
         AddChild(_head);
-
-        _animator = new MannyAnimator { Name = "MannyAnimator" };
-        AddChild(_animator);
-        _animator.Setup(this, _armature);
-        _animator.Play(MannyAnimator.Idle);
 
         EquipWeapon();
 
@@ -224,7 +218,6 @@ public partial class TrainingActor : CharacterBody3D, IShootable, IHealable, IEx
         CollisionLayer = 0;
         CollisionMask = 0;
         Velocity = Vector3.Zero;
-        _animator.PlayOnce(MannyAnimator.Death);
         _ring.Visible = false;
         RefreshLabel();
         _deathTimer = 3.0f;
@@ -331,10 +324,8 @@ public partial class TrainingActor : CharacterBody3D, IShootable, IHealable, IEx
             Rotation = new Vector3(0, Mathf.LerpAngle(Rotation.Y, targetYaw, Mathf.Min(1.0f, 10.0f * dt)), 0);
         }
 
-        float speed = new Vector2(Velocity.X, Velocity.Z).Length();
-        if (speed > 0.6f) _animator.Play(MannyAnimator.Run, Mathf.Clamp(speed / 6.0f, 0.6f, 1.5f));
-        else if (_hasLineOfSight && CanShoot) _animator.Play(MannyAnimator.Aim);
-        else _animator.Play(MannyAnimator.Idle);
+        // Full-body Manny clips were removed. Training actors keep their gameplay and rotate to face
+        // their movement/target while remaining in the static bind pose.
     }
 
     private void ApplyBleed(float dt)

@@ -11,9 +11,7 @@
 [ext_resource type="Script" uid="uid://drdvdadjvl6fh" path="res://scripts/player/RotationWindowTracker.cs" id="10"]
 [ext_resource type="Script" uid="uid://8yx0crdy7yls" path="res://scripts/player/PlayerScore.cs" id="11"]
 [ext_resource type="Script" uid="uid://bnk2rfyi00vdx" path="res://scripts/player/PlayerAudio.cs" id="12"]
-[ext_resource type="Script" uid="uid://c364gffy50o2t" path="res://scripts/debug/WeaponGripTuner.cs" id="13"]
 [ext_resource type="Script" uid="uid://cqvvj4h5cvx1x" path="res://scripts/player/TouchControls.cs" id="14"]
-[ext_resource type="Script" uid="uid://dsgal1w2b3nq3" path="res://scripts/debug/CharacterRigTuner.cs" id="15"]
 [ext_resource type="Script" uid="uid://dbp87dk8oe3rn" path="res://scripts/debug/WeaponSoundTuner.cs" id="16"]
 [ext_resource type="Script" uid="uid://cxg1yq5hqar8y" path="res://scripts/player/CharacterLoadout.cs" id="17"]
 [ext_resource type="Script" uid="uid://c3jrms6yk8aun" path="res://scripts/player/ViewModelManager.cs" id="18_viewmodels"]
@@ -93,11 +91,7 @@ script = ExtResource("18_viewmodels")
 
 [node name="FirstPersonCamera" type="Camera3D" parent="Head/CameraShake" unique_id=250919579]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0052988976, 0.08884847, -0.15)
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=755757165]
-
-[node name="AnimationTree" type="AnimationTree" parent="." unique_id=1877666232]
-anim_player = NodePath("../AnimationPlayer")
+near = 0.03
 
 [node name="AnimationController" type="Node" parent="." unique_id=1167327812]
 script = ExtResource("2")
@@ -113,12 +107,6 @@ script = ExtResource("6")
 
 [node name="PlayerAudio" type="Node3D" parent="." unique_id=1051886432]
 script = ExtResource("12")
-
-[node name="WeaponGripTuner" type="Node" parent="." unique_id=1403424432]
-script = ExtResource("13")
-
-[node name="CharacterRigTuner" type="Node" parent="." unique_id=499083890]
-script = ExtResource("15")
 
 [node name="WeaponSoundTuner" type="Node" parent="." unique_id=576238125]
 script = ExtResource("16")

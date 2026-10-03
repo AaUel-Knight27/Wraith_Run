@@ -1,21 +1,18 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
-[ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/ak_rig.tscn" id="2_rig"]
-[ext_resource type="PackedScene" path="res://art/weapons/AssaultRifle/AK47.glb" id="3_model"]
-[ext_resource type="PackedScene" path="res://art/animations/player/combat/viewmodels/rigs/ak_rig.tscn" id="4_reference"]
-[ext_resource type="Material" path="res://art/animations/player/combat/viewmodels/materials/AK_Arms.tres" id="5_arms"]
+[ext_resource type="PackedScene" path="res://art/animations/player/combat/AK/source/AK FPS Anims.fbx" id="2_rig"]
+[ext_resource type="PackedScene" path="res://art/animations/player/combat/AK/source/AK FPS Anims.fbx" id="4_reference"]
 
 [resource]
 script = ExtResource("1_script")
 WeaponName = "AK-47"
 RigScene = ExtResource("2_rig")
-WeaponModelScene = ExtResource("3_model")
 AttachBoneName = "PBody"
-AttachPosition = Vector3(0, 0, 0)
+AttachPosition = Vector3(-0.1, 0.22, 0.15)
 AttachRotationDegrees = Vector3(-90, 0, 0)
-AttachScale = Vector3(0.009, 0.009, 0.009)
-ViewPosition = Vector3(0.08, -0.35, -0.2292)
+AttachScale = Vector3(0.9, 0.9, 0.9)
+ViewPosition = Vector3(0.08, -0.35, -0.33)
 ViewRotationDegrees = Vector3(0, 180, 0)
 ArmMeshNames = PackedStringArray("arms")
 OriginalWeaponMeshNames = PackedStringArray("Ak")
@@ -32,7 +29,9 @@ ClipMap = {
 IdlePoseTime = 0.0
 NormalizationReferenceRig = ExtResource("4_reference")
 NormalizationReferenceArmMeshNames = PackedStringArray("arms")
-MeshMaterials = { "arms": ExtResource("5_arms") }
+MeshMaterials = {}
+HideOriginalWeapon = false
+HideOriginalMagazine = false
 CullMargin = 1.0
 MuzzlePointOffset = Vector3(0, 0, -0.65)
 MagazineNodeName = ""
