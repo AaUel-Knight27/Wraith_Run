@@ -24,6 +24,10 @@ public static class GameUiState
 
     /// <summary>Hold Tab on keyboard, or Back/Select on a gamepad. Touch uses an on-screen button.</summary>
     public const string ScoreboardAction = "scoreboard";
+    /// <summary>Hold T near a downed teammate to revive them.</summary>
+    public const string ReviveAction = "revive";
+    /// <summary>Hold Y while downed to give up and respawn fast.</summary>
+    public const string GiveUpAction = "give_up";
 
     /// <summary>True while the pause menu (or one of its modals) is on screen.</summary>
     public static bool MenuOpen { get; private set; }
@@ -48,6 +52,8 @@ public static class GameUiState
         AddAction(ScoreboardAction,
             new InputEventKey { PhysicalKeycode = Key.Tab },
             new InputEventJoypadButton { ButtonIndex = JoyButton.Back });
+        AddAction(ReviveAction, new InputEventKey { PhysicalKeycode = Key.T });
+        AddAction(GiveUpAction, new InputEventKey { PhysicalKeycode = Key.Y });
     }
 
     private static void AddAction(string action, params InputEvent[] events)

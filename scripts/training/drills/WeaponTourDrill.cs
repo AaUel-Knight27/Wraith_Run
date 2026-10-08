@@ -31,8 +31,6 @@ public partial class WeaponTourDrill : TrainingDrill
         new Stage { Weapon = "Glock 19", Count = 4, MinDistance = 8, MaxDistance = 16, Limit = 22, Tip = "Fast handling backup - aim for the head." },
         new Stage { Weapon = "Desert Eagle", Count = 4, MinDistance = 10, MaxDistance = 20, Limit = 24, Tip = "Slow and heavy: one clean hit matters." },
         new Stage { Weapon = "Shotgun", Count = 4, MinDistance = 4, MaxDistance = 9, Limit = 22, Tip = "Deadly up close, useless far away." },
-        new Stage { Weapon = "Karambit", Count = 3, MinDistance = 1.9f, MaxDistance = 1.9f, Limit = 20, Tip = "Melee reach is tiny - close the gap and strike." },
-        new Stage { Weapon = "Bazooka", Count = 2, MinDistance = 20, MaxDistance = 28, Limit = 30, TargetHp = 40, Tip = "Made for vehicles. Against people it is slow and weak." },
     };
 
     private readonly List<Stage> _stages = new();

@@ -6,39 +6,41 @@ using Godot;
 public static class HubProps
 {
     private const string CarPath = "res://art/vehicles/Low_Poly_Car_-_Toyota_Land_Cruiser_70_GXL_2024.glb";
+    private const string BuggyPath = "res://art/vehicles/raider_buggy.glb";
 
     public static void Build(Node3D world)
     {
         var root = new Node3D { Name = "HubProps" };
         world.AddChild(root);
-        AddCar(root);
+        AddCar(root, CarPath, 4.9f, new Vector3(-3.3f, 0.0f, 4.3f), "ParkedCar");
+        AddCar(root, BuggyPath, 3.6f, new Vector3(3.0f, 0.0f, 4.3f), "ParkedBuggy");
         AddArmorySign(root);
     }
 
-    private static void AddCar(Node3D root)
+    private static void AddCar(Node3D root, string path, float lengthMetres, Vector3 spot, string name)
     {
-        var scene = ResourceLoader.Load<PackedScene>(CarPath);
-        if (scene == null) { GD.PushWarning($"Hub: car model missing ({CarPath})."); return; }
+        var scene = ResourceLoader.Load<PackedScene>(path);
+        if (scene == null) { GD.PushWarning($"Hub: car model missing ({path})."); return; }
         var car = scene.Instantiate<Node3D>();
-        car.Name = "ParkedCar";
+        car.Name = name;
         root.AddChild(car);
 
-        // The GLB's own units are not metres (it came out of a CAD-style export), so measure it
-        // and scale it to a real 4.9 m long car instead of trusting a fixed factor.
+        // Each GLB's own units are not metres (CAD-style exports), so measure it and scale to
+        // lengthMetres instead of trusting a fixed factor per model.
         Aabb raw = CombinedBounds(car);
         if (raw.Size == Vector3.Zero) { GD.PushWarning("Hub: car model has no meshes."); return; }
         bool lengthOnX = raw.Size.X >= raw.Size.Z;
-        float scale = 4.9f / Mathf.Max(raw.Size.X, raw.Size.Z);
+        float scale = lengthMetres / Mathf.Max(raw.Size.X, raw.Size.Z);
         car.Scale = Vector3.One * scale;
         // Parked along the south wall: its long side runs along X, so the box collider below is tight.
         car.RotationDegrees = new Vector3(0.0f, lengthOnX ? 0.0f : 90.0f, 0.0f);
 
         // Sit it on the floor in the south-west corner.
         Aabb fitted = CombinedBounds(car);
-        car.Position += new Vector3(-3.3f - fitted.GetCenter().X, -fitted.Position.Y, 4.3f - fitted.GetCenter().Z);
+        car.Position += new Vector3(spot.X - fitted.GetCenter().X, -fitted.Position.Y, spot.Z - fitted.GetCenter().Z);
 
         Aabb bounds = CombinedBounds(car);
-        var body = new StaticBody3D { Name = "CarCollision" };
+        var body = new StaticBody3D { Name = name + "Collision" };
         body.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = bounds.Size }, Position = bounds.GetCenter() });
         root.AddChild(body);
     }

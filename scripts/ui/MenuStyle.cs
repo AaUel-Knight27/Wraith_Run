@@ -44,9 +44,13 @@ public static class MenuStyle
     private static Font _bold;
     private static Font _semi;
     private static Font _medium;
-    public static Font Bold => _bold ??= LoadFont("700");
+    // Headings, badges and titles use the brushstroke display face (art/ui/fonts/film_horor.otf).
+    public static Font Bold => _bold ??= LoadDisplayFont("res://art/ui/fonts/film_horor.otf") ?? LoadFont("700");
     public static Font SemiBold => _semi ??= LoadFont("600");
     public static Font Medium => _medium ??= LoadFont("500");
+
+    private static Font LoadDisplayFont(string path) =>
+        ResourceLoader.Exists(path) ? ResourceLoader.Load<Font>(path) : null;
 
     private static Font LoadFont(string weight)
     {

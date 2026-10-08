@@ -6,9 +6,9 @@ public partial class ViewModelAssetInspector : Node
 {
 	[Export] public Godot.Collections.Array<string> ScenePaths { get; set; } = new()
 	{
-		"res://art/animations/player/combat/AK/source/AK FPS Anims.fbx",
-		"res://art/animations/player/combat/fn 502/source/Pistol FPS Anims.fbx",
-		"res://art/animations/player/combat/benelli m4/source/Shot Gun FPS Anims.fbx",
+		"res://art/animations/player/combat/AK/source/FpsAnims.fbx",
+		"res://art/animations/player/combat/fn 502/source/FPS_Anims.fbx",
+		"res://art/animations/player/combat/benelli m4/source/HandWithGloves_AnimateRDY.fbx",
 	};
 	public override void _Ready()
 	{

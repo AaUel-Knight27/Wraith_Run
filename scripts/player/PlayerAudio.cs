@@ -15,9 +15,9 @@ using Godot;
 ///  - Instant death (headshot, Bazooka hit): NO sound, for anyone.
 ///  - Every other death (a body shot, any melee kill): the victim makes a struggling sound that
 ///    whoever is close enough hears - it is a positional sound, so "close enough" is just distance.
-///  - Team Deathmatch only: a non-instant death has a silent bleed-out for
-///    Health.TeamBleedOutSeconds, then the struggle plays. The medic voice recording is reserved
-///    for future use and is not loaded or played by this script.
+///  - Downed (at or below 20% HP): a breathing loop plays for the victim. If no medic revives within
+///    Health.DownedWindowSeconds the struggle plays as the death. A hit while downed is instant and silent.
+///    The medic voice recording is reserved for future use and is not loaded or played by this script.
 /// </summary>
 public partial class PlayerAudio : Node3D
 {
@@ -38,7 +38,7 @@ public partial class PlayerAudio : Node3D
 
 	/// <summary>Below this fraction of MaxHealth, the local player hears their own breathing.
 	/// Nobody else does - see the note on _lowHealthPlayer below.</summary>
-	private const float LowHealthThreshold = 0.3f;
+	private const float LowHealthThreshold = Health.DownedThresholdFraction;
 
 	// --- levels -------------------------------------------------------------------------------
 	// Gain trims in dB. The clips were recorded at wildly different levels (the walk/run clips are
@@ -103,10 +103,6 @@ public partial class PlayerAudio : Node3D
 	private bool _lowHealthActive;
 
 	// Team-match bleed-out, run identically on every peer from the same KillAnnounced broadcast.
-	private bool _bleedingOut;
-	private float _bleedOutRemaining;
-	private float _bleedOutElapsed;
-	private bool _bleedOutSawDead;
 
 	public override void _Ready()
 	{
@@ -175,7 +171,6 @@ public partial class PlayerAudio : Node3D
 	public override void _PhysicsProcess(double delta)
 	{
 		UpdateHealthSounds();
-		UpdateBleedOut((float)delta);
 		UpdateFootsteps((float)delta);
 		UpdateMovementStateSounds();
 		UpdateLowHealthBreathing();
@@ -206,59 +201,18 @@ public partial class PlayerAudio : Node3D
 	{
 		CancelDeathAudio();
 
-		// An instant death is silent. Nothing plays, for anyone.
+		// An instant death (a hit while downed, a headshot, an explosion) is silent. Nothing plays, for anyone.
 		if (!struggles) return;
 
-		if (!IsTeamMatch())
-		{
-			// Deathmatch: no medic to call, so the dying player just struggles, right away.
-			PlayDeathStruggle();
-			return;
-		}
-
-		// Team Deathmatch: keep the bleed-out delay, but play no medic call. The struggle starts
-		// when the bleed-out expires.
-		_bleedingOut = true;
-		_bleedOutRemaining = Health.TeamBleedOutSeconds;
-		_bleedOutElapsed = 0.0f;
-		_bleedOutSawDead = false;
-	}
-
-	private void UpdateBleedOut(float delta)
-	{
-		if (!_bleedingOut) return;
-
-		// Stop if the player respawns early. IsDead can lag a moment behind KillAnnounced on a
-		// remote peer (separate replication path), so only treat "alive" as a respawn once we have
-		// actually seen them dead - or after a couple of seconds without ever seeing it.
-		_bleedOutElapsed += delta;
-		if (_health != null)
-		{
-			if (_health.IsDead) _bleedOutSawDead = true;
-			else if (_bleedOutSawDead || _bleedOutElapsed > 2.0f)
-			{
-				CancelDeathAudio();
-				return;
-			}
-		}
-
-		_bleedOutRemaining -= delta;
-		if (_bleedOutRemaining <= 0.0f)
-		{
-			// Out of time: the silent bleed-out ends and the struggle begins.
-			_bleedingOut = false;
-			PlayDeathStruggle();
-		}
+		// The struggle is the moment of death: the downed window already played out on the victim's
+		// device (see Health.DownedWindowSeconds), so the struggle sound starts now, for everyone nearby.
+		PlayDeathStruggle();
 	}
 
 	private void CancelDeathAudio()
 	{
-		_bleedingOut = false;
 		if (_deathPlayer != null && _deathPlayer.Playing) _deathPlayer.Stop();
 	}
-
-	private static bool IsTeamMatch() =>
-		MatchManager.Instance != null && MatchManager.Instance.IsTeamMode;
 
 	private void PlayDeathStruggle()
 	{

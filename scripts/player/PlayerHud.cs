@@ -31,6 +31,7 @@ public partial class PlayerHud : CanvasLayer
     private Label _scoreLabel = null!;
     private Label _teamScoreLabel = null!;
     private Label _matchOverLabel = null!;
+    private Label _promptLabel = null!;
     private VBoxContainer _killFeedList = null!;
     private readonly List<(Label Line, ulong ExpiryMsec)> _feedLines = new();
     private bool _lowHealthApplied;
@@ -81,6 +82,7 @@ public partial class PlayerHud : CanvasLayer
 
     private void Build()
     {
+        BuildPrompt();
         var root = new Control();
         root.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         root.MouseFilter = Control.MouseFilterEnum.Ignore;
@@ -293,5 +295,32 @@ public partial class PlayerHud : CanvasLayer
         _lowHealthApplied = low;
         _healthFill.BgColor = low ? LowHealthBarColor : HealthyBarColor;
         _healthBar.AddThemeStyleboxOverride("fill", _healthFill);
+    }
+
+    /// <summary>Bottom-centre prompt for revive and give-up. Null or empty hides it.</summary>
+    public void SetPrompt(string? text)
+    {
+        if (_promptLabel == null) return;
+        _promptLabel.Text = text ?? string.Empty;
+        _promptLabel.Visible = !string.IsNullOrEmpty(text);
+    }
+
+    private void BuildPrompt()
+    {
+        var bottom = new VBoxContainer
+        {
+            AnchorLeft = 0.0f, AnchorRight = 1.0f, AnchorTop = 1.0f, AnchorBottom = 1.0f,
+            OffsetTop = -230.0f, OffsetBottom = -150.0f,
+            Alignment = BoxContainer.AlignmentMode.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        _promptLabel = new Label { Visible = false, HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _promptLabel.AddThemeFontOverride("font", MenuStyle.Bold);
+        _promptLabel.AddThemeFontSizeOverride("font_size", 30);
+        _promptLabel.AddThemeColorOverride("font_color", new Color(0.95f, 0.93f, 0.9f));
+        _promptLabel.AddThemeColorOverride("font_outline_color", new Color(0f, 0f, 0f, 0.9f));
+        _promptLabel.AddThemeConstantOverride("outline_size", 8);
+        bottom.AddChild(_promptLabel);
+        AddChild(bottom);
     }
 }

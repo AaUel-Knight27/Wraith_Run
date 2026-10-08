@@ -241,15 +241,6 @@ public static class DrillRegistry
             Skills = new[] { TrainingSkill.ClassSkill, TrainingSkill.Timing, TrainingSkill.Awareness }, ParSeconds = 60.0f,
             Create = () => new RoadDenialDrill(),
         });
-        list.Add(new DrillDefinition
-        {
-            Id = "dem_heavy", Track = TrainingTrack.Demolisher, Title = "Heavy Weapons",
-            Description = "Stop a moving car with tire shots, then destroy another with a Bazooka. Learn which tool does which job.",
-            Goal = "Stop the first car and destroy the second.",
-            Controls = "The drill equips the M4, then the Bazooka.",
-            Skills = new[] { TrainingSkill.ClassSkill, TrainingSkill.Aim }, ParSeconds = 60.0f,
-            Create = () => new HeavyWeaponDrill(),
-        });
 
         return list;
     }

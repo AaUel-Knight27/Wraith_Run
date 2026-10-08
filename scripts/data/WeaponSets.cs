@@ -50,9 +50,9 @@ public static class WeaponRules
     /// <summary>[set][slot] -> weapon name. Order of slots: Primary1, Primary2, Pistol, Melee, Heavy.</summary>
     public static readonly string[][] DefaultWeapons =
     {
-        new[] { "Shotgun", "Kriss Vector", "Glock 19", "Karambit", "Bazooka" },
-        new[] { "AK-47", "P90", "Glock 19", "Karambit", "Bazooka" },
-        new[] { "M4", "AK-47", "Desert Eagle", "Karambit", "Bazooka" },
+        new[] { "Shotgun", "Kriss Vector", "Glock 19", "", "" },
+        new[] { "AK-47", "P90", "Glock 19", "", "" },
+        new[] { "M4", "AK-47", "Desert Eagle", "", "" },
     };
 
     // ---- slots ------------------------------------------------------------------------------
@@ -61,6 +61,13 @@ public static class WeaponRules
 
     /// <summary>The Heavy slot exists only for a Demolisher; every other slot is always there.</summary>
     public static bool SlotAvailable(WeaponSlot slot, bool demolisher) => slot != WeaponSlot.Heavy || demolisher;
+
+    /// <summary>Weapons greyed out until their animations are finished. They stay in the data (so nothing
+    /// else breaks) but cannot be picked up from the armory wall.</summary>
+    public static readonly System.Collections.Generic.HashSet<string> ComingSoon =
+        new(System.StringComparer.OrdinalIgnoreCase) { "Karambit", "Bazooka" };
+
+    public static bool IsAvailable(string weaponName) => !ComingSoon.Contains(weaponName);
 
     public static string SlotName(WeaponSlot slot) => slot switch
     {
@@ -147,7 +154,7 @@ public static class WeaponRules
     {
         var result = new List<WeaponData>();
         foreach (WeaponData weapon in OperatorInfo.Weapons)
-            if (Fits(weapon, slot) && Array.IndexOf(WeaponSwitcher.Loadout, weapon.WeaponName) >= 0)
+            if (Fits(weapon, slot) && IsAvailable(weapon.WeaponName) && Array.IndexOf(WeaponSwitcher.Loadout, weapon.WeaponName) >= 0)
                 result.Add(weapon);
         return result;
     }

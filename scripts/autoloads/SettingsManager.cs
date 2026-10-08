@@ -152,6 +152,14 @@ public partial class SettingsManager : Node
         _ => OS.HasFeature("mobile"),
     };
 
+    /// <summary>Forces the touch overlay on and saves it, for testing the mobile layout on a desktop
+    /// build without a touchscreen. Harmless to leave in: it is just TouchControlsMode = ForceOn.</summary>
+    public void DebugForceTouchOn()
+    {
+        TouchControlsMode = TouchMode.ForceOn;
+        Save();
+    }
+
     public void Load()
     {
         var file = new ConfigFile();

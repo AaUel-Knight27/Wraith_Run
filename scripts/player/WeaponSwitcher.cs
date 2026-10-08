@@ -53,7 +53,7 @@ public partial class WeaponSwitcher : Node
 	// directly (length + Karambit's index) instead of hardcoding numbers that would silently go
 	// stale if this list is ever reordered or extended.
 	internal static readonly string[] Loadout =
-		{ "AK-47", "M4", "P90", "Kriss Vector", "Glock 19", "Desert Eagle", "Shotgun", "Karambit", "Bazooka" };
+		{ "AK-47", "M4", "P90", "Kriss Vector", "Glock 19", "Desert Eagle", "FN 502", "Shotgun", "Karambit", "Bazooka", "Sniper" };
 
 	private static readonly string[] HitMarkerSounds =
 	{

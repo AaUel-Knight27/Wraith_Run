@@ -154,9 +154,23 @@ public partial class HubTablet : CanvasLayer
                 return;
             }
         }
-        bool pause = @event.IsActionPressed(GameUiState.PauseAction);
+        // Hub keys: Esc asks whether to quit (it never opens the tablet here); Tab opens and closes it.
+        bool escape = @event.IsActionPressed(GameUiState.PauseAction);
+        if (escape)
+        {
+            GetViewport().SetInputAsHandled();
+            if (_quitConfirm != null && _quitConfirm.Visible) HideQuitConfirm();
+            else ShowQuitConfirm();
+            return;
+        }
+        if (_quitConfirm != null && _quitConfirm.Visible)
+        {
+            if (@event.IsActionPressed("ui_cancel")) { GetViewport().SetInputAsHandled(); HideQuitConfirm(); }
+            return;
+        }
+        bool tab = @event.IsActionPressed(GameUiState.ScoreboardAction) && !@event.IsEcho();
         bool back = _open && @event.IsActionPressed("ui_cancel");
-        if (!pause && !back) return;
+        if (!tab && !back) return;
         if (GameUiState.ResultsOpen) return;
         GetViewport().SetInputAsHandled();
         if (_open && _section == Section.Play && _playStep != PlayStep.Home && !_hub.InSession)
@@ -395,7 +409,7 @@ public partial class HubTablet : CanvasLayer
         tabs.AddThemeConstantOverride("separation", 4);
         tabs.AddChild(KeyCap("Q"));
         tabs.AddChild(Tab("HOME", Section.Home));
-        tabs.AddChild(Tab("OPERATOR", Section.Operator));
+        tabs.AddChild(Tab("LOADOUT", Section.Operator));
         tabs.AddChild(Tab("PLAYERS", Section.Status));
         tabs.AddChild(Tab("CHAT", Section.Chat));
         tabs.AddChild(KeyCap("E"));
@@ -403,7 +417,7 @@ public partial class HubTablet : CanvasLayer
 
         _topBar.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
 
-        // who is in the room, settings, quit
+        // who is in the room, settings (there is no exit button: Esc asks to leave)
         var people = new PanelContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkCenter, MouseFilter = Control.MouseFilterEnum.Ignore };
         people.AddThemeStyleboxOverride("panel", new StyleBoxFlat
         {
@@ -420,7 +434,6 @@ public partial class HubTablet : CanvasLayer
         _topBar.AddChild(people);
 
         _topBar.AddChild(MenuStyle.IconButton("settings", 24, _section == Section.Settings ? MenuStyle.Accent : MenuStyle.TextMain, () => { _playStep = PlayStep.Home; ShowSection(Section.Settings); }));
-        _topBar.AddChild(MenuStyle.IconButton("power", 24, MenuStyle.TextMain, () => GameSession.QuitToDesktop(GetTree())));
     }
 
     private void LeaveForTraining()
@@ -432,6 +445,13 @@ public partial class HubTablet : CanvasLayer
         GetTree().ChangeSceneToFile("res://scenes/training/TrainingCenter.tscn");
     }
 
+    /// <summary>Jumps to a tablet page by name (Home, Play, Operator, Status, Chat, Settings). Used by
+    /// the in-game debug tools and automated checks; harmless to call from anywhere once the tablet exists.</summary>
+    public void ShowSectionByName(string name)
+    {
+        if (System.Enum.TryParse(name, true, out Section section)) ShowSection(section);
+    }
+
     private void ShowSection(Section section)
     {
         _section = section;
@@ -441,14 +461,26 @@ public partial class HubTablet : CanvasLayer
         switch (section)
         {
             case Section.Home: BuildHome(); break;
-            case Section.Play: BuildPlay(); break;
-            case Section.Operator: BuildOperator(); break;
-            case Section.Status: Scrolled(BuildStatus); break;
-            case Section.Chat: BuildChat(); break;
+            case Section.Play:
+                PageHeader("PLAY", _hub.InSession ? "in a lobby" : "host or join");
+                BuildPlay();
+                break;
+            case Section.Operator:
+                PageHeader("LOADOUT", "operator and weapons");
+                BuildOperator();
+                break;
+            case Section.Status:
+                PageHeader("PLAYERS", _hub.InSession ? "in this room" : "alone in the warehouse");
+                Scrolled(BuildStatus);
+                break;
+            case Section.Chat:
+                PageHeader("CHAT", "talk to the room");
+                BuildChat();
+                break;
             case Section.Settings:
+                PageHeader("SETTINGS", "controls, sound and display");
                 var settings = new SettingsPanel();
-                MenuStyle.Fill(settings);
-                _content.AddChild(settings);
+                _content.AddChild(ContentFrame(settings));
                 break;
         }
     }
@@ -456,7 +488,7 @@ public partial class HubTablet : CanvasLayer
     private void Scrolled(Action<VBoxContainer> build)
     {
         var scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, MouseFilter = Control.MouseFilterEnum.Pass };
-        MenuStyle.Fill(scroll);
+        ContentFrame(scroll);
         _content.AddChild(scroll);
         var column = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         column.AddThemeConstantOverride("separation", 12);
@@ -479,60 +511,108 @@ public partial class HubTablet : CanvasLayer
         }
     }
 
+    /// <summary>Title row for a tablet page: the display face, a subtitle chip, and a red rule under it. The same
+    /// type and colours as the home page, so every page of the tablet reads as one design.</summary>
+    private void PageHeader(string title, string subtitle)
+    {
+        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter };
+        row.AddThemeConstantOverride("separation", 16);
+        row.AddChild(MenuStyle.Text(title, 50, MenuStyle.TextMain, MenuStyle.Bold));
+        if (!string.IsNullOrEmpty(subtitle))
+        {
+            var chip = MenuStyle.Chip(subtitle, MenuStyle.Accent, 14, false);
+            chip.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+            row.AddChild(chip);
+        }
+        MenuStyle.Place(row, 0, 0, 1, 0, 36, 18, -36, 76);
+        _content.AddChild(row);
+
+        Color ruleColour = MenuStyle.Accent;
+        ruleColour.A = 0.55f;
+        var rule = new ColorRect { Color = ruleColour, MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Place(rule, 0, 0, 1, 0, 36, 82, -36, 84);
+        _content.AddChild(rule);
+    }
+
+    /// <summary>Places a page's content below the page header, inside the tablet's screen margins.</summary>
+    private static Control ContentFrame(Control content)
+    {
+        MenuStyle.Place(content, 0, 0, 1, 1, 36, 100, -36, -14);
+        return content;
+    }
+
     private void BuildHome()
     {
         MatchManager match = MatchManager.Instance;
         bool inSession = _hub.InSession;
-        var mark = MenuStyle.Text("WRAITH RUN", 150, new Color(1f, 0.1f, 0.1f, 0.06f), MenuStyle.Bold);
-        MenuStyle.Place(mark, 0, 0, 1, 0, 0, 10, 0, 220);
+
+        // Background: the wordmark, very faint, so the screen has depth without noise.
+        var mark = MenuStyle.Text("WRAITH RUN", 150, new Color(0.9f, 0.08f, 0.08f, 0.06f), MenuStyle.Bold);
+        MenuStyle.Place(mark, 0, 0, 1, 0, 0, 40, 0, 300);
         mark.MouseFilter = Control.MouseFilterEnum.Ignore;
         _content.AddChild(mark);
 
-        var column = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        MenuStyle.Place(column, 0, 1, 0.78f, 1, 6, -330, 0, -6);
-        column.Alignment = BoxContainer.AlignmentMode.End;
-        column.AddThemeConstantOverride("separation", 10);
-        _content.AddChild(column);
+        // Left column: identity, status and the controls at a glance.
+        var left = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Place(left, 0, 0.12f, 0.50f, 1, 0, 0, -24, -8);
+        left.Alignment = BoxContainer.AlignmentMode.End;
+        left.AddThemeConstantOverride("separation", 14);
+        _content.AddChild(left);
 
         var tag = MenuStyle.Chip(inSession ? (Multiplayer.IsServer() ? "YOU ARE HOSTING" : "IN A LOBBY") : "THE HUB", MenuStyle.Accent, 14, true);
         tag.SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin;
-        column.AddChild(tag);
+        left.AddChild(tag);
 
-        string title = inSession ? $"{match.ModeRules.DisplayName.ToUpperInvariant()}  -  {match.MapDisplayName.ToUpperInvariant()}" : "WELCOME TO THE WAREHOUSE";
-        column.AddChild(MenuStyle.Wrapped(title, 34, MenuStyle.TextMain, MenuStyle.Bold));
+        left.AddChild(MenuStyle.Text(inSession && match != null ? match.ModeRules.DisplayName.ToUpperInvariant() : "WRAITH RUN", 84, MenuStyle.TextMain, MenuStyle.Bold));
+        if (inSession && match != null)
+            left.AddChild(MenuStyle.Text(match.MapDisplayName.ToUpperInvariant(), 26, MenuStyle.Accent, MenuStyle.Bold));
 
-        if (inSession)
-        {
-            string who = HubController.SplitRooms(match)
-                ? $"You are on {MatchManager.TeamName(match.GetTeam(Multiplayer.GetUniqueId()))}. Your team has its own warehouse: the other side cannot see or hear you until the match starts."
-                : "Everyone is in the same warehouse until the match starts.";
-            column.AddChild(MenuStyle.Wrapped(who, 19, MenuStyle.TextDim, MenuStyle.Medium));
-            column.AddChild(MenuStyle.Wrapped(Multiplayer.IsServer()
-                ? "Pick your weapons at the wall, then press START GAME once everyone is ready."
-                : "Pick your weapons at the wall, then press READY.", 19, MenuStyle.TextDim, MenuStyle.Medium));
-        }
-        else
-        {
-            column.AddChild(MenuStyle.Wrapped("This is your home base. Walk around, take weapons off the wall (look at one and press E), then host a game or join one on this Wi-Fi.", 19, MenuStyle.TextDim, MenuStyle.Medium));
-            column.AddChild(MenuStyle.Wrapped("You carry two primary weapons, one pistol and a knife. Only the Demolisher can carry the Bazooka.", 17, MenuStyle.TextMuted, MenuStyle.Medium));
-        }
+        string body = inSession
+            ? (HubController.SplitRooms(match)
+                ? $"You are on {MatchManager.TeamName(match.GetTeam(Multiplayer.GetUniqueId()))}. Your team has its own warehouse until the match starts."
+                : "Everyone is in the same warehouse until the match starts.")
+            : "Walk the warehouse and take weapons off the wall. Then host a game or join one on this Wi-Fi.";
+        left.AddChild(MenuStyle.Wrapped(body, 20, MenuStyle.TextDim, MenuStyle.Medium));
         if (!string.IsNullOrEmpty(_hub.StatusLine))
-            column.AddChild(MenuStyle.Text(_hub.StatusLine, 18, MenuStyle.Accent, MenuStyle.SemiBold));
+            left.AddChild(MenuStyle.Text(_hub.StatusLine, 18, MenuStyle.Accent, MenuStyle.SemiBold));
 
-        var buttons = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin };
-        buttons.AddThemeConstantOverride("separation", 12);
+        // Control hints row, with the real key caps.
+        var hints = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin };
+        hints.AddThemeConstantOverride("separation", 16);
+        hints.AddChild(HintPair("E", "PICK UP"));
+        hints.AddChild(HintPair("T", "REVIVE"));
+        hints.AddChild(HintPair("Y", "GIVE UP"));
+        hints.AddChild(HintPair("TAB", "STATUS"));
+        left.AddChild(hints);
+
+        // Right column: the actions, as large tiles.
+        var right = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Place(right, 0.60f, 0.22f, 1, 0.96f, 0, 0, -4, 0);
+        right.AddThemeConstantOverride("separation", 14);
+        right.Alignment = BoxContainer.AlignmentMode.Center;
+        _content.AddChild(right);
+
         if (inSession)
         {
-            buttons.AddChild(Sized(MenuStyle.Outline("LOBBY", () => { _playStep = PlayStep.Home; ShowSection(Section.Play); }, "wifi", 46), 170));
-            buttons.AddChild(Sized(MenuStyle.Outline("LEAVE LOBBY", () => _hub.LeaveSession(), "power", 46), 220));
+            right.AddChild(MenuStyle.Hero("LOBBY", "Weapons, ready-up and players", new Vector2(330, 84), () => { _playStep = PlayStep.Home; ShowSection(Section.Play); }));
+            right.AddChild(MenuStyle.Hero("LEAVE LOBBY", "Back to the warehouse", new Vector2(330, 84), () => _hub.LeaveSession()));
         }
         else
         {
-            buttons.AddChild(Sized(MenuStyle.Outline("HOST", () => { _playStep = PlayStep.Host; ShowSection(Section.Play); }, "server", 46), 150));
-            buttons.AddChild(Sized(MenuStyle.Outline("JOIN", () => { _playStep = PlayStep.Join; ShowSection(Section.Play); }, "wifi", 46), 150));
-            buttons.AddChild(Sized(MenuStyle.Outline("TRAINING", LeaveForTraining, "crosshair", 46), 190));
+            right.AddChild(MenuStyle.Hero("HOST", "Choose the mode and the map", new Vector2(330, 84), () => { _playStep = PlayStep.Host; ShowSection(Section.Play); }));
+            right.AddChild(MenuStyle.Hero("JOIN", "Find a game on this Wi-Fi", new Vector2(330, 84), () => { _playStep = PlayStep.Join; ShowSection(Section.Play); }));
+            right.AddChild(MenuStyle.Hero("TRAINING", "Drills against bots", new Vector2(330, 84), LeaveForTraining));
         }
-        column.AddChild(buttons);
+    }
+
+    /// <summary>One key cap and its action word, for the hint row.</summary>
+    private Control HintPair(string key, string action)
+    {
+        var pair = new HBoxContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkCenter };
+        pair.AddThemeConstantOverride("separation", 8);
+        pair.AddChild(KeyCap(key));
+        pair.AddChild(MenuStyle.Text(action, 16, MenuStyle.TextMuted, MenuStyle.Bold));
+        return pair;
     }
 
     private void BuildPlayHome()
@@ -542,7 +622,7 @@ public partial class HubTablet : CanvasLayer
         box.AddThemeConstantOverride("separation", 16);
         _content.AddChild(box);
         box.AddChild(MenuStyle.Text("Walk the warehouse, pick weapons off the wall, then host a game or join one.", 18, MenuStyle.TextDim, MenuStyle.Medium));
-        box.AddChild(MenuStyle.Hero("HOST", "Pick the mode and map, others join you here", new Vector2(660, 92), () => { _playStep = PlayStep.Host; ShowSection(Section.Play); }));
+        box.AddChild(MenuStyle.Hero("HOST", "Choose the mode and the map", new Vector2(660, 92), () => { _playStep = PlayStep.Host; ShowSection(Section.Play); }));
         box.AddChild(MenuStyle.Hero("JOIN", "Find a game on this Wi-Fi", new Vector2(660, 92), () => { _playStep = PlayStep.Join; ShowSection(Section.Play); }));
         if (!string.IsNullOrEmpty(_hub.StatusLine))
             box.AddChild(MenuStyle.Text(_hub.StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold));
@@ -681,7 +761,7 @@ public partial class HubTablet : CanvasLayer
     private void BuildJoin()
     {
         var column = new VBoxContainer();
-        MenuStyle.Fill(column);
+        ContentFrame(column);
         column.AddThemeConstantOverride("separation", 12);
         _content.AddChild(column);
 
@@ -786,7 +866,7 @@ public partial class HubTablet : CanvasLayer
     private void BuildOperator()
     {
         var host = new Control { ClipContents = true };
-        MenuStyle.Fill(host);
+        ContentFrame(host);
         _content.AddChild(host);
         // These two screens were drawn for a full window; ask them to fit the tablet's glass instead.
         LoadoutLayout.Compact = true;
@@ -837,7 +917,7 @@ public partial class HubTablet : CanvasLayer
     private void BuildChat()
     {
         var column = new VBoxContainer();
-        MenuStyle.Fill(column);
+        ContentFrame(column);
         column.AddThemeConstantOverride("separation", 10);
         _content.AddChild(column);
         MatchManager match = MatchManager.Instance;
@@ -929,4 +1009,44 @@ public partial class HubTablet : CanvasLayer
     }
 
     private static string Escape(string text) => text.Replace("[", "[lb]");
+
+    // ---- quit confirmation (Esc in the hub) ----------------------------------------------------
+    private Control? _quitConfirm;
+
+    private void ShowQuitConfirm()
+    {
+        if (_quitConfirm == null) BuildQuitConfirm();
+        _quitConfirm!.Visible = true;
+    }
+
+    private void HideQuitConfirm()
+    {
+        if (_quitConfirm != null) _quitConfirm.Visible = false;
+    }
+
+    private void BuildQuitConfirm()
+    {
+        var overlay = new ColorRect { Color = new Color(0f, 0f, 0f, 0.78f), MouseFilter = Control.MouseFilterEnum.Stop };
+        overlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        var panel = new VBoxContainer
+        {
+            Alignment = BoxContainer.AlignmentMode.Center,
+            LayoutMode = 1,
+        };
+        panel.SetAnchorsPreset(Control.LayoutPreset.Center);
+        panel.AddThemeConstantOverride("separation", 18);
+        var question = new Label { Text = "QUIT WRAITH RUN?", HorizontalAlignment = HorizontalAlignment.Center };
+        question.AddThemeFontOverride("font", MenuStyle.Bold);
+        question.AddThemeFontSizeOverride("font_size", 34);
+        panel.AddChild(question);
+        var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        row.AddThemeConstantOverride("separation", 24);
+        row.AddChild(MenuStyle.Card("power", "QUIT", null, new Vector2(200, 54), () => GameSession.QuitToDesktop(GetTree())));
+        row.AddChild(MenuStyle.Card("arrow-left", "STAY", null, new Vector2(200, 54), HideQuitConfirm));
+        panel.AddChild(row);
+        overlay.AddChild(panel);
+        overlay.Visible = false;
+        AddChild(overlay);
+        _quitConfirm = overlay;
+    }
 }

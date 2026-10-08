@@ -24,13 +24,29 @@ public partial class Health : Node
     private const float RespawnDelaySeconds = 3.0f;
 
     /// <summary>
-    /// Team Deathmatch only: a kill that was NOT instant (see DetermineIfDeathStruggles) leaves the
-    /// player has a silent bleed-out for this long before the final struggle. Public because
-    /// PlayerAudio runs the same countdown on every peer so the struggle timing stays synchronized.
-    /// The medic voice recording is reserved for future use. The normal respawn delay above starts
-    /// counting once this window is over.
+    /// Downed (struggling) state: HP at or below this fraction of max, but above zero. Applies in every
+    /// mode. A downed player can be revived by a teammate's medic inside DownedWindowSeconds; a hit
+    /// while downed finishes him instantly and silently; the window running out is a struggling death.
     /// </summary>
-    public const float TeamBleedOutSeconds = 20.0f;
+    public const float DownedThresholdFraction = 0.20f;
+
+    /// <summary>How long a downed player waits for a medic before the struggling death.</summary>
+    public const float DownedWindowSeconds = 15.0f;
+
+    /// <summary>Hold T this long, near a downed teammate, to revive them.</summary>
+    public const float ReviveHoldSeconds = 2.5f;
+
+    /// <summary>How close (metres) and how square-on a reviver must be.</summary>
+    public const float ReviveRangeMetres = 2.5f;
+
+    /// <summary>Hold Y this long while downed to give up. The death is silent.</summary>
+    public const float GiveUpHoldSeconds = 1.0f;
+
+    /// <summary>Respawn delay after giving up (faster than the normal RespawnDelaySeconds).</summary>
+    public const float GiveUpRespawnSeconds = 1.0f;
+
+    /// <summary>HP a player is brought back to when a medic revives him.</summary>
+    public const float ReviveHealthFraction = 0.30f;
 
     /// <summary>
     /// Half-extent of the square area a Free-For-All respawn is drawn from (see
@@ -65,6 +81,13 @@ public partial class Health : Node
     private float _currentHealth;
     private bool _hasInitialized;
     private float _respawnTimer;
+    private float _downedTimer;
+    private bool _wasDowned;
+    private long _lastAttackerId;
+    private int _lastStyleFlags;
+    private int _lastBasePoints;
+    private float _reviveProgress;
+    private float _giveUpProgress;
     private CharacterBody3D _player = null!;
     private CollisionShape3D? _collision;
     private PlayerAnimationController? _animation;
@@ -96,9 +119,21 @@ public partial class Health : Node
 
     public override void _PhysicsProcess(double delta)
     {
-        if (!PlayerIdentity.HasAuthority(this) || !IsDead) return;
-        _respawnTimer -= (float)delta;
-        if (_respawnTimer <= 0.0f) Respawn();
+        if (!PlayerIdentity.HasAuthority(this)) return;
+        if (!HubState.Active) TickDownedInteractions((float)delta);
+        if (IsDead)
+        {
+            _respawnTimer -= (float)delta;
+            if (_respawnTimer <= 0.0f) Respawn();
+            return;
+        }
+        bool downed = IsDowned;
+        if (downed && !_wasDowned) _downedTimer = DownedWindowSeconds;
+        _wasDowned = downed;
+        if (!downed) return;
+        _downedTimer -= (float)delta;
+        // No medic came in time: the struggle ends in a death the whole match hears.
+        if (_downedTimer <= 0.0f) Die(_lastAttackerId, _lastStyleFlags, _lastBasePoints, struggles: true);
     }
 
     /// <summary>
@@ -118,20 +153,63 @@ public partial class Health : Node
         if (HubState.Active) return;
         if (IsFriendlyFire(attackerId)) return;
         _damageContribution[attackerId] = GetContribution(attackerId) + amount;
+        _lastAttackerId = attackerId;
+        _lastStyleFlags = styleFlags;
+        _lastBasePoints = basePoints;
+
+        // Already struggling on the ground: the next hit finishes him instantly and silently.
+        if (IsDowned)
+        {
+            Die(attackerId, styleFlags, basePoints, struggles: false);
+            return;
+        }
 
         CurrentHealth -= amount;
         EmitSignal(SignalName.Damaged, amount, attackerId);
-        if (!IsDead) return;
+        if (!IsDead)
+        {
+            // Dropped into the downed band (alive, but on the ground until a medic arrives or the window ends).
+            return;
+        }
 
-        _deathPosition = _player.GlobalPosition;
+        // Lethal from above the downed band: the death is decided by the shot itself (headshot and
+        // explosive are instant and silent; anything else makes the struggle sound).
         bool struggles = DetermineIfDeathStruggles((KillStyle)styleFlags);
-        // Team Deathmatch: a non-instant death has a quiet bleed-out for TeamBleedOutSeconds,
-        // then the usual respawn delay. Free-For-All and instant deaths go straight to the normal
-        // respawn delay.
-        bool bleedsOut = struggles && MatchManager.Instance != null &&
-            MatchManager.Instance.IsTeamMode;
-        _respawnTimer = bleedsOut ? TeamBleedOutSeconds + RespawnDelaySeconds : RespawnDelaySeconds;
+        _deathPosition = _player.GlobalPosition;
+        _respawnTimer = RespawnDelaySeconds;
         AnnounceDeath(attackerId, styleFlags, basePoints, struggles);
+    }
+
+    /// <summary>Whether this player is downed: alive, but at or below DownedThresholdFraction of max HP.</summary>
+    public bool IsDowned => !IsDead && CurrentHealth > 0.0f && CurrentHealth <= MaxHealth * DownedThresholdFraction;
+
+    /// <summary>Seconds left before a downed player dies of the struggle (0 when not downed).</summary>
+    public float DownedTimeRemaining => IsDowned ? _downedTimer : 0.0f;
+
+    /// <summary>Owner-side death from the downed state or a finishing hit. Respawns after RespawnDelaySeconds.</summary>
+    private void Die(long killerId, int styleFlags, int basePoints, bool struggles)
+    {
+        if (IsDead) return;
+        _deathPosition = _player.GlobalPosition;
+        _respawnTimer = RespawnDelaySeconds;
+        CurrentHealth = 0.0f;
+        AnnounceDeath(killerId, styleFlags, basePoints, struggles);
+    }
+
+    /// <summary>
+    /// A teammate's medic revives this downed player. Called by the medic's client through an RPC to the
+    /// owning peer; the owner validates the state and the teammate relationship before restoring HP.
+    /// </summary>
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    public void ReceiveRevive(long medicPeerId)
+    {
+        if (!PlayerIdentity.HasAuthority(this) || !IsDowned) return;
+        if (HubState.Active) return;
+        MatchManager? match = MatchManager.Instance;
+        if (match != null && match.IsTeamMode && !match.AreTeammates(medicPeerId, PlayerIdentity.IdOf(_player))) return;
+        _downedTimer = 0.0f;
+        _wasDowned = false;
+        CurrentHealth = MaxHealth * ReviveHealthFraction;
     }
 
     /// <summary>
@@ -271,5 +349,100 @@ public partial class Health : Node
         if (_collision != null) _collision.Disabled = !alive;
         if (wasAlive && !alive) _animation?.PlayDeath();
         else if (!wasAlive && alive) _animation?.ResetAfterRespawn();
+    }
+
+    /// <summary>Owner-side: give up while downed, and revive a downed teammate in front of us.</summary>
+    private void TickDownedInteractions(float dt)
+    {
+        string? prompt = null;
+
+        if (IsDowned)
+        {
+            if (Input.IsActionPressed(GameUiState.GiveUpAction))
+            {
+                _giveUpProgress += dt;
+                if (_giveUpProgress >= GiveUpHoldSeconds)
+                {
+                    _giveUpProgress = 0.0f;
+                    Die(_lastAttackerId, _lastStyleFlags, _lastBasePoints, struggles: false);
+                    _respawnTimer = GiveUpRespawnSeconds;
+                    ShowPrompt(null);
+                    return;
+                }
+                prompt = $"GIVING UP  {(int)(100f * _giveUpProgress / GiveUpHoldSeconds)}%";
+            }
+            else
+            {
+                _giveUpProgress = 0.0f;
+                prompt = "HOLD Y TO GIVE UP";
+            }
+            _reviveProgress = 0.0f;
+            ShowPrompt(prompt);
+            return;
+        }
+        _giveUpProgress = 0.0f;
+
+        Health? target = FindDownedTeammateInFront();
+        if (target != null)
+        {
+            if (Input.IsActionPressed(GameUiState.ReviveAction))
+            {
+                _reviveProgress += dt;
+                if (_reviveProgress >= ReviveHoldSeconds)
+                {
+                    _reviveProgress = 0.0f;
+                    long victimPeer = PlayerIdentity.IdOf(target._player);
+                    target.RpcId(victimPeer, Health.MethodName.ReceiveRevive, PlayerIdentity.IdOf(_player));
+                    ShowPrompt(null);
+                    return;
+                }
+                prompt = $"REVIVING  {(int)(100f * _reviveProgress / ReviveHoldSeconds)}%";
+            }
+            else
+            {
+                _reviveProgress = 0.0f;
+                prompt = "HOLD T TO REVIVE";
+            }
+        }
+        else
+        {
+            _reviveProgress = 0.0f;
+        }
+        ShowPrompt(prompt);
+    }
+
+    /// <summary>The nearest downed teammate within reach and roughly in front of this player, or null.</summary>
+    private Health? FindDownedTeammateInFront()
+    {
+        Node? players = _player.GetParent();
+        if (players == null) return null;
+        MatchManager? match = MatchManager.Instance;
+        long me = PlayerIdentity.IdOf(_player);
+        Vector3 forward = -_player.GlobalBasis.Z;
+        forward.Y = 0.0f;
+        forward = forward.Normalized();
+
+        Health? best = null;
+        float bestDistance = float.MaxValue;
+        foreach (Node child in players.GetChildren())
+        {
+            if (child == _player || child is not CharacterBody3D body) continue;
+            Health? other = body.GetNodeOrNull<Health>("Health");
+            if (other == null || !other.IsDowned) continue;
+            if (match != null && match.IsTeamMode && !match.AreTeammates(me, PlayerIdentity.IdOf(body))) continue;
+
+            Vector3 toBody = body.GlobalPosition - _player.GlobalPosition;
+            toBody.Y = 0.0f;
+            float distance = toBody.Length();
+            if (distance < 0.01f || distance > ReviveRangeMetres) continue;
+            if (forward.Dot(toBody / distance) < 0.5f) continue; // about 60 degrees either side
+            if (distance < bestDistance) { best = other; bestDistance = distance; }
+        }
+        return best;
+    }
+
+    private void ShowPrompt(string? text)
+    {
+        _player.GetNodeOrNull<PlayerHud>("Hud")?.SetPrompt(text);
     }
 }

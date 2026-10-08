@@ -29,9 +29,13 @@ public partial class GameWorld : Node3D
         _spawner = GetNode<MultiplayerSpawner>("MultiplayerSpawner");
         _spawner.SpawnPath = new NodePath("../Players");
         _spawner.SpawnFunction = new Callable(this, nameof(SpawnPlayer));
-        _vehicleSpawner = GetNode<MultiplayerSpawner>("VehicleSpawner");
-        _vehicleSpawner.SpawnPath = new NodePath("../Vehicles");
-        _vehicleSpawner.SpawnFunction = new Callable(this, nameof(SpawnGameVehicle));
+        // The hub (Hub.tscn) has no vehicles, so it has no vehicle spawner. Only matches need one.
+        _vehicleSpawner = GetNodeOrNull<MultiplayerSpawner>("VehicleSpawner")!;
+        if (_vehicleSpawner != null)
+        {
+            _vehicleSpawner.SpawnPath = new NodePath("../Vehicles");
+            _vehicleSpawner.SpawnFunction = new Callable(this, nameof(SpawnGameVehicle));
+        }
         Multiplayer.PeerConnected += OnPeerConnected;
         Multiplayer.PeerDisconnected += OnPeerDisconnected;
         HubState.Active = IsHub;
@@ -97,23 +101,30 @@ public partial class GameWorld : Node3D
         // The supplied art is a compact GLB shell; this collision deck gives the interior a
         // continuous floor and catches players at the edge without asking mobile GPUs/CPUs to
         // cook millions of source triangles into a trimesh collider.
+        // Warehouse: measured from the art (Godot, scaled x2 in DefaultWarehouse.tscn). Inner faces of the
+        // room are x -6.33..6.59 and z -6.91..6.60, so the deck covers the room and no further.
+        const float roomX0 = -6.33f, roomX1 = 6.59f, roomZ0 = -6.91f, roomZ1 = 6.60f;
+        const float wallT = 0.4f, wallH = 5.0f;
+        Vector3 deckCentre = warehouse ? new Vector3((roomX0 + roomX1) * 0.5f, -0.3f, (roomZ0 + roomZ1) * 0.5f) : new Vector3(0.0f, -0.3f, 0.0f);
+        Vector3 deckSize = warehouse ? new Vector3(roomX1 - roomX0, 0.5f, roomZ1 - roomZ0) : new Vector3(80.0f, 0.5f, 80.0f);
         var floor = new StaticBody3D { Name = "WalkableDeck" };
         var floorShape = new CollisionShape3D
         {
-            Shape = new BoxShape3D { Size = new Vector3(warehouse ? 18.0f : 80.0f, 0.5f, warehouse ? 18.0f : 80.0f) },
-            Position = new Vector3(0.0f, -0.3f, 0.0f),
+            Shape = new BoxShape3D { Size = deckSize },
+            Position = deckCentre,
         };
         floor.AddChild(floorShape);
         map.AddChild(floor);
 
         if (warehouse)
         {
-            // The room art is scaled to a roughly 16 m footprint. These four boundaries keep the
-            // player in the warehouse while leaving the entire interior unobstructed for roaming.
-            AddRoomWall(map, new Vector3(0.0f, 2.5f, -8.6f), new Vector3(18.0f, 5.0f, 0.4f));
-            AddRoomWall(map, new Vector3(0.0f, 2.5f, 8.6f), new Vector3(18.0f, 5.0f, 0.4f));
-            AddRoomWall(map, new Vector3(-8.6f, 2.5f, 0.0f), new Vector3(0.4f, 5.0f, 18.0f));
-            AddRoomWall(map, new Vector3(8.6f, 2.5f, 0.0f), new Vector3(0.4f, 5.0f, 18.0f));
+            // The four boundaries sit just outside the art's inner faces, so the visible walls now block.
+            // (They used to sit at +/-8.6 m, two metres beyond the walls, so players walked through them.)
+            float midX = (roomX0 + roomX1) * 0.5f, midZ = (roomZ0 + roomZ1) * 0.5f;
+            AddRoomWall(map, new Vector3(roomX0 - wallT * 0.5f, wallH * 0.5f, midZ), new Vector3(wallT, wallH, roomZ1 - roomZ0 + 2 * wallT));
+            AddRoomWall(map, new Vector3(roomX1 + wallT * 0.5f, wallH * 0.5f, midZ), new Vector3(wallT, wallH, roomZ1 - roomZ0 + 2 * wallT));
+            AddRoomWall(map, new Vector3(midX, wallH * 0.5f, roomZ0 - wallT * 0.5f), new Vector3(roomX1 - roomX0 + 2 * wallT, wallH, wallT));
+            AddRoomWall(map, new Vector3(midX, wallH * 0.5f, roomZ1 + wallT * 0.5f), new Vector3(roomX1 - roomX0 + 2 * wallT, wallH, wallT));
         }
     }
 

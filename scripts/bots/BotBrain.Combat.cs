@@ -38,8 +38,6 @@ public partial class BotBrain
 		table[LoadoutIndex("Glock 19")] = new WeaponInfo(3.0f, 22.0f);
 		table[LoadoutIndex("Desert Eagle")] = new WeaponInfo(4.0f, 30.0f);
 		table[LoadoutIndex("Shotgun")] = new WeaponInfo(0.0f, 9.0f);
-		table[LoadoutIndex("Karambit")] = new WeaponInfo(0.0f, 2.0f);
-		table[LoadoutIndex("Bazooka")] = new WeaponInfo(0.0f, 1.0f);
 		return table;
 	}
 

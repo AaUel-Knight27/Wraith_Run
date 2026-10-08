@@ -84,19 +84,30 @@ public partial class ViewModelBase : Node3D
 				bool keepRigWeapon = !Data.HideOriginalWeapon && ContainsName(Data.OriginalWeaponMeshNames, mesh.Name);
 				bool keepRigMagazine = !Data.HideOriginalMagazine && ContainsName(Data.OriginalMagazineMeshNames, mesh.Name);
 				if (Data.ArmMeshNames.Count > 0 && !isArm && !keepRigWeapon && !keepRigMagazine) mesh.Visible = false;
+				// Several of these imported rigs (the Benelli arms, now also the P90's gun parts) carry a
+				// skinned mesh whose bind-pose AABB, baked in at import, sits far from the animated pose -
+				// large, and offset by metres. Godot culls a skinned mesh by that stale box, not by where the
+				// skin deformation actually puts it, so the gun can vanish from view even though it is being
+				// drawn in the right place. A generous local box on every mesh we keep visible avoids that.
+				if (isArm || keepRigWeapon || keepRigMagazine)
+					mesh.CustomAabb = new Aabb(new Vector3(-1000, -1000, -1000), new Vector3(2000, 2000, 2000));
 				if (isArm)
 				{
 					mesh.Visible = true;
 					mesh.Layers = 1;
-					// The Benelli FBX's arm skin has an imported AABB in a different scale space
-					// from its 1142x skeleton. A generous local box prevents it disappearing when
-					// the animated skin moves outside the bind-pose AABB.
-					mesh.CustomAabb = new Aabb(new Vector3(-1000, -1000, -1000), new Vector3(2000, 2000, 2000));
-					if (mesh.MaterialOverride is BaseMaterial3D armMaterial)
+				}
+				// Every surface of a mesh we keep (arm, or the rig's own weapon/magazine) is forced double-sided.
+				// Some imported rigs ship single-sided materials that back-face cull at odd viewing angles in
+				// first person; this costs nothing noticeable on a handful of small meshes and avoids that.
+				if ((isArm || keepRigWeapon || keepRigMagazine) && mesh.Mesh != null)
+				{
+					for (int surface = 0; surface < mesh.Mesh.GetSurfaceCount(); surface++)
 					{
-						BaseMaterial3D twoSided = (BaseMaterial3D)armMaterial.Duplicate(true);
+						Material? active = mesh.MaterialOverride ?? mesh.GetSurfaceOverrideMaterial(surface) ?? mesh.Mesh.SurfaceGetMaterial(surface);
+						if (active is not BaseMaterial3D source) continue; // leave shader materials alone
+						BaseMaterial3D twoSided = (BaseMaterial3D)source.Duplicate(true);
 						twoSided.CullMode = BaseMaterial3D.CullModeEnum.Disabled;
-						mesh.MaterialOverride = twoSided;
+						mesh.SetSurfaceOverrideMaterial(surface, twoSided);
 					}
 				}
 				if (Data.HideOriginalWeapon && ContainsName(Data.OriginalWeaponMeshNames, mesh.Name)) mesh.Visible = false;
@@ -166,36 +177,88 @@ public partial class ViewModelBase : Node3D
 	{
 		if (Data == null || _skeleton == null || Data.WeaponModelScene == null || string.IsNullOrEmpty(Data.AttachBoneName)) return;
 		if (_skeleton.FindBone(Data.AttachBoneName) < 0) return;
-		var model = Data.WeaponModelScene.Instantiate<Node3D>();
+
+		// The weapon is glued to a bone of the rig, so it moves with the hand/body exactly like the
+		// rig's own gun does. (It used to sit on the viewmodel root at a fixed offset, which is why every
+		// model other than the rig's own gun floated away from the hands.)
+		BoneAttachment3D? attachment = MakeAttachment("WeaponBoneAttachment", Data.AttachBoneName);
+		if (attachment == null) return;
+
+		// AttachPosition/Rotation/Scale are in that bone's frame, in metres (the rig skeletons are at
+		// scale 1, so no unit correction is needed here).
+		// The skeleton is authored in centimetres AND in a different axis convention, and everything under a
+		// bone inherits that. So the grip is solved from the full chain, in this viewmodel's own frame, and then
+		// moves with the bone, so it still follows the animation.
+		var grip = new Node3D { Name = "WeaponGrip" };
+		attachment.AddChild(grip);
+		Node3D model = Data.WeaponModelScene.Instantiate<Node3D>();
 		model.Name = "WeaponModel";
-		AddChild(model);
+		grip.AddChild(model);
 		_weaponModel = model;
-		model.Position = Data.AttachPosition;
-		model.RotationDegrees = Data.AttachRotationDegrees;
-		model.Scale = Data.AttachScale;
+
+		// Where the rig's own gun sits in this viewmodel. Every rig was designed around the hands, so the new
+		// model is centred on that same spot: the hands then hold it the way they hold the rig's gun. The
+		// AttachPosition/AttachRotation/AttachScale values are fine adjustments on top of that alignment.
+		Basis rotation = Basis.FromEuler(Data.AttachRotationDegrees * (Mathf.Pi / 180.0f), EulerOrder.Yxz);
+		Basis scaled = rotation.Scaled(Data.AttachScale);
+		Vector3 modelCenter = LocalAabb(model).GetCenter();
+		Vector3 rigCentre = RigGunCentreInRoot();
+		bool haveRigGun = rigCentre != Vector3.Inf;
+		Vector3 anchor = (haveRigGun ? rigCentre : Vector3.Zero) + Data.AttachPosition;
+		Transform3D wantedInRoot = new Transform3D(scaled, anchor - scaled * modelCenter);
+		int boneIndex = _skeleton.FindBone(Data.AttachBoneName);
+		Transform3D boneGlobal = _skeleton.GlobalTransform * _skeleton.GetBoneGlobalPose(boneIndex);
+		grip.Transform = boneGlobal.AffineInverse() * GlobalTransform * wantedInRoot;
+		model.Transform = Transform3D.Identity;
+
 		ReportWeaponLocalBounds(model);
-		GD.Print($"VIEWMODEL ATTACH weapon='{Data.WeaponName}' model='{Data.WeaponModelScene.ResourcePath}' scene_children={model.GetChildCount()} visible={model.Visible}");
-		if (!string.IsNullOrEmpty(Data.MagazineNodeName) && !string.IsNullOrEmpty(Data.MagazineBoneName))
-		{
-			Node? magazineNode = model.FindChild(Data.MagazineNodeName, true, false);
-			if (magazineNode is Node3D magazine)
+		GD.Print($"VIEWMODEL ATTACH weapon='{Data.WeaponName}' model='{Data.WeaponModelScene.ResourcePath}' bone='{Data.AttachBoneName}'");
+	}
+
+	private static Vector3 InverseScale(Vector3 scale) => new(
+		Mathf.IsZeroApprox(scale.X) ? 1f : 1f / scale.X,
+		Mathf.IsZeroApprox(scale.Y) ? 1f : 1f / scale.Y,
+		Mathf.IsZeroApprox(scale.Z) ? 1f : 1f / scale.Z);
+
+	private static Aabb LocalAabb(Node3D root)
+	{
+		Aabb? bounds = null;
+		Transform3D rootInverse = root.GlobalTransform.AffineInverse();
+		foreach (Node node in GetDescendants(root))
+			if (node is MeshInstance3D mesh)
 			{
-				var magazineAttachment = MakeAttachment("MagazineAttachment", Data.MagazineBoneName);
-				if (magazineAttachment != null)
-				{
-					Transform3D global = magazine.GlobalTransform;
-					magazine.GetParent()?.RemoveChild(magazine);
-					magazineAttachment.AddChild(magazine);
-					magazine.GlobalTransform = global;
-					magazine.Position += Data.MagazinePosition;
-					magazine.RotationDegrees += Data.MagazineRotationDegrees;
-					magazine.Scale *= Data.MagazineScale;
-				}
+				Aabb local = TransformAabb(mesh.GetAabb(), rootInverse * mesh.GlobalTransform);
+				bounds = bounds.HasValue ? bounds.Value.Merge(local) : local;
 			}
-			else GD.PushWarning($"{Data.WeaponName}: magazine node '{Data.MagazineNodeName}' not found in {Data.WeaponModelScene.ResourcePath}.");
-		}
-		_muzzlePoint = new Node3D { Name = "MuzzlePoint", Position = Data.MuzzlePointOffset };
-		model.AddChild(_muzzlePoint);
+		return bounds ?? new Aabb(Vector3.Zero, Vector3.Zero);
+	}
+
+	/// <summary>Centre of the rig's own gun meshes, in this viewmodel's root space; Vector3.Inf if the rig
+	/// has none. A skinned mesh is drawn at skeleton-space coordinates, so its bind AABB is mapped through
+	/// the skeleton's transform rather than the mesh node's.</summary>
+	private Vector3 RigGunCentreInRoot()
+	{
+		if (_rig == null || _skeleton == null || Data == null || Data.OriginalWeaponMeshNames.Count == 0) return Vector3.Inf;
+		Aabb? bounds = null;
+		foreach (Node node in GetDescendants(_rig))
+			if (node is MeshInstance3D mesh && ContainsName(Data.OriginalWeaponMeshNames, mesh.Name))
+			{
+				Aabb a = mesh.GetAabb();
+				bounds = bounds.HasValue ? bounds.Value.Merge(a) : a;
+			}
+		if (!bounds.HasValue) return Vector3.Inf;
+		Transform3D rootInverse = GlobalTransform.AffineInverse();
+		Vector3 viaSkeleton = rootInverse * _skeleton.GlobalTransform * bounds.Value.GetCenter();
+		Vector3 viaMeshNode = Vector3.Zero;
+		int n = 0;
+		foreach (Node node in GetDescendants(_rig))
+			if (node is MeshInstance3D m && ContainsName(Data.OriginalWeaponMeshNames, m.Name))
+			{
+				viaMeshNode += rootInverse * m.GlobalTransform * m.GetAabb().GetCenter();
+				n++;
+			}
+		if (n > 0) viaMeshNode /= n;
+		return viaMeshNode;
 	}
 
 	private void EnsureAlbedoTexture(MeshInstance3D mesh)
@@ -225,7 +288,7 @@ public partial class ViewModelBase : Node3D
 		string path = Data.WeaponName switch
 		{
 			"AK-47" when meshName.ToString() is "Ak" or "Mag_2" => "res://art/animations/player/combat/AK/textures/ak74m_AlbedoTransparency.png",
-			"Glock 19" or "Desert Eagle" when meshName.ToString() == "502_1_low_001" => "res://art/animations/player/combat/fn 502/textures/material_diffuse.png",
+			"Glock 19" or "Desert Eagle" or "FN 502" when meshName.ToString() == "502_1_low_001" => "res://art/animations/player/combat/fn 502/textures/material_diffuse.png",
 			"Shotgun" when meshName.ToString().StartsWith("12g_", StringComparison.Ordinal) => "res://art/animations/player/combat/benelli m4/textures/12gauge_BaseColor_red.png",
 			"Shotgun" when meshName.ToString().StartsWith("matchsaverz", StringComparison.OrdinalIgnoreCase) => "res://art/animations/player/combat/benelli m4/textures/matchsaverz_BaseColor_black_brand_friendly.png",
 			"Shotgun" when meshName.ToString().StartsWith("benelli_m4_", StringComparison.OrdinalIgnoreCase) => "res://art/animations/player/combat/benelli m4/textures/TTI_Benelli_M4_BaseColor_brand_friendly.png",

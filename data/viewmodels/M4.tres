@@ -1,8 +1,37 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
+[ext_resource type="PackedScene" path="res://art/animations/player/combat/M4/source/m4_assult_rfile.fbx" id="2_rig"]
 
 [resource]
 script = ExtResource("1_script")
 WeaponName = "M4"
-UseViewModel = false
+RigScene = ExtResource("2_rig")
+AttachBoneName = ""
+AttachPosition = Vector3(0, 0, 0)
+AttachRotationDegrees = Vector3(0, 0, 0)
+AttachScale = Vector3(1, 1, 1)
+ViewPosition = Vector3(0.08, -0.35, -0.33)
+ViewRotationDegrees = Vector3(0, 180, 0)
+ArmMeshNames = PackedStringArray("sleeve", "hardknuckle")
+OriginalWeaponMeshNames = PackedStringArray("BARREL", "BARREL_001", "BARREL_002")
+OriginalMagazineMeshNames = PackedStringArray()
+ClipMap = {
+"idle": "Armature|Idle",
+"walk": "Armature|Idle",
+"run": "Armature|Idle",
+"fire": "Armature|Shoot",
+"reload": "Armature|Reload",
+"reload_full": "Armature|Reload",
+"draw": "Armature|Take"
+}
+IdlePoseTime = 0.0
+NormalizationReferenceRig = ExtResource("2_rig")
+NormalizationReferenceArmMeshNames = PackedStringArray("sleeve", "hardknuckle")
+MeshMaterials = {}
+HideOriginalWeapon = false
+HideOriginalMagazine = false
+CullMargin = 1.0
+MuzzlePointOffset = Vector3(0, 0, -0.65)
+MagazineNodeName = ""
+MagazineBoneName = ""

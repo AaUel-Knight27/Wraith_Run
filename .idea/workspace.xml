@@ -10,7 +10,10 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/maps/DefaultMap.tscn" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -120,6 +123,7 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;GDScript Start and Debug.Player GDScript.executor&quot;: &quot;Debug&quot;,
+    &quot;Git.Working.Tree.Tab.closed.by.user&quot;: &quot;closed&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
@@ -211,7 +215,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -222,10 +238,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="fixed an audio bug" />
-    <MESSAGE value="added character rig edit system and audio files" />
-    <MESSAGE value="fix debugging systems and fixed control systems." />
-    <MESSAGE value="remaking sound systems" />
     <MESSAGE value="created loading screen, score board and pause" />
     <MESSAGE value="more professional FPS game menu" />
     <MESSAGE value="add bots with different skills and abilities" />
@@ -247,7 +259,11 @@
     <MESSAGE value="added animation player entering car" />
     <MESSAGE value="additional map and rider buggy vehicle" />
     <MESSAGE value="modify car system to integrate with every system" />
-    <option name="LAST_COMMIT_MESSAGE" value="modify car system to integrate with every system" />
+    <MESSAGE value="updated camera view and weapon holding system" />
+    <MESSAGE value="remove shotgun mesh" />
+    <MESSAGE value="added characters and still working on weapons" />
+    <MESSAGE value="more work on the modeling and animations" />
+    <option name="LAST_COMMIT_MESSAGE" value="more work on the modeling and animations" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

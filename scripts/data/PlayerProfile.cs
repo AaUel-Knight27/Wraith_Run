@@ -84,11 +84,16 @@ public static class PlayerProfile
         Save();
     }
 
+    /// <summary>A saved loadout can still hold a weapon that is now coming soon (Karambit, Bazooka).
+    /// Those read back as an empty slot, so existing players never carry them.</summary>
+    private static string Usable(string weaponName) =>
+        string.IsNullOrEmpty(weaponName) || WeaponRules.IsAvailable(weaponName) ? weaponName ?? string.Empty : string.Empty;
+
     public static string GetSetWeapon(int set, WeaponSlot slot)
     {
         EnsureLoaded();
         set = Math.Clamp(set, 0, WeaponRules.SetCount - 1);
-        return _setWeapons[set][(int)slot];
+        return Usable(_setWeapons[set][(int)slot]);
     }
 
     /// <summary>A copy of a set's five weapon names, for the rule checks that need the whole set.</summary>
@@ -96,7 +101,9 @@ public static class PlayerProfile
     {
         EnsureLoaded();
         set = Math.Clamp(set, 0, WeaponRules.SetCount - 1);
-        return (string[])_setWeapons[set].Clone();
+        string[] copy = (string[])_setWeapons[set].Clone();
+        for (int i = 0; i < copy.Length; i++) copy[i] = Usable(copy[i]);
+        return copy;
     }
 
     /// <summary>Puts a weapon in a slot of a set. Returns false (and changes nothing) if the rules
