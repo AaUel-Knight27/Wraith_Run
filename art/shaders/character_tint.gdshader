@@ -20,6 +20,8 @@ uniform sampler2D albedo_texture : source_color, filter_linear_mipmap;
 uniform bool has_albedo_texture = false;
 uniform sampler2D normal_texture : hint_normal, filter_linear_mipmap;
 uniform bool has_normal_texture = false;
+uniform sampler2D ambient_occlusion_texture : hint_default_white, filter_linear_mipmap;
+uniform bool has_ambient_occlusion_texture = false;
 
 uniform float roughness : hint_range(0.0, 1.0) = 0.9;
 uniform float metallic : hint_range(0.0, 1.0) = 0.0;
@@ -42,6 +44,7 @@ void fragment() {
 
 	ALBEDO = tinted;
 	if (has_normal_texture) NORMAL_MAP = texture(normal_texture, UV).rgb;
+	AO = has_ambient_occlusion_texture ? texture(ambient_occlusion_texture, UV).r : 1.0;
 	ROUGHNESS = roughness;
 	METALLIC = metallic;
 }

@@ -17,6 +17,7 @@ using Godot;
 public static class CharacterAppearance
 {
 	private const string ShaderPath = "res://art/shaders/character_tint.gdshader";
+	private const string SharedAmbientOcclusionPath = "res://art/characters/AshenCorvus_1.png";
 	private const string PaintedMeta = "wr_regions_painted";
 
 	/// <summary>Skin tone used for the unpainted head/neck.</summary>
@@ -52,6 +53,9 @@ public static class CharacterAppearance
 		var sourceMaterial = mesh.Mesh?.GetSurfaceCount() > 0
 			? mesh.Mesh.SurfaceGetMaterial(0) as StandardMaterial3D
 			: null;
+		Texture2D? ambientOcclusion = sourceMaterial?.AOTexture;
+		if (ambientOcclusion == null && mesh.Name.ToString() == "vanguard_Mesh")
+			ambientOcclusion = ResourceLoader.Load<Texture2D>(SharedAmbientOcclusionPath);
 		// Godot's FBX importer exposes this rig's compressed skin arrays in a format
 		// that cannot be rebuilt with AddSurfaceFromArrays. Keep the imported mesh intact
 		// and use its source textures with a flat operator tint instead of corrupting it.
@@ -69,6 +73,8 @@ public static class CharacterAppearance
 		material.SetShaderParameter("has_albedo_texture", sourceMaterial?.AlbedoTexture != null);
 		material.SetShaderParameter("normal_texture", sourceMaterial?.NormalTexture);
 		material.SetShaderParameter("has_normal_texture", sourceMaterial?.NormalEnabled == true && sourceMaterial.NormalTexture != null);
+		material.SetShaderParameter("ambient_occlusion_texture", ambientOcclusion);
+		material.SetShaderParameter("has_ambient_occlusion_texture", ambientOcclusion != null);
 		material.SetShaderParameter("roughness", sourceMaterial?.Roughness ?? 0.9f);
 
 		int surfaces = mesh.Mesh?.GetSurfaceCount() ?? 0;
