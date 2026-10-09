@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://pikamp6vhtto" path="res://scripts/player/PlayerMovement.cs" id="1"]
 [ext_resource type="Script" uid="uid://nqxihnrb77iw" path="res://scripts/player/PlayerAnimationController.cs" id="2"]
-[ext_resource type="PackedScene" uid="uid://cvu4g1q7u08cn" path="res://art/characters/manny.glb" id="3"]
+[ext_resource type="PackedScene" uid="uid://slepl22na36o" path="res://art/characters/AshenCorvus.fbx" id="3"]
 [ext_resource type="Script" uid="uid://clr0dfqn2qy36" path="res://scripts/player/WeaponAttachment.cs" id="5"]
 [ext_resource type="Script" uid="uid://bv4ex5e47rpam" path="res://scripts/player/WeaponSwitcher.cs" id="6"]
 [ext_resource type="Script" uid="uid://h4aa5jv6d8ix" path="res://scripts/network/PlayerNetworkSynchronizer.cs" id="7"]
@@ -12,7 +12,6 @@
 [ext_resource type="Script" uid="uid://8yx0crdy7yls" path="res://scripts/player/PlayerScore.cs" id="11"]
 [ext_resource type="Script" uid="uid://bnk2rfyi00vdx" path="res://scripts/player/PlayerAudio.cs" id="12"]
 [ext_resource type="Script" uid="uid://cqvvj4h5cvx1x" path="res://scripts/player/TouchControls.cs" id="14"]
-[ext_resource type="Script" uid="uid://dbp87dk8oe3rn" path="res://scripts/debug/WeaponSoundTuner.cs" id="16"]
 [ext_resource type="Script" uid="uid://cxg1yq5hqar8y" path="res://scripts/player/CharacterLoadout.cs" id="17"]
 [ext_resource type="Script" uid="uid://c3jrms6yk8aun" path="res://scripts/player/ViewModelManager.cs" id="18_viewmodels"]
 [ext_resource type="Script" uid="uid://cd53owxr5ayrl" path="res://scripts/player/ViewModelCameraMotion.cs" id="19_camera_motion"]
@@ -107,9 +106,6 @@ script = ExtResource("6")
 
 [node name="PlayerAudio" type="Node3D" parent="." unique_id=1051886432]
 script = ExtResource("12")
-
-[node name="WeaponSoundTuner" type="Node" parent="." unique_id=576238125]
-script = ExtResource("16")
 
 [node name="Hud" type="CanvasLayer" parent="." unique_id=1596748861]
 script = ExtResource("9")

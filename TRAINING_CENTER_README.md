@@ -1,6 +1,6 @@
 # Wraith Run — Training Center
 
-Main menu → **Train** → Training Center. Fully offline, one trainee, **Manny only**.
+Main menu → **Train** → Training Center. Fully offline, one trainee, **shared character only**.
 
 > **Read this first — verification status.** This was written without access to Godot or a C# compiler, so it has
 > **not been compiled or run.** I audited it statically (details at the bottom) but expect to fix a handful of small
@@ -42,12 +42,12 @@ names in Project Settings, yours win — nothing here changes.
 
 ---
 
-## Manny only
+## shared character only
 
-* Every body in training — the trainee, enemies, friends, targets — is `art/characters/manny.glb` (`MannyOnly.cs`).
+* Every body in training — the trainee, enemies, friends, targets — is `art/characters/AshenCorvus.fbx` (`SharedCharacterModel.cs`).
 * The trainee is `Player.tscn` with its `CharacterLoadout` node **removed before it enters the tree**, so no operator tint or
-  kit can apply, plus the two networking nodes an offline player must not have. `MannyOnly.VerifyTrainee` logs an error if the
-  trainee's Armature is not Manny.
+  kit can apply, plus the two networking nodes an offline player must not have. `SharedCharacterModel.VerifyTrainee` logs an error if the
+  trainee's Armature is not shared character.
 * Training is **per class, on the baseline kit** (`TrainingKit`), not per character. When you add characters, nothing here changes.
 
 ---
@@ -59,9 +59,9 @@ names in Project Settings, yours win — nothing here changes.
 ```
 core/      TrainingSession (root, lifecycle, spawn helpers)   TrainingDrill (base)   DrillRegistry (the catalogue)
            TrainingKit (class baseline numbers)   TrainingStats   TrainingProgress   TrainingDamage   TrainingAnchors/Anchor/Zone
-           MannyOnly   TrainingInput   TrainingUtil   TrainingWeapons   TrainingTypes
+           SharedCharacterModel   TrainingInput   TrainingUtil   TrainingWeapons   TrainingTypes
 mechanics/ HealSystem  RepairSystem  ExplosiveSystem(+PlacedCharge)  SmokeSystem  SpikeStripSystem  CalloutSystem  HoldChannel
-actors/    TrainingActor (static Manny enemy/friend)  TrainingTarget  TrainingCar  BreachWall
+actors/    TrainingActor (static shared character enemy/friend)  TrainingTarget  TrainingCar  BreachWall
 ports/     Ports.cs   (the interfaces the real game systems plug into)
 ui/        TrainingHud  TrainingMenu  TrainingMapView
 drills/    one file per drill
@@ -144,7 +144,7 @@ practice spike strip for the demolisher (baseline classes don't have them). Chan
      (auto-detected from the hood height), and makes its material opaque + back-face-culled so a seated player can see out. If it drives
      **backwards**, tick `Flip Model Front` on the car (or set it in `TrainingCar.cs`). The three 4096² textures are heavy for mobile —
      consider importing at 2048².
-   * **Bots are static** and hold weapons. Manny locomotion, combat, and death clips were removed globally; first-person weapon rigs use their supplied FPS clips.
+   * **Bots are static** and hold weapons. shared character locomotion, combat, and death clips were removed globally; first-person weapon rigs use their supplied FPS clips.
    * **Seat swap:** *Drive → Seat Swap*; stop under 2 m/s, press **E**.
    * **Heal / repair / plant** show a progress bar and a prompt; the **G** key sends the drill's context callout.
    * Anything printed in red in Godot's Output panel when a drill starts.

@@ -121,7 +121,7 @@ public partial class LeftHandIk : Node
 		_alignModifier.Influence = 0.0f;
 	}
 
-	/// <summary>Which axis of the elbow bone points at the pole. Confirmed against the Manny rig
+	/// <summary>Which axis of the elbow bone points at the pole. Confirmed against the shared rig
 	/// by measurement (see the animation probe): with this axis the elbow ends up below and
 	/// outside the shoulder-wrist line instead of flipping up.</summary>
 	public static SkeletonModifier3D.SecondaryDirection PoleDirectionAxis = SkeletonModifier3D.SecondaryDirection.PlusX;

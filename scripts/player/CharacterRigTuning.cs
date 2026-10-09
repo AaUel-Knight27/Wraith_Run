@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Every hand-authored adjustment to how Manny's rig, first-person camera and overall size look,
+/// Every hand-authored adjustment to how the shared character rig, first-person camera and overall size look,
 /// in one place - the data half of the Character Rig Editor (F2, scripts/debug/CharacterRigTuner.cs).
 /// Static on purpose, same reasoning as AnimationTuning: there is one calibration for every player in
-/// the process, including remote copies, because everyone shares the same manny.glb rig.
+/// the process, including remote copies, because everyone shares the same character rig.
 ///
 /// SHAPE: overrides are keyed by (PoseMode, weapon). PoseMode has a "Global" fallback every other
 /// mode falls back to; weapon has an "AnyWeapon" fallback every specific weapon falls back to. So a

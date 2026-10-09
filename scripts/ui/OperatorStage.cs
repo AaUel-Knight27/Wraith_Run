@@ -6,13 +6,13 @@ using Godot;
 /// holding a weapon) or a single weapon model turning slowly. It draws onto
 /// a transparent background so the red-smoke menu backdrop shows through around the figure.
 ///
-/// The operator uses the static Manny mesh + skeleton with animation import disabled, painted
+/// The operator uses the static shared character mesh + skeleton with animation import disabled, painted
 /// and tinted by CharacterAppearance exactly like the in-match body. The weapon is held by the
 /// same WeaponAttachment the match uses, so the grip in the lobby is the grip in the game.
 /// </summary>
 public partial class OperatorStage : SubViewportContainer
 {
-	private const string CharacterScenePath = "res://art/characters/manny.glb";
+	private const string CharacterScenePath = "res://art/characters/AshenCorvus.fbx";
 	private const float OperatorBaseYaw = 16.0f;
 	private const float WeaponFitLength = 1.5f;
 

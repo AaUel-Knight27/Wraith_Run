@@ -442,7 +442,7 @@ public partial class HubTablet : CanvasLayer
         if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
         _hub.LeaveSession(false);
         LoadingScreen.Instance?.Show();
-        GetTree().ChangeSceneToFile("res://scenes/training/TrainingCenter.tscn");
+        GetTree().ChangeSceneToFile("res://scenes/training/ShootingRange.tscn");
     }
 
     /// <summary>Jumps to a tablet page by name (Home, Play, Operator, Status, Chat, Settings). Used by
@@ -601,7 +601,7 @@ public partial class HubTablet : CanvasLayer
         {
             right.AddChild(MenuStyle.Hero("HOST", "Choose the mode and the map", new Vector2(330, 84), () => { _playStep = PlayStep.Host; ShowSection(Section.Play); }));
             right.AddChild(MenuStyle.Hero("JOIN", "Find a game on this Wi-Fi", new Vector2(330, 84), () => { _playStep = PlayStep.Join; ShowSection(Section.Play); }));
-            right.AddChild(MenuStyle.Hero("TRAINING", "Drills against bots", new Vector2(330, 84), LeaveForTraining));
+            right.AddChild(MenuStyle.Hero("SHOOTING RANGE", "Practice with any weapon", new Vector2(330, 84), LeaveForTraining));
         }
     }
 

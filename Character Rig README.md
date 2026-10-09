@@ -56,7 +56,7 @@ Run the game (debug build), press **F2**, then pick **Character Rig Editor** fro
   having it equipped (you can plan ahead); hit **Match equipped** to jump the dropdown to whatever
   you're actually holding right now. Leave it on "Any weapon" and nothing changes from before this
   existed.
-- A **searchable target list**: every bone in Manny's skeleton (type "index", "thumb", "spine",
+- A **searchable target list**: every bone in shared character's skeleton (type "index", "thumb", "spine",
   "lefthand", etc. to filter), plus two special targets pinned at the top — **Camera
   (first-person)** and **Whole-character scale**.
 - **Position / Rotation / Scale fields** for the selected target (Camera has no scale field;
@@ -110,7 +110,7 @@ Whichever single target you have selected (bone/camera/scale, in whichever mode 
 is broadcast to every connected peer (rate-limited, with a keepalive so a peer joining mid-session
 catches up) — you'll see it applied on their screen from their own camera, and they'll see your
 finger/camera/scale tweak on your character from theirs. This is a **shared rig calibration**, not
-a per-player cosmetic: everyone's copy of Manny uses the same tuning data, exactly like
+a per-player cosmetic: everyone's copy of shared character uses the same tuning data, exactly like
 `AnimationTuning` and `WeaponGripTuner` already work.
 
 ## Things you might want to add later (not built — flagging so you can decide)
@@ -123,7 +123,7 @@ a per-player cosmetic: everyone's copy of Manny uses the same tuning data, exact
   (asymmetric holds are common), but worth knowing if you expect a "mirror" button.
 - **The first-person viewmodel skeleton.** `fps_mp5_arms.glb` / `FirstPersonMp5Viewmodel.cs` has its
   own separate rig, but it isn't instanced in `Player.tscn` yet (your first-person view is
-  currently Manny's own arms). If you wire the viewmodel in later, this same system could target
+  currently shared character's own arms). If you wire the viewmodel in later, this same system could target
   its bones too — it would just need a second "which skeleton" choice in the target list.
 - **Death pose.** `PlayDeath()` plays a fixed `AnimationPlayer` clip with the tree switched off, so
   none of this touches ragdoll/death poses.
