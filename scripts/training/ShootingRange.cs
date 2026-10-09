@@ -63,8 +63,8 @@ public partial class ShootingRange : Node3D
 		AddBox("LeftWall", new Vector3(-12.25f, 2.5f, -37.0f), new Vector3(0.5f, 5, 90), wall);
 		AddBox("RightWall", new Vector3(12.25f, 2.5f, -37.0f), new Vector3(0.5f, 5, 90), wall);
 		AddBox("Backstop", new Vector3(0, 3.0f, -82.25f), new Vector3(24, 6, 0.5f), wall);
-		AddBox("LaneDividerLeft", new Vector3(-4.0f, 0.65f, -37.0f), new Vector3(0.16f, 1.3f, 87), divider);
-		AddBox("LaneDividerRight", new Vector3(4.0f, 0.65f, -37.0f), new Vector3(0.16f, 1.3f, 87), divider);
+		AddBox("LaneDividerLeft", new Vector3(-4.0f, 0.4f, -37.0f), new Vector3(0.16f, 0.8f, 87), divider);
+		AddBox("LaneDividerRight", new Vector3(4.0f, 0.4f, -37.0f), new Vector3(0.16f, 0.8f, 87), divider);
 	}
 
 	private void AddBox(string name, Vector3 position, Vector3 size, Material material)
