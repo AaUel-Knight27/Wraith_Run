@@ -218,7 +218,7 @@ public partial class LanMenu : Control
 
 		var play = MenuStyle.Hero("PLAY", null, new Vector2(300, 78), ShowPlay);
 		column.AddChild(play);
-		column.AddChild(MenuStyle.Card("crosshair", "TRAIN", null, new Vector2(300, 64),
+		column.AddChild(MenuStyle.Card("crosshair", "RANGE", null, new Vector2(300, 64),
 			LeaveForTraining,
 			titleSize: 26, iconSize: 34));
 
@@ -988,11 +988,11 @@ public partial class LanMenu : Control
 		RunTerminalCleanup();
 		LoadingScreen.Instance?.Show();
 		SetProcess(false);
-		CallDeferred(nameof(ChangeToTrainingCenter));
+		CallDeferred(nameof(ChangeToShootingRange));
 	}
 
-	private void ChangeToTrainingCenter() =>
-		GetTree().ChangeSceneToFile("res://scenes/training/TrainingCenter.tscn");
+	private void ChangeToShootingRange() =>
+		GetTree().ChangeSceneToFile("res://scenes/training/ShootingRange.tscn");
 
 	private void RunTerminalCleanup()
 	{
