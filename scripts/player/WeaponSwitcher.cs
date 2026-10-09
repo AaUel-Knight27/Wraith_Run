@@ -164,6 +164,16 @@ public partial class WeaponSwitcher : Node
 		return index >= 0 && TryEquip(index);
 	}
 
+	/// <summary>Practice range rack: equip any registered weapon without changing the player's saved
+	/// weapon set. This entry point is used only by the offline shooting range.</summary>
+	public bool EquipByNameForPractice(string weaponName)
+	{
+		int index = System.Array.IndexOf(Loadout, weaponName);
+		if (index < 0 || !PlayerIdentity.HasAuthority(_player) || (_health != null && _health.IsDead)) return false;
+		ReplicatedWeaponIndex = index;
+		return _appliedWeaponIndex == index;
+	}
+
 	/// <summary>Slot in Loadout of the weapon that is actually equipped right now (-1 before the
 	/// first equip in _Ready has run).</summary>
 	public int EquippedIndex => _appliedWeaponIndex;
