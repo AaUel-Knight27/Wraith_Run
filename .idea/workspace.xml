@@ -12,7 +12,6 @@
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/maps/DefaultMap.tscn" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -238,7 +237,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="created loading screen, score board and pause" />
     <MESSAGE value="more professional FPS game menu" />
     <MESSAGE value="add bots with different skills and abilities" />
     <MESSAGE value="rebuild match Result" />
@@ -263,7 +261,8 @@
     <MESSAGE value="remove shotgun mesh" />
     <MESSAGE value="added characters and still working on weapons" />
     <MESSAGE value="more work on the modeling and animations" />
-    <option name="LAST_COMMIT_MESSAGE" value="more work on the modeling and animations" />
+    <MESSAGE value="fix guns, camera, anti cheat, add weapons, maps, textures." />
+    <option name="LAST_COMMIT_MESSAGE" value="fix guns, camera, anti cheat, add weapons, maps, textures." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

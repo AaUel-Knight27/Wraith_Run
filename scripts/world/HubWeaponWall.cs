@@ -13,8 +13,8 @@ public partial class HubWeaponWall : Node3D
 {
     private const uint SlotLayer = 1u << 19;
     private const float ReachMetres = 3.2f;
-    private const float WallZ = -5.45f;
-    private const float SlotSpacing = 1.15f;
+    private const float WallZ = -14.0f;
+    private const float SlotSpacing = 2.2f;
 
     private readonly List<(string Name, Node3D Marker)> _slots = new();
     private Label? _prompt;
@@ -43,23 +43,26 @@ public partial class HubWeaponWall : Node3D
     /// taken weapon does not come back on the wall while the game is running.</summary>
     private static readonly HashSet<string> TakenHere = new();
 
-    /// <summary>The north rack has five labels, so it is spaced wider than the side racks.</summary>
-    private const float NorthSpacing = 1.45f;
-    private const float SideSpacing = 1.2f;
-    private const float WestRackX = -5.85f;
-    private const float EastRackX = 5.95f;
-
-    /// <summary>The three racks: the north wall (primaries and the shotgun), a west rack (pistols) and an
-    /// east rack (the coming-soon weapons, greyed out until their animations are done).</summary>
+    /// <summary>Every weapon lives on one wide, two-row armory wall at the back of the warehouse.</summary>
     private static readonly (string[] Names, Vector3 Origin, float YawDegrees, float Spacing)[] Racks =
     {
-        (new[] { "AK-47", "M4", "P90", "Kriss Vector", "Shotgun", "Sniper" }, new Vector3(0.0f, 0.0f, WallZ), 0.0f, NorthSpacing),
-        (new[] { "Glock 19", "Desert Eagle", "FN 502" }, new Vector3(WestRackX, 0.0f, 0.0f), 90.0f, SideSpacing),
-        (new[] { "Karambit", "Bazooka" }, new Vector3(EastRackX, 0.0f, 0.0f), -90.0f, SideSpacing),
+        (new[] { "AK-47", "M4", "P90", "Kriss Vector", "Glock 19", "Desert Eagle", "FN 502", "Shotgun", "Karambit", "Bazooka", "Sniper" }, new Vector3(0.0f, 0.0f, WallZ), 0.0f, SlotSpacing),
     };
 
     private void BuildBoard()
     {
+        var pegboardMaterial = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.82f, 0.84f, 0.81f),
+            AlbedoTexture = ResourceLoader.Load<Texture2D>("res://art/materials/warehouse/WeaponPegboard.png"),
+            Roughness = 0.94f,
+        };
+        var frameMaterial = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.16f, 0.095f, 0.052f),
+            Roughness = 0.92f,
+        };
+
         foreach (var rack in Racks)
         {
             var names = new List<string>();
@@ -74,16 +77,22 @@ public partial class HubWeaponWall : Node3D
             AddChild(root);
 
             float spacing = rack.Spacing;
-            float width = names.Count * spacing + 0.8f;
-            var boardSize = new Vector3(width, 2.4f, 0.12f);
-            var boardPos = new Vector3(0.0f, 1.55f, -0.1f);
+            float width = Mathf.Min(names.Count, 6) * spacing + 0.9f;
+            var boardSize = new Vector3(width, 4.9f, 0.12f);
+            var boardPos = new Vector3(0.0f, 3.0f, -0.1f);
             root.AddChild(new MeshInstance3D
             {
                 Name = "Backboard",
                 Mesh = new BoxMesh { Size = boardSize },
                 Position = boardPos,
-                MaterialOverride = new StandardMaterial3D { AlbedoColor = new Color(0.07f, 0.075f, 0.08f), Roughness = 0.9f },
+                MaterialOverride = pegboardMaterial,
             });
+            // Timber edging frames the one continuous perforated board, matching the reference rack.
+            float frameZ = -0.005f;
+            AddFrame(root, "FrameTop", new Vector3(0.0f, boardPos.Y + boardSize.Y * 0.5f + 0.16f, frameZ), new Vector3(width + 0.42f, 0.32f, 0.22f), frameMaterial);
+            AddFrame(root, "FrameBottom", new Vector3(0.0f, boardPos.Y - boardSize.Y * 0.5f - 0.16f, frameZ), new Vector3(width + 0.42f, 0.32f, 0.22f), frameMaterial);
+            AddFrame(root, "FrameLeft", new Vector3(-width * 0.5f - 0.16f, boardPos.Y, frameZ), new Vector3(0.32f, boardSize.Y, 0.22f), frameMaterial);
+            AddFrame(root, "FrameRight", new Vector3(width * 0.5f + 0.16f, boardPos.Y, frameZ), new Vector3(0.32f, boardSize.Y, 0.22f), frameMaterial);
             // Solid: nobody walks through a rack.
             var rackBody = new StaticBody3D { Name = "RackCollision" };
             rackBody.AddChild(new CollisionShape3D { Shape = new BoxShape3D { Size = boardSize }, Position = boardPos });
@@ -92,8 +101,12 @@ public partial class HubWeaponWall : Node3D
             for (int i = 0; i < names.Count; i++)
             {
                 string name = names[i];
-                float x = (i - (names.Count - 1) * 0.5f) * spacing;
-                var marker = new Node3D { Name = $"Slot_{i}", Position = new Vector3(x, 1.55f, 0.05f) };
+                int row = i < 6 ? 0 : 1;
+                int rowCount = row == 0 ? Mathf.Min(6, names.Count) : names.Count - 6;
+                int column = row == 0 ? i : i - 6;
+                float x = (column - (rowCount - 1) * 0.5f) * spacing;
+                float y = row == 0 ? 4.2f : 1.8f;
+                var marker = new Node3D { Name = $"Slot_{i}", Position = new Vector3(x, y, 0.05f) };
                 root.AddChild(marker);
 
                 AddModel(marker, name);
@@ -116,6 +129,17 @@ public partial class HubWeaponWall : Node3D
                 if (TakenHere.Contains(name)) marker.Visible = false;
             }
         }
+    }
+
+    private static void AddFrame(Node3D parent, string name, Vector3 position, Vector3 size, Material material)
+    {
+        parent.AddChild(new MeshInstance3D
+        {
+            Name = name,
+            Mesh = new BoxMesh { Size = size },
+            Position = position,
+            MaterialOverride = material,
+        });
     }
 
     private static int Order(string weaponName)

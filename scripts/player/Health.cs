@@ -7,11 +7,9 @@ using System.Collections.Generic;
 /// this node ends up running the same setter - that's what actually disables the hitbox and
 /// plays the death animation on remote clients, not just the local owner.
 ///
-/// It is also the authoritative end of the kill path: the HP deduction below only ever runs on the
-/// owning device, which makes that device the single legitimate publisher of its own death. The
-/// style flags that decide what a kill is worth (headshot / hip-fire / spin / verge-of-death) are
-/// captured by the attacker as it fires and travel with the damage RPC, so scoring here stays a
-/// pure calculation over data the victim's device can trust.
+/// Health is currently replicated from each player's owning device. Incoming damage claims are
+/// bound to the authenticated sender and checked against that attacker's current weapon, but the
+/// hit itself is still client-reported; competitive play needs host-side shot validation.
 /// </summary>
 public partial class Health : Node
 {
@@ -50,8 +48,8 @@ public partial class Health : Node
 
     /// <summary>
     /// Half-extent of the square area a Free-For-All respawn is drawn from (see
-    /// RespawnPointSelector.SelectAnywhere). Deliberately matched to the current 60x60 Warzone arena -
-    /// widen it together with the map. Team Deathmatch ignores this and uses the respawning player's
+    /// RespawnPointSelector.SelectAnywhere). Kept inside the Prison interior floor bounds; widen it
+    /// when the usable floor changes. Team Deathmatch ignores this and uses the respawning player's
     /// own TeamSpawnArea instead. Also used as the fallback half-extent for a bot respawn with no nav
     /// grid built yet (see BotNav.PickRespawnPosition).
     /// </summary>
@@ -137,18 +135,19 @@ public partial class Health : Node
     }
 
     /// <summary>
-    /// Called by an attacker's client via RpcId targeted at this player's owning peer. Mirrors
-    /// the client-authoritative model PlayerMovement already uses for position: this only takes
-    /// effect on the instance that actually owns the node, never on a remote observer's copy.
+    /// Called by an attacker's client via RpcId targeted at this player's owning peer. The owner
+    /// checks the RPC sender, attacker identity, weapon damage and payload bounds before applying it.
     ///
-    /// styleFlags and basePoints are the attacker's read of the shot (head zone, aim state, spin
-    /// window, the shooter's own HP) and the mode's base kill value. They ride along with the damage
-    /// because only the shooter can observe them, and they are what the kill is scored from here.
+    /// styleFlags and basePoints are still client-reported shot context, so this is not a trusted
+    /// competitive scoring boundary until shots are validated by the host.
     /// </summary>
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     public void ReceiveDamage(float amount, long attackerId, int styleFlags, int basePoints)
     {
         if (!PlayerIdentity.HasAuthority(this) || IsDead || amount <= 0.0f) return;
+        long sender = Multiplayer.GetRemoteSenderId();
+        if (Multiplayer.HasMultiplayerPeer() && sender != 0 && sender != attackerId) return;
+        if (!IsValidDamageClaim(amount, attackerId, styleFlags, basePoints)) return;
         // The hub is a place to stand around and try weapons: shots land, nobody gets hurt.
         if (HubState.Active) return;
         if (IsFriendlyFire(attackerId)) return;
@@ -180,6 +179,30 @@ public partial class Health : Node
         AnnounceDeath(attackerId, styleFlags, basePoints, struggles);
     }
 
+    private bool IsValidDamageClaim(float amount, long attackerId, int styleFlags, int basePoints)
+    {
+        if (basePoints != KillStyleBonus.DefaultBaseKillPoints || (styleFlags & ~63) != 0) return false;
+        CharacterBody3D? attacker = FindPlayer(attackerId);
+        if (attacker == null) return false;
+        long sender = Multiplayer.GetRemoteSenderId();
+        if (Multiplayer.HasMultiplayerPeer() && sender != 0 &&
+            (PlayerIdentity.IsBot(attacker) ? sender != 1 : sender != attacker.GetMultiplayerAuthority())) return false;
+        WeaponData? weapon = attacker.GetNodeOrNull<WeaponSwitcher>("WeaponSwitcher")?.CurrentWeaponData;
+        if (weapon == null) return false;
+        bool legalAmount = Mathf.IsEqualApprox(amount, weapon.BodyDamage) ||
+            (weapon.HeadshotDamage > 0.0f && Mathf.IsEqualApprox(amount, weapon.HeadshotDamage));
+        return legalAmount;
+    }
+
+    private CharacterBody3D? FindPlayer(long peerId)
+    {
+        Node? players = _player.GetParent();
+        if (players == null) return null;
+        foreach (Node child in players.GetChildren())
+            if (child is CharacterBody3D body && PlayerIdentity.IdOf(body) == peerId) return body;
+        return null;
+    }
+
     /// <summary>Whether this player is downed: alive, but at or below DownedThresholdFraction of max HP.</summary>
     public bool IsDowned => !IsDead && CurrentHealth > 0.0f && CurrentHealth <= MaxHealth * DownedThresholdFraction;
 
@@ -205,6 +228,13 @@ public partial class Health : Node
     {
         if (!PlayerIdentity.HasAuthority(this) || !IsDowned) return;
         if (HubState.Active) return;
+        long sender = Multiplayer.GetRemoteSenderId();
+        CharacterBody3D? medic = FindPlayer(medicPeerId);
+        if (medic == null || medic == _player) return;
+        if (Multiplayer.HasMultiplayerPeer() && sender != 0 &&
+            (PlayerIdentity.IsBot(medic) ? sender != 1 : sender != medic.GetMultiplayerAuthority())) return;
+        if (_player.GlobalPosition.DistanceTo(medic.GlobalPosition) > ReviveRangeMetres) return;
+        if (medic.GetNodeOrNull<Health>("Health")?.IsDead != false) return;
         MatchManager? match = MatchManager.Instance;
         if (match != null && match.IsTeamMode && !match.AreTeammates(medicPeerId, PlayerIdentity.IdOf(_player))) return;
         _downedTimer = 0.0f;
@@ -391,8 +421,11 @@ public partial class Health : Node
                 if (_reviveProgress >= ReviveHoldSeconds)
                 {
                     _reviveProgress = 0.0f;
-                    long victimPeer = PlayerIdentity.IdOf(target._player);
-                    target.RpcId(victimPeer, Health.MethodName.ReceiveRevive, PlayerIdentity.IdOf(_player));
+                    long victimAuthority = target._player.GetMultiplayerAuthority();
+                    if (!Multiplayer.HasMultiplayerPeer() || victimAuthority == Multiplayer.GetUniqueId())
+                        target.ReceiveRevive(PlayerIdentity.IdOf(_player));
+                    else
+                        target.RpcId((int)victimAuthority, Health.MethodName.ReceiveRevive, PlayerIdentity.IdOf(_player));
                     ShowPrompt(null);
                     return;
                 }

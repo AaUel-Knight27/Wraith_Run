@@ -31,45 +31,50 @@ public partial class MatchManager : Node
         ConvoyAssault = 6, DuoBuggy = 7
     }
 
-    public enum ArenaMap { Warzone = 0, Ashfields = 1, Depot = 2, Lab = 3, Warehouse = 4, DefaultMap = 5 }
+    public enum ArenaMap { Prison = 0, Ashfields = 1, Depot = 2, Lab = 3, Warehouse = 4, DefaultMap = 5 }
 
     public static readonly ArenaMap[] SelectableMaps =
     {
-        ArenaMap.Warehouse, ArenaMap.DefaultMap, ArenaMap.Warzone, ArenaMap.Ashfields, ArenaMap.Depot, ArenaMap.Lab
+        ArenaMap.Warehouse, ArenaMap.Prison, ArenaMap.Ashfields, ArenaMap.Depot, ArenaMap.Lab
     };
 
     public ArenaMap SelectedMap = ArenaMap.Warehouse;
     public string MapScenePath => SelectedMap switch
     {
+        ArenaMap.Prison => "res://scenes/maps/Prison.tscn",
         ArenaMap.Ashfields => "res://scenes/maps/Ashfields.tscn",
         ArenaMap.Depot => "res://scenes/maps/Depot.tscn",
         ArenaMap.Lab => "res://scenes/maps/Lab.tscn",
         ArenaMap.Warehouse => "res://scenes/maps/DefaultWarehouse.tscn",
-        ArenaMap.DefaultMap => "res://scenes/maps/DefaultMap.tscn",
-        _ => "res://scenes/maps/Warzone.tscn",
+        // The old Outer Perimeter scene referenced a missing GLB. Keep the enum value readable
+        // for saved lobby configs, but route it to the supported warehouse until that asset exists.
+        ArenaMap.DefaultMap => "res://scenes/maps/DefaultWarehouse.tscn",
+        _ => "res://scenes/maps/Prison.tscn",
     };
     public string MapDisplayName => SelectedMap switch
     {
+        ArenaMap.Prison => "Prison",
         ArenaMap.Ashfields => "Ashfields",
         ArenaMap.Depot => "Depot",
         ArenaMap.Lab => "Lab",
         ArenaMap.Warehouse => "Warehouse",
-        ArenaMap.DefaultMap => "Outer Perimeter",
-        _ => "Warzone",
+        ArenaMap.DefaultMap => "Warehouse",
+        _ => "Prison",
     };
     public static string MapName(ArenaMap map) => map switch
     {
+        ArenaMap.Prison => "Prison",
         ArenaMap.Ashfields => "Ashfields",
         ArenaMap.Depot => "Depot",
         ArenaMap.Lab => "Lab",
         ArenaMap.Warehouse => "Warehouse",
-        ArenaMap.DefaultMap => "Outer Perimeter",
-        _ => "Warzone",
+        ArenaMap.DefaultMap => "Warehouse",
+        _ => "Prison",
     };
 
     public static readonly Mode[] SelectableModes =
     {
-        Mode.Default, Mode.PureChase, Mode.StormRespawn, Mode.ClanChase,
+        Mode.Default, Mode.TeamDeathmatch, Mode.PureChase, Mode.StormRespawn, Mode.ClanChase,
         Mode.CursedDeathmatch, Mode.ConvoyAssault, Mode.DuoBuggy
     };
 
@@ -231,7 +236,9 @@ public partial class MatchManager : Node
         if (!HasTimeLimit) return;
         if (_elapsedSeconds < TimeLimitMinutes * 60.0f) return;
 
-        int winner = _teamScores[0] == _teamScores[1] ? -1 : (_teamScores[0] > _teamScores[1] ? 0 : 1);
+        int winner = IsTeamMode
+            ? (_teamScores[0] == _teamScores[1] ? -1 : (_teamScores[0] > _teamScores[1] ? 0 : 1))
+            : FindFfaWinner();
         EndMatch(winner, "time");
     }
 
@@ -491,26 +498,42 @@ public partial class MatchManager : Node
         if (Multiplayer.IsServer() && _lobbyReady.Remove(peerId)) BroadcastLobbyState();
     }
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     public void ReceiveTeamAssignment(long peerId, int team) => ApplyTeamAssignment(peerId, team);
 
     private void ApplyTeamAssignment(long peerId, int team) => _peerTeams[peerId] = team;
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     public void ReceiveHostConfig(int gameMode, bool friendlyFire, bool teamIndicators, int scoreLimit,
         int timeLimitMinutes, int arenaMap, int lobbyPlayerCount, float hostElapsedSeconds)
     {
         GameMode = System.Enum.IsDefined(typeof(Mode), gameMode) ? (Mode)gameMode : Mode.Default;
         FriendlyFire = friendlyFire;
         TeamIndicators = teamIndicators;
-        ScoreLimit = scoreLimit;
-        TimeLimitMinutes = timeLimitMinutes;
-        SelectedMap = System.Enum.IsDefined(typeof(ArenaMap), arenaMap) ? (ArenaMap)arenaMap : ArenaMap.Warzone;
+        ScoreLimit = Math.Clamp(scoreLimit, 1, 10000);
+        TimeLimitMinutes = Math.Clamp(timeLimitMinutes, 0, 240);
+        SelectedMap = System.Enum.IsDefined(typeof(ArenaMap), arenaMap) ? (ArenaMap)arenaMap : ArenaMap.Prison;
         LobbyPlayerCount = Math.Clamp(lobbyPlayerCount, ModeRules.MinimumPlayers, ModeRules.MaximumPlayers);
-        _elapsedSeconds = hostElapsedSeconds;
+        _elapsedSeconds = Mathf.Clamp(hostElapsedSeconds, 0.0f, 86400.0f);
         HostConfigReceived = true;
         _matchEnded = false;
         WinningTeam = -1;
+    }
+
+    private int FindFfaWinner()
+    {
+        int bestKills = 0;
+        int winner = -1;
+        bool tied = false;
+        foreach (Node node in GetTree().GetNodesInGroup("players"))
+        {
+            if (node is not CharacterBody3D player) continue;
+            long id = PlayerIdentity.IdOf(player);
+            int kills = MatchStats.Instance?.Get(id).Kills ?? 0;
+            if (kills > bestKills) { bestKills = kills; winner = (int)id; tied = false; }
+            else if (kills > 0 && kills == bestKills) tied = true;
+        }
+        return bestKills == 0 || tied ? -1 : winner;
     }
 
     /// <summary>-1 when the peer has not been assigned a team yet (or GameMode is FreeForAll, which

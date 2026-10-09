@@ -31,8 +31,8 @@ public static class RespawnPointSelector
 
 	/// <summary>Half-extent of the square area a Free-For-All pick is drawn from when nothing more
 	/// specific is available (used by both Health.Respawn's SpawnAreaHalfExtent default and
-	/// GameWorld's initial join spawn), matched to the current 60x60 Warzone arena. Widen together
-	/// with the map.</summary>
+	/// GameWorld's initial join spawn), matched to the current Prison interior spawn footprint. Keep it inside the floor bounds
+	/// when the map dimensions change.</summary>
 	public const float DefaultMapHalfExtent = 26.0f;
 
 	/// <summary>How far apart two players' respawn points must be so a random pick never lands one

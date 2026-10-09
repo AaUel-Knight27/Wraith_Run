@@ -38,7 +38,7 @@ public partial class PlayerAudio : Node3D
 
 	/// <summary>Below this fraction of MaxHealth, the local player hears their own breathing.
 	/// Nobody else does - see the note on _lowHealthPlayer below.</summary>
-	private const float LowHealthThreshold = Health.DownedThresholdFraction;
+	private const float LowHealthThreshold = 0.30f;
 
 	// --- levels -------------------------------------------------------------------------------
 	// Gain trims in dB. The clips were recorded at wildly different levels (the walk/run clips are

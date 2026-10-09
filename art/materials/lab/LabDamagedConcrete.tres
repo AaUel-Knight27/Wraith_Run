@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SurfaceLayer" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://mapkit/Core/SurfaceLayer.cs" id="1_script"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/Concrete044D_1K-JPG_Color.jpg" id="2_albedo"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/Concrete044D_1K-JPG_NormalGL.jpg" id="3_normal"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/Concrete044D_1K-JPG_ORM.png" id="4_orm"]
+
+[resource]
+script = ExtResource("1_script")
+Albedo = ExtResource("2_albedo")
+Normal = ExtResource("3_normal")
+Orm = ExtResource("4_orm")
+Tint = Color(0.82, 0.82, 0.78, 1)
+TileMeters = 2.4

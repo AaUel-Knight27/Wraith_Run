@@ -87,13 +87,12 @@ only there so the victim's device can tell a blade kill apart from a bullet kill
 
 New `SurfaceType` enum (Generic/Metal/Wood/Glass) and `SurfaceClassifier` in
 `scripts/combat/SurfaceType.cs`. **Please read the honest-limitation note in that file** - the map
-kit's procedural geometry (all of Depot and Ashfields, and most of Warzone) has no per-material
+kit's procedural geometry (all of Depot and Ashfields) has no per-material
 physics tagging at all once `MeshBatcher` merges it, so classification is a best-effort node-name
 guess, upgradable per-prop via three new Godot groups (`surface_metal`/`surface_wood`/`surface_glass`)
-whenever you want to tag something precisely. Today it correctly identifies Warzone's shipping
-containers and oil drums as metal (they're real, individually-named scene nodes) and nothing else -
-everything else gets the new generic wall-hit sound, which is still strictly better than the single
-shared pistol-thud every surface used before.
+whenever you want to tag something precisely. The Prison interior uses individually named scene
+objects, while Depot and Ashfields still rely on procedural map geometry. Add the surface groups to discrete props when precise impact materials are
+needed; otherwise hits use the generic wall sound.
 
 A geometry impact (a shot hitting a wall/crate/container, not a person) now **broadcasts** to every
 peer instead of only playing on the shooter's own device - previously only the shooter ever heard a

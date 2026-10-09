@@ -1,8 +1,6 @@
 using Godot;
 
-/// <summary>The things standing in the hub warehouse besides the weapon wall: the player's car in the
-/// corner and the armory corner's sign. Visual only plus a box collider each, built at runtime so
-/// the warehouse art stays untouched.</summary>
+/// <summary>The parked vehicles in the hub's motor-pool bays. Visual only plus a box collider each.</summary>
 public static class HubProps
 {
     private const string CarPath = "res://art/vehicles/Low_Poly_Car_-_Toyota_Land_Cruiser_70_GXL_2024.glb";
@@ -12,9 +10,8 @@ public static class HubProps
     {
         var root = new Node3D { Name = "HubProps" };
         world.AddChild(root);
-        AddCar(root, CarPath, 4.9f, new Vector3(-3.3f, 0.0f, 4.3f), "ParkedCar");
-        AddCar(root, BuggyPath, 3.6f, new Vector3(3.0f, 0.0f, 4.3f), "ParkedBuggy");
-        AddArmorySign(root);
+        AddCar(root, CarPath, 4.9f, new Vector3(-9.4f, 0.0f, 9.4f), "ParkedCar");
+        AddCar(root, BuggyPath, 3.6f, new Vector3(8.2f, 0.0f, 9.4f), "ParkedBuggy");
     }
 
     private static void AddCar(Node3D root, string path, float lengthMetres, Vector3 spot, string name)
@@ -61,20 +58,4 @@ public static class HubProps
         return any ? total : default;
     }
 
-    private static void AddArmorySign(Node3D root)
-    {
-        var sign = new Label3D
-        {
-            Name = "ArmorySign",
-            Text = "ARMORY",
-            FontSize = 96,
-            PixelSize = 0.006f,
-            Modulate = new Color(1.0f, 0.25f, 0.2f),
-            OutlineSize = 12,
-            Position = new Vector3(0.0f, 3.6f, -5.55f),
-            Billboard = BaseMaterial3D.BillboardModeEnum.Disabled,
-            DoubleSided = false,
-        };
-        root.AddChild(sign);
-    }
 }

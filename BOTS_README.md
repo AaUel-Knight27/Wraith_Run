@@ -102,9 +102,8 @@ Max bots is `MaxBots` in `GameWorld.cs`; grid resolution is `NavCell`.
 
 I had no Godot or .NET here, so **this has not been compiled or run**. I checked it by: cross-referencing every
 identifier and API signature against your source, brace/paren balance, simulating the map's navigability from the
-real Warzone colliders, and simulating duels with a line-for-line port of the aim code. Please build once; if the
-compiler reports anything, send me the message. Also worth a look in play: bots on Ashfields/Depot (only Warzone
-is loaded today), and the upper floor of the central ruin (bots stay on the ground floor).
+real Prison colliders, and simulating duels with a line-for-line port of the aim code. Please build once; if the
+compiler reports anything, send me the message. Also worth a look in play: bots and their spawn paths on the currently selectable maps.
 
 If you later apply the MP5 viewmodel patch, change `_isLocal` in `FirstPersonMp5Viewmodel`/`FirstPersonArms` to
 use `PlayerIdentity.IsLocalHuman(player)` so a bot's copy never shows a first-person weapon.
