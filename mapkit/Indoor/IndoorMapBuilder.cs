@@ -127,6 +127,9 @@ public partial class IndoorMapBuilder : Node3D
         System.Func<object, Material?> resolve = mat => mat is SurfaceLayer sl ? sl.CreateMaterial() : null;
         MapKitUtil.EmitBatch(batch, resolve, visual, collision, owner, genFolder, "Room", castShadows: true, visibleRange: 0.0f);
 
+        // Rebuild optional scene-root dressing after replacing Generated.
+        (owner.GetNodeOrNull<RuinPass>("RuinPass") ?? GetNodeOrNull<RuinPass>("RuinPass"))?.ApplyTo(root);
+
         MapKitUtil.Log($"IndoorMapBuilder: {batch.TotalTriangles} triangles, {batch.BucketCount} draw calls before furnishing props.");
     }
 

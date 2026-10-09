@@ -15,6 +15,14 @@ Wraith Run uses the following third-party work.
 
 - Vanguard character model and animations by T. Choonyung, via Mixamo (mixamo.com).
 
+## Environment materials (ambientCG)
+
+- Corrugated Steel 009, 1K JPG PBR maps (CC0): https://ambientcg.com/view?id=CorrugatedSteel009
+- Concrete 034, 1K JPG PBR maps (CC0): https://ambientcg.com/view?id=Concrete034
+- Asphalt 033, Bricks 105, and Ground 108, 1K JPG PBR maps (CC0): https://ambientcg.com/view?id=Asphalt033, https://ambientcg.com/view?id=Bricks105, https://ambientcg.com/view?id=Ground108
+- Bricks 097, Ground 111, and Road 012B, 1K JPG PBR maps (CC0): https://ambientcg.com/view?id=Bricks097, https://ambientcg.com/view?id=Ground111, https://ambientcg.com/view?id=Road012B
+- Concrete 044D and Painted Plaster 018, 1K JPG PBR maps (CC0): https://ambientcg.com/view?id=Concrete044D, https://ambientcg.com/view?id=PaintedPlaster018
+
 ## People
 
 - Ryan Ahmed: pre-release testing.

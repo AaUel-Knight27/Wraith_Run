@@ -1,7 +1,11 @@
 [gd_scene format=3 uid="uid://bw21os8hbvn5p"]
 
-[ext_resource type="Resource" path="res://art/materials/PaintedPlaster014.tres" id="1_17542"]
-[ext_resource type="Resource" path="res://art/materials/Tiles136C.tres" id="2_33459"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/rust_coarse_01_diffuse_1k.jpg" id="lab_rust_color"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/rust_coarse_01_nor_gl_1k.jpg" id="lab_rust_normal"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/rust_coarse_01_rough_1k.jpg" id="lab_rust_rough"]
+
+[ext_resource type="Resource" path="res://art/materials/lab/LabRust.tres" id="1_17542"]
+[ext_resource type="Resource" path="res://art/materials/lab/LabConcreteFloor.tres" id="2_33459"]
 [ext_resource type="Script" uid="uid://cdjjc7783icx1" path="res://mapkit/Core/SurfaceLayer.cs" id="3_27628"]
 [ext_resource type="Texture2D" uid="uid://dqu8wwdpbpjxv" path="res://art/materials/tex/PaintedPlaster016_Color.jpg" id="4_70973"]
 [ext_resource type="Texture2D" uid="uid://cbh36bkoy3s8a" path="res://art/materials/tex/PaintedPlaster016_Normal.jpg" id="5_72825"]
@@ -22,13 +26,13 @@
 [ext_resource type="Script" uid="uid://bop84yb8vlir0" path="res://mapkit/Indoor/IndoorMapBuilder.cs" id="21_10503"]
 [ext_resource type="ArrayMesh" uid="uid://b0hffxckl2ctc" path="res://scenes/maps/Lab.gen/mesh_Room_0_0__Resource__9223364095258837284_.res" id="21_r6ord"]
 [ext_resource type="ArrayMesh" uid="uid://bequo672erlxp" path="res://scenes/maps/Lab.gen/mesh_Room_0_0__Resource__9223364096315801865_.res" id="22_qvq7f"]
-[ext_resource type="Texture2D" uid="uid://cjs6ilr541ni7" path="res://art/materials/tex/Tiles136C_Color.jpg" id="23_qvhdv"]
-[ext_resource type="Texture2D" uid="uid://b6oeeoxofn5qr" path="res://art/materials/tex/Tiles136C_Normal.jpg" id="24_08cy3"]
-[ext_resource type="Texture2D" uid="uid://cke5estvd70bs" path="res://art/materials/tex/Tiles136C_ORM.jpg" id="25_xbbgi"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/concrete_floor_worn_001_diffuse_1k.jpg" id="23_qvhdv"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/concrete_floor_worn_001_nor_gl_1k.jpg" id="24_08cy3"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/concrete_floor_worn_001_arm_1k.jpg" id="25_xbbgi"]
 [ext_resource type="ArrayMesh" uid="uid://vjhcoh034kxh" path="res://scenes/maps/Lab.gen/mesh_Room_0_0__Resource__9223364099402809654_.res" id="26_t4h0c"]
-[ext_resource type="Texture2D" uid="uid://b3jhk5rv032t1" path="res://art/materials/tex/PaintedPlaster014_Color.jpg" id="27_3jamk"]
-[ext_resource type="Texture2D" uid="uid://q4477e8b1png" path="res://art/materials/tex/PaintedPlaster014_Normal.jpg" id="28_vy4xr"]
-[ext_resource type="Texture2D" uid="uid://dw5lpaleob1j5" path="res://art/materials/tex/PaintedPlaster014_ORM.jpg" id="29_13d32"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/rust_coarse_01_diffuse_1k.jpg" id="27_3jamk"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/rust_coarse_01_nor_gl_1k.jpg" id="28_vy4xr"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/rust_coarse_01_arm_1k.jpg" id="29_13d32"]
 [ext_resource type="ArrayMesh" uid="uid://ohvcdhdvqire" path="res://scenes/maps/Lab.gen/mesh_Room_0_0__Resource__9223364100208116010_.res" id="30_q2inf"]
 [ext_resource type="ArrayMesh" uid="uid://dxjsmeavu65xp" path="res://scenes/maps/Lab.gen/mesh_Room_0_1__Resource__9223364095258837284_.res" id="31_nyxgc"]
 [ext_resource type="ArrayMesh" uid="uid://mehwlqfr5r4r" path="res://scenes/maps/Lab.gen/mesh_Room_0_1__Resource__9223364099402809654_.res" id="32_1b0gq"]
@@ -175,14 +179,24 @@
 [ext_resource type="Shape3D" uid="uid://drr5bjwomkham" path="res://scenes/maps/Lab.gen/shape_Room_col_6_2.res" id="173_smfv2"]
 [ext_resource type="Shape3D" uid="uid://cgov5h5iqxcvd" path="res://scenes/maps/Lab.gen/shape_Room_col_6_3.res" id="174_hchj7"]
 
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/Concrete044D_1K-JPG_Color.jpg" id="lab_damage_color"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/Concrete044D_1K-JPG_NormalGL.jpg" id="lab_damage_normal"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/Concrete044D_1K-JPG_ORM.png" id="lab_damage_orm"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/PaintedPlaster018_1K-JPG_Color.jpg" id="lab_plaster_color"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/PaintedPlaster018_1K-JPG_NormalGL.jpg" id="lab_plaster_normal"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/PaintedPlaster018_1K-JPG_ORM.png" id="lab_plaster_orm"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/Ground111_1K-JPG_Color.jpg" id="lab_rubble_color"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/Ground111_1K-JPG_NormalGL.jpg" id="lab_rubble_normal"]
+[ext_resource type="Texture2D" path="res://art/materials/lab/ambientcg/Ground111_1K-JPG_ORM.png" id="lab_rubble_orm"]
+
 [sub_resource type="Environment" id="Lab_Env"]
 background_mode = 1
 background_color = Color(0.03, 0.035, 0.04, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.62, 0.68, 0.74, 1)
-ambient_light_energy = 0.85
+ambient_light_energy = 0.38
 tonemap_mode = 2
-tonemap_white = 1.2
+tonemap_white = 1.0
 
 [sub_resource type="Resource" id="RoomLayout_Lab"]
 script = ExtResource("20_36490")
@@ -1483,13 +1497,150 @@ ao_light_affect = 0.35
 uv1_scale = Vector3(0.5, 0.5, 0.5)
 texture_filter = 5
 
+
+[sub_resource type="BoxMesh" id="Lab_ShelfBoard"]
+size = Vector3(0.18, 0.13, 5.5)
+
+[sub_resource type="BoxMesh" id="Lab_ShelfPost"]
+size = Vector3(0.16, 2.25, 0.16)
+
+[sub_resource type="CylinderMesh" id="Lab_ReagentBottle"]
+top_radius = 0.12
+bottom_radius = 0.16
+height = 0.46
+radial_segments = 10
+
+[sub_resource type="StandardMaterial3D" id="Lab_Glass_Bottle"]
+albedo_color = Color(0.42, 0.51, 0.38, 1)
+roughness = 0.24
+metallic = 0.08
+
+[sub_resource type="BoxMesh" id="Lab_Monitor"]
+size = Vector3(0.82, 0.62, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="Lab_Monitor_Glass"]
+albedo_color = Color(0.09, 0.16, 0.17, 1)
+roughness = 0.28
+metallic = 0.12
+emission_enabled = true
+emission = Color(0.04, 0.12, 0.12, 1)
+emission_energy_multiplier = 0.45
+
+[sub_resource type="StandardMaterial3D" id="Lab_Rust_Decor"]
+albedo_texture = ExtResource("lab_rust_color")
+roughness_texture = ExtResource("lab_rust_rough")
+roughness = 0.91
+normal_enabled = true
+normal_texture = ExtResource("lab_rust_normal")
+uv1_scale = Vector3(0.32, 0.32, 0.32)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
+
+[sub_resource type="StandardMaterial3D" id="Lab_Light_Housing"]
+albedo_color = Color(0.09, 0.105, 0.102, 1)
+metallic = 0.55
+roughness = 0.68
+
+[sub_resource type="StandardMaterial3D" id="Lab_Light_Tube"]
+albedo_color = Color(0.72, 0.8, 0.68, 1)
+emission_enabled = true
+emission = Color(0.5, 0.62, 0.47, 1)
+emission_energy_multiplier = 2.0
+roughness = 0.42
+
+[sub_resource type="StandardMaterial3D" id="Lab_Wet_Floor"]
+albedo_color = Color(0.11, 0.16, 0.15, 0.62)
+roughness = 0.16
+metallic = 0.12
+transparency = 1
+
+[sub_resource type="BoxMesh" id="Lab_Pipe"]
+size = Vector3(82, 0.22, 0.22)
+
+[sub_resource type="BoxMesh" id="Lab_CrossPipe"]
+size = Vector3(0.2, 0.22, 48)
+
+[sub_resource type="BoxMesh" id="Lab_Fixture"]
+size = Vector3(6.5, 0.18, 0.42)
+
+[sub_resource type="BoxMesh" id="Lab_Lamp"]
+size = Vector3(5.7, 0.08, 0.12)
+
+[sub_resource type="PlaneMesh" id="Lab_Puddle"]
+size = Vector2(7, 4)
+
+[sub_resource type="ORMMaterial3D" id="Lab_Damaged_Concrete_Material"]
+albedo_texture = ExtResource("lab_damage_color")
+orm_texture = ExtResource("lab_damage_orm")
+normal_enabled = true
+normal_texture = ExtResource("lab_damage_normal")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.42, 0.42, 0.42)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="Lab_Peeling_Plaster_Material"]
+albedo_texture = ExtResource("lab_plaster_color")
+orm_texture = ExtResource("lab_plaster_orm")
+normal_enabled = true
+normal_texture = ExtResource("lab_plaster_normal")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.42, 0.42, 0.42)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
+
+[sub_resource type="ORMMaterial3D" id="Lab_Rubble_Material"]
+albedo_texture = ExtResource("lab_rubble_color")
+orm_texture = ExtResource("lab_rubble_orm")
+normal_enabled = true
+normal_texture = ExtResource("lab_rubble_normal")
+ao_enabled = true
+ao_light_affect = 0.35
+uv1_scale = Vector3(0.42, 0.42, 0.42)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 5
+
+[sub_resource type="BoxMesh" id="Lab_Damaged_Wall_Panel"]
+size = Vector3(2.75, 3.05, 0.045)
+
+[sub_resource type="BoxMesh" id="Lab_Crack_Stem"]
+size = Vector3(0.045, 1.8, 0.028)
+
+[sub_resource type="BoxMesh" id="Lab_Crack_Branch"]
+size = Vector3(0.036, 0.82, 0.03)
+
+[sub_resource type="StandardMaterial3D" id="Lab_Crack_Shadow"]
+albedo_color = Color(0.045, 0.052, 0.048, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="Lab_Exposed_Rebar"]
+top_radius = 0.035
+bottom_radius = 0.035
+height = 0.9
+radial_segments = 8
+
+[sub_resource type="BoxMesh" id="Lab_Rubble_Chunk_A"]
+size = Vector3(0.58, 0.22, 0.43)
+
+[sub_resource type="BoxMesh" id="Lab_Rubble_Chunk_B"]
+size = Vector3(0.38, 0.18, 0.32)
+
+[sub_resource type="BoxMesh" id="Lab_Rubble_Chunk_C"]
+size = Vector3(0.26, 0.13, 0.23)
+
 [node name="Lab" type="Node3D" unique_id=1318828770]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=579136319]
 environment = SubResource("Lab_Env")
 
 [node name="Builder" type="Node3D" parent="." unique_id=301653695]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 0, -30)
+transform = Transform3D(1.2, 0, 0, 0, 1, 0, 0, 0, 1, -54, 0, -30)
 script = ExtResource("21_10503")
 Layout = SubResource("RoomLayout_Lab")
 ChunkSize = 15.0
@@ -1502,81 +1653,389 @@ SpawnCells = Array[Vector2i]([Vector2i(2, 3), Vector2i(27, 3), Vector2i(2, 16), 
 
 [node name="Light01" type="OmniLight3D" parent="Builder" unique_id=442960322]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 3.1, 16.5)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light02" type="OmniLight3D" parent="Builder" unique_id=306777517]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 3.1, 40.5)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light03" type="OmniLight3D" parent="Builder" unique_id=1369287222]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.5, 3.1, 16.5)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light04" type="OmniLight3D" parent="Builder" unique_id=283055843]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 67.5, 3.1, 40.5)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light05" type="OmniLight3D" parent="Builder" unique_id=1392013823]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 3.1, 18)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light06" type="OmniLight3D" parent="Builder" unique_id=413737051]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 3.1, 42)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light07" type="OmniLight3D" parent="Builder" unique_id=1952931785]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 3.1, 30)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light08" type="OmniLight3D" parent="Builder" unique_id=105384254]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 3.1, 30)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light09" type="OmniLight3D" parent="Builder" unique_id=133885196]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63, 3.1, 30)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light10" type="OmniLight3D" parent="Builder" unique_id=1759500221]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 3.1, 6)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light11" type="OmniLight3D" parent="Builder" unique_id=1433408526]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 3.1, 6)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light12" type="OmniLight3D" parent="Builder" unique_id=2132823906]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 3.1, 54)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
 
 [node name="Light13" type="OmniLight3D" parent="Builder" unique_id=126748363]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 3.1, 54)
-light_color = Color(0.88, 0.95, 1, 1)
-light_energy = 1.4
-omni_range = 11.0
+light_color = Color(0.88, 0.82, 0.65, 1)
+light_energy = 1.15
+omni_range = 10.0
+
+[node name="DecayProps" type="Node3D" parent="Builder"]
+[node name="Fractured_Wall_Panels" type="Node3D" parent="Builder/DecayProps"]
+
+[node name="North_Peeling_Plaster" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(15, 1.72, 2.975)
+mesh = SubResource("Lab_Damaged_Wall_Panel")
+material_override = SubResource("Lab_Peeling_Plaster_Material")
+
+[node name="North_Broken_Concrete" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(45, 1.72, 2.975)
+mesh = SubResource("Lab_Damaged_Wall_Panel")
+material_override = SubResource("Lab_Damaged_Concrete_Material")
+
+[node name="South_Broken_Concrete" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(24, 1.72, 57.025)
+mesh = SubResource("Lab_Damaged_Wall_Panel")
+material_override = SubResource("Lab_Damaged_Concrete_Material")
+
+[node name="South_Peeling_Plaster" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(69, 1.72, 57.025)
+mesh = SubResource("Lab_Damaged_Wall_Panel")
+material_override = SubResource("Lab_Peeling_Plaster_Material")
+
+[node name="West_Damaged_Concrete" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(3.025, 1.72, 18)
+rotation = Vector3(0, 1.5708, 0)
+mesh = SubResource("Lab_Damaged_Wall_Panel")
+material_override = SubResource("Lab_Damaged_Concrete_Material")
+
+[node name="East_Peeling_Plaster" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(86.975, 1.72, 42)
+rotation = Vector3(0, 1.5708, 0)
+mesh = SubResource("Lab_Damaged_Wall_Panel")
+material_override = SubResource("Lab_Peeling_Plaster_Material")
+
+[node name="North_Crack_Main" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(15.1, 1.7, 3.015)
+rotation = Vector3(0, 0, 0.16)
+mesh = SubResource("Lab_Crack_Stem")
+material_override = SubResource("Lab_Crack_Shadow")
+
+[node name="North_Crack_Branch" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(14.8, 2.2, 3.016)
+rotation = Vector3(0, 0, -0.75)
+mesh = SubResource("Lab_Crack_Branch")
+material_override = SubResource("Lab_Crack_Shadow")
+
+[node name="North_Crack_Branch_Lower" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(15.45, 1.0, 3.016)
+rotation = Vector3(0, 0, 0.9)
+mesh = SubResource("Lab_Crack_Branch")
+material_override = SubResource("Lab_Crack_Shadow")
+
+[node name="South_Crack_Main" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(24.2, 1.7, 56.985)
+rotation = Vector3(0, 0, -0.22)
+mesh = SubResource("Lab_Crack_Stem")
+material_override = SubResource("Lab_Crack_Shadow")
+
+[node name="South_Crack_Branch" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(23.9, 2.2, 56.984)
+rotation = Vector3(0, 0, 0.76)
+mesh = SubResource("Lab_Crack_Branch")
+material_override = SubResource("Lab_Crack_Shadow")
+
+[node name="Sidewall_Crack_Main" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(3.055, 1.8, 18)
+rotation = Vector3(0, 1.5708, 0)
+mesh = SubResource("Lab_Crack_Stem")
+material_override = SubResource("Lab_Crack_Shadow")
+
+[node name="North_Exposed_Rebar_A" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(14.5, 1.0, 3.04)
+mesh = SubResource("Lab_Exposed_Rebar")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="North_Exposed_Rebar_B" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(15.7, 1.12, 3.04)
+mesh = SubResource("Lab_Exposed_Rebar")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Wall_Rubble_North_A" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(14.3, 0.12, 4.8)
+rotation = Vector3(0.08, 0.2, 0.22)
+mesh = SubResource("Lab_Rubble_Chunk_A")
+material_override = SubResource("Lab_Rubble_Material")
+
+[node name="Wall_Rubble_North_B" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(14.75, 0.1, 5.05)
+rotation = Vector3(0.1, 0.5, -0.14)
+mesh = SubResource("Lab_Rubble_Chunk_B")
+material_override = SubResource("Lab_Damaged_Concrete_Material")
+
+[node name="Wall_Rubble_North_C" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(15.1, 0.08, 4.65)
+rotation = Vector3(0.18, -0.2, 0.28)
+mesh = SubResource("Lab_Rubble_Chunk_C")
+material_override = SubResource("Lab_Rubble_Material")
+
+[node name="Wall_Rubble_South_A" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(23.8, 0.12, 55.1)
+rotation = Vector3(0.12, -0.4, -0.16)
+mesh = SubResource("Lab_Rubble_Chunk_A")
+material_override = SubResource("Lab_Rubble_Material")
+
+[node name="Wall_Rubble_South_B" type="MeshInstance3D" parent="Builder/DecayProps/Fractured_Wall_Panels"]
+position = Vector3(24.25, 0.08, 54.8)
+rotation = Vector3(0.04, 0.7, 0.24)
+mesh = SubResource("Lab_Rubble_Chunk_B")
+material_override = SubResource("Lab_Damaged_Concrete_Material")
+
+[node name="Wall_Shelving_North" type="Node3D" parent="Builder/DecayProps"]
+position = Vector3(4.1, 0, 16)
+
+[node name="Shelf_Post_Left" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_North"]
+position = Vector3(0, 1.15, -2.6)
+mesh = SubResource("Lab_ShelfPost")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Shelf_Post_Right" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_North"]
+position = Vector3(0, 1.15, 2.6)
+mesh = SubResource("Lab_ShelfPost")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Shelf_Top" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_North"]
+position = Vector3(0, 2.2, 0)
+mesh = SubResource("Lab_ShelfBoard")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Shelf_Middle" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_North"]
+position = Vector3(0, 1.35, 0)
+mesh = SubResource("Lab_ShelfBoard")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Shelf_Lower" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_North"]
+position = Vector3(0, 0.48, 0)
+mesh = SubResource("Lab_ShelfBoard")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Wall_Shelving_South" type="Node3D" parent="Builder/DecayProps"]
+position = Vector3(4.1, 0, 42)
+
+[node name="Shelf_Post_Left" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_South"]
+position = Vector3(0, 1.15, -2.6)
+mesh = SubResource("Lab_ShelfPost")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Shelf_Post_Right" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_South"]
+position = Vector3(0, 1.15, 2.6)
+mesh = SubResource("Lab_ShelfPost")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Shelf_Top" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_South"]
+position = Vector3(0, 2.2, 0)
+mesh = SubResource("Lab_ShelfBoard")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Shelf_Middle" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_South"]
+position = Vector3(0, 1.35, 0)
+mesh = SubResource("Lab_ShelfBoard")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Shelf_Lower" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_South"]
+position = Vector3(0, 0.48, 0)
+mesh = SubResource("Lab_ShelfBoard")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Reagent_01" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_North"]
+position = Vector3(0, 2.56, -1.7)
+mesh = SubResource("Lab_ReagentBottle")
+material_override = SubResource("Lab_Glass_Bottle")
+
+[node name="Reagent_02" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_North"]
+position = Vector3(0, 2.56, -0.9)
+mesh = SubResource("Lab_ReagentBottle")
+material_override = SubResource("Lab_Glass_Bottle")
+
+[node name="Reagent_03" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_North"]
+position = Vector3(0, 1.72, 1.25)
+mesh = SubResource("Lab_ReagentBottle")
+material_override = SubResource("Lab_Glass_Bottle")
+
+[node name="Reagent_04" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_North"]
+position = Vector3(0, 0.83, -1.15)
+mesh = SubResource("Lab_ReagentBottle")
+material_override = SubResource("Lab_Glass_Bottle")
+
+[node name="Reagent_05" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_South"]
+position = Vector3(0, 2.56, -1.2)
+mesh = SubResource("Lab_ReagentBottle")
+material_override = SubResource("Lab_Glass_Bottle")
+
+[node name="Reagent_06" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_South"]
+position = Vector3(0, 1.72, 1.1)
+mesh = SubResource("Lab_ReagentBottle")
+material_override = SubResource("Lab_Glass_Bottle")
+
+[node name="Reagent_07" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_South"]
+position = Vector3(0, 0.83, -1.8)
+mesh = SubResource("Lab_ReagentBottle")
+material_override = SubResource("Lab_Glass_Bottle")
+
+[node name="Reagent_08" type="MeshInstance3D" parent="Builder/DecayProps/Wall_Shelving_South"]
+position = Vector3(0, 0.83, 0.2)
+mesh = SubResource("Lab_ReagentBottle")
+material_override = SubResource("Lab_Glass_Bottle")
+
+[node name="Terminal_Screen_01" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(40, 1.45, 20)
+mesh = SubResource("Lab_Monitor")
+material_override = SubResource("Lab_Monitor_Glass")
+
+[node name="Terminal_Screen_02" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(49, 1.45, 36)
+mesh = SubResource("Lab_Monitor")
+material_override = SubResource("Lab_Monitor_Glass")
+
+
+[node name="Overhead_Rust_Pipe_A" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(45, 3.22, 7)
+mesh = SubResource("Lab_Pipe")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Overhead_Rust_Pipe_B" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(45, 3.06, 12)
+mesh = SubResource("Lab_Pipe")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Overhead_Rust_Pipe_C" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(45, 3.24, 52)
+mesh = SubResource("Lab_Pipe")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Cross_Pipe_A" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(17, 3.12, 30)
+mesh = SubResource("Lab_CrossPipe")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Cross_Pipe_B" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(73, 3.12, 30)
+mesh = SubResource("Lab_CrossPipe")
+material_override = SubResource("Lab_Rust_Decor")
+
+[node name="Broken_Fluorescent_Housing_01" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(22, 3.42, 20)
+mesh = SubResource("Lab_Fixture")
+material_override = SubResource("Lab_Light_Housing")
+
+[node name="Fluorescent_Tube_01" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(22, 3.3, 20)
+mesh = SubResource("Lab_Lamp")
+material_override = SubResource("Lab_Light_Tube")
+
+[node name="Broken_Fluorescent_Housing_02" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(67, 3.42, 40)
+mesh = SubResource("Lab_Fixture")
+material_override = SubResource("Lab_Light_Housing")
+
+[node name="Fluorescent_Tube_02" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(67, 3.3, 40)
+mesh = SubResource("Lab_Lamp")
+material_override = SubResource("Lab_Light_Tube")
+
+[node name="Puddle_01" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(35, 0.025, 22)
+rotation = Vector3(0, 0.28, 0)
+mesh = SubResource("Lab_Puddle")
+material_override = SubResource("Lab_Wet_Floor")
+
+[node name="Puddle_02" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(55, 0.025, 37)
+rotation = Vector3(0, -0.42, 0)
+mesh = SubResource("Lab_Puddle")
+material_override = SubResource("Lab_Wet_Floor")
+
+[node name="Puddle_03" type="MeshInstance3D" parent="Builder/DecayProps"]
+position = Vector3(18, 0.025, 47)
+rotation = Vector3(0, 0.6, 0)
+mesh = SubResource("Lab_Puddle")
+material_override = SubResource("Lab_Wet_Floor")
+
+[node name="Wall_Graffiti_Save" type="Label3D" parent="Builder/DecayProps"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 31, 2.7, 2.8)
+text = "SAVE OURSELVES"
+font_size = 38
+pixel_size = 0.012
+modulate = Color(0.67, 0.63, 0.52, 1)
+outline_size = 8
+outline_modulate = Color(0.12, 0.13, 0.12, 1)
+
+[node name="Wall_Graffiti_Failed" type="Label3D" parent="Builder/DecayProps"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 58, 2.55, 2.8)
+text = "WE FAILED"
+font_size = 35
+pixel_size = 0.012
+modulate = Color(0.47, 0.16, 0.12, 1)
+outline_size = 8
+outline_modulate = Color(0.1, 0.1, 0.09, 1)
+
+[node name="Wall_Graffiti_End_Times" type="Label3D" parent="Builder/DecayProps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7, 2.55, 30)
+text = "END TIMES"
+font_size = 34
+pixel_size = 0.012
+modulate = Color(0.63, 0.57, 0.45, 1)
+outline_size = 8
+outline_modulate = Color(0.1, 0.1, 0.09, 1)
 
 [node name="Generated" type="Node3D" parent="Builder" unique_id=1650220656]
 

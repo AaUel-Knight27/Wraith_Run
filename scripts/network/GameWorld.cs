@@ -57,17 +57,20 @@ public partial class GameWorld : Node3D
     {
         MatchManager? match = MatchManager.Instance;
         GameModeBase rules = match?.ModeRules ?? GameModeBase.For(MatchManager.Mode.Default);
-        string mapScenePath = IsHub ? HubMapPath : match?.MapScenePath ?? "res://scenes/maps/Warzone.tscn";
+        string mapScenePath = IsHub ? HubMapPath : match?.MapScenePath ?? "res://scenes/maps/Prison.tscn";
         var packed = ResourceLoader.Load<PackedScene>(mapScenePath);
         if (packed == null)
         {
-            GD.PushError($"Could not load {match?.MapDisplayName ?? "Warzone"} for {rules.DisplayName}: {mapScenePath}");
+            GD.PushError($"Could not load {match?.MapDisplayName ?? "Prison"} for {rules.DisplayName}: {mapScenePath}");
             return;
         }
         var map = packed.Instantiate<Node3D>();
         map.Name = "Map";
         AddChild(map);
-        BuildMapCollisions(map, IsHub ? MatchManager.ArenaMap.Warehouse : match?.SelectedMap ?? MatchManager.ArenaMap.Warehouse);
+        MatchManager.ArenaMap collisionMap = IsHub || match?.SelectedMap == MatchManager.ArenaMap.DefaultMap
+            ? MatchManager.ArenaMap.Warehouse
+            : match?.SelectedMap ?? MatchManager.ArenaMap.Warehouse;
+        BuildMapCollisions(map, collisionMap);
     }
 
     /// <summary>Imported GLBs are visual meshes without physics. Add inexpensive box proxies to
@@ -82,7 +85,7 @@ public partial class GameWorld : Node3D
             foreach (Node node in map.FindChildren("*", "MeshInstance3D", true, false))
             {
                 var mesh = node as MeshInstance3D;
-                if (mesh?.Mesh == null || mesh.Mesh.GetSurfaceCount() == 0) continue;
+                if (mesh?.Mesh == null || mesh.IsInGroup("map_no_collision") || mesh.Mesh.GetSurfaceCount() == 0) continue;
                 var body = new StaticBody3D { Name = "MapCollision" };
                 var bounds = mesh.Mesh.GetAabb();
                 Vector3 size = bounds.Size;
@@ -98,15 +101,14 @@ public partial class GameWorld : Node3D
         }
 
         bool warehouse = mapKind == MatchManager.ArenaMap.Warehouse;
-        // The supplied art is a compact GLB shell; this collision deck gives the interior a
-        // continuous floor and catches players at the edge without asking mobile GPUs/CPUs to
-        // cook millions of source triangles into a trimesh collider.
-        // Warehouse: measured from the art (Godot, scaled x2 in DefaultWarehouse.tscn). Inner faces of the
-        // room are x -6.33..6.59 and z -6.91..6.60, so the deck covers the room and no further.
-        const float roomX0 = -6.33f, roomX1 = 6.59f, roomZ0 = -6.91f, roomZ1 = 6.60f;
-        const float wallT = 0.4f, wallH = 5.0f;
+        // The rebuilt warehouse is a 33 x 28 m shell. Keep the playable deck and invisible boundary
+        // aligned to the inside faces so players cannot step through the visible corrugated walls.
+        const float roomX0 = -16.25f, roomX1 = 16.25f, roomZ0 = -14.05f, roomZ1 = 14.05f;
+        const float wallT = 0.4f, wallH = 8.8f;
         Vector3 deckCentre = warehouse ? new Vector3((roomX0 + roomX1) * 0.5f, -0.3f, (roomZ0 + roomZ1) * 0.5f) : new Vector3(0.0f, -0.3f, 0.0f);
-        Vector3 deckSize = warehouse ? new Vector3(roomX1 - roomX0, 0.5f, roomZ1 - roomZ0) : new Vector3(80.0f, 0.5f, 80.0f);
+        float arenaExtent = mapKind == MatchManager.ArenaMap.Depot ? 160.0f : 80.0f;
+        // Depot now fills a broad village block; its walkable floor must match the exterior terrain.
+        Vector3 deckSize = warehouse ? new Vector3(roomX1 - roomX0, 0.5f, roomZ1 - roomZ0) : new Vector3(arenaExtent, 0.5f, arenaExtent);
         var floor = new StaticBody3D { Name = "WalkableDeck" };
         var floorShape = new CollisionShape3D
         {
@@ -118,8 +120,7 @@ public partial class GameWorld : Node3D
 
         if (warehouse)
         {
-            // The four boundaries sit just outside the art's inner faces, so the visible walls now block.
-            // (They used to sit at +/-8.6 m, two metres beyond the walls, so players walked through them.)
+            // The four boundaries sit just outside the shell's inner faces, so players cannot walk through it.
             float midX = (roomX0 + roomX1) * 0.5f, midZ = (roomZ0 + roomZ1) * 0.5f;
             AddRoomWall(map, new Vector3(roomX0 - wallT * 0.5f, wallH * 0.5f, midZ), new Vector3(wallT, wallH, roomZ1 - roomZ0 + 2 * wallT));
             AddRoomWall(map, new Vector3(roomX1 + wallT * 0.5f, wallH * 0.5f, midZ), new Vector3(wallT, wallH, roomZ1 - roomZ0 + 2 * wallT));
@@ -192,7 +193,7 @@ public partial class GameWorld : Node3D
     private void SpawnMatchVehicles()
     {
         var match = MatchManager.Instance;
-        if (match == null || match.GameMode == MatchManager.Mode.CursedDeathmatch) return;
+        if (match == null || !match.ModeRules.UsesVehicles || _vehicleSpawner == null) return;
         bool buggyMode = match.GameMode == MatchManager.Mode.DuoBuggy;
         string model = buggyMode ? GameVehicle.BuggyPath : GameVehicle.LandCruiserPath;
         string display = buggyMode ? "Raider Buggy" : "STV · Land Cruiser";

@@ -460,6 +460,7 @@ public partial class WeaponSwitcher : Node
 		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
 	public void RpcFireEffects()
 	{
+		if (!IsAuthorizedEffectSender()) return;
 		_attachment.PlayFire();
 		_animation?.PlayFire();
 		_viewmodel?.Play("fire");
@@ -474,6 +475,7 @@ public partial class WeaponSwitcher : Node
 		TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void RpcReloadEffects()
 	{
+		if (!IsAuthorizedEffectSender()) return;
 		_attachment.PlayReload();
 		_animation?.PlayReload();
 		_viewmodel?.PlayReload(_currentWeapon?.ReloadTime ?? 0.0f, _currentAmmo == 0);
@@ -482,7 +484,16 @@ public partial class WeaponSwitcher : Node
 	/// <summary>A shell-by-shell reload interrupted by firing: stop the reload sound on every peer.</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
 		TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void RpcCancelReloadEffects() => _attachment.StopReload();
+	public void RpcCancelReloadEffects()
+	{
+		if (IsAuthorizedEffectSender()) _attachment.StopReload();
+	}
+
+	private bool IsAuthorizedEffectSender()
+	{
+		long sender = Multiplayer.GetRemoteSenderId();
+		return sender == 0 || sender == _player.GetMultiplayerAuthority();
+	}
 
 	/// <summary>
 	/// Recoil is applied to the Head pivot, not just to the visible camera, so it moves the actual
@@ -647,8 +658,11 @@ public partial class WeaponSwitcher : Node
 	/// sound (and ricochet, if one was rolled) at the impact point.</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
 		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-	public void RpcGeometryImpact(Vector3 worldPosition, int surface, bool ricochet) =>
+	public void RpcGeometryImpact(Vector3 worldPosition, int surface, bool ricochet)
+	{
+		if (!IsAuthorizedEffectSender() || surface < 0 || surface > (int)SurfaceType.Glass) return;
 		_attachment.PlayGeometryImpact(worldPosition, (SurfaceType)surface, ricochet);
+	}
 
 	/// <summary>
 	/// Runs on every peer EXCEPT the shooter (no CallLocal). If the shot's path passed within
@@ -657,7 +671,10 @@ public partial class WeaponSwitcher : Node
 	/// send one small message per shot instead of working out who might be near.
 	/// </summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-	public void RpcShotPath(Vector3 from, Vector3 to, bool rocket) => HearShotPath(from, to, rocket);
+	public void RpcShotPath(Vector3 from, Vector3 to, bool rocket)
+	{
+		if (IsAuthorizedEffectSender()) HearShotPath(from, to, rocket);
+	}
 
 	private void HearShotPath(Vector3 from, Vector3 to, bool rocket)
 	{
@@ -689,7 +706,10 @@ public partial class WeaponSwitcher : Node
 	/// every peer including itself.</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
 		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-	public void RpcFleshImpact(Vector3 worldPosition) => _attachment.PlayFleshImpact(worldPosition);
+	public void RpcFleshImpact(Vector3 worldPosition)
+	{
+		if (IsAuthorizedEffectSender()) _attachment.PlayFleshImpact(worldPosition);
+	}
 
 	/// <summary>Scatters a direction inside a cone. Uniform over the disc rather than over the
 	/// angle, so a shotgun pattern does not clump in the middle.</summary>
