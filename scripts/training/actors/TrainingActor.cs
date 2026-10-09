@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// A Manny in the training arena: an enemy to read and shoot, or a friend to heal, cover and coordinate with.
-/// Always built from manny.glb (MannyOnly) - never any other character.
+/// A shared character in the training arena: an enemy to read and shoot, or a friend to heal, cover and coordinate with.
+/// Always built from AshenCorvus.fbx (SharedCharacterModel) - never any other character.
 ///
 /// It is a plain CharacterBody3D rather than a Player.tscn instance on purpose: Player.tscn shares one
 /// CapsuleShape3D resource between every instance (the local player's crouch would resize every bot's hitbox)
@@ -21,7 +21,7 @@ public partial class TrainingActor : CharacterBody3D, IShootable, IHealable, IEx
 
     // ---- configuration (set by the drill before AddChild, or any time later) ----------------------
     public FactionType Side { get; set; } = FactionType.Enemy;
-    public string ActorName { get; set; } = "Manny";
+    public string ActorName { get; set; } = "shared character";
     public float MaxHp { get; set; } = 100.0f;
     public BehaviorType Mode { get; set; } = BehaviorType.Idle;
     public BehaviorType NextMode { get; set; } = BehaviorType.Idle;   // what to do after MoveTo arrives
@@ -107,11 +107,11 @@ public partial class TrainingActor : CharacterBody3D, IShootable, IHealable, IEx
             Position = new Vector3(0, 0.9f, 0),
         });
 
-        Node3D? body = MannyOnly.InstantiateBody();
+        Node3D? body = SharedCharacterModel.InstantiateBody();
         if (body != null)
         {
             _armature = body;
-            _armature.Transform = new Transform3D(MannyOnly.ArmatureBasis, Vector3.Zero);
+            _armature.Transform = new Transform3D(SharedCharacterModel.ArmatureBasis, Vector3.Zero);
             AddChild(_armature);
         }
         else
@@ -324,7 +324,7 @@ public partial class TrainingActor : CharacterBody3D, IShootable, IHealable, IEx
             Rotation = new Vector3(0, Mathf.LerpAngle(Rotation.Y, targetYaw, Mathf.Min(1.0f, 10.0f * dt)), 0);
         }
 
-        // Full-body Manny clips were removed. Training actors keep their gameplay and rotate to face
+        // Full-body shared character clips were removed. Training actors keep their gameplay and rotate to face
         // their movement/target while remaining in the static bind pose.
     }
 

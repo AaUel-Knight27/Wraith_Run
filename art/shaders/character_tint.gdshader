@@ -11,15 +11,15 @@ uniform vec4 accent_color : source_color = vec4(1.0);
 uniform vec4 skin_color : source_color = vec4(1.0);
 
 // false = ignore the vertex-colour mask and wear jacket_color everywhere. CharacterAppearance
-// turns this off when it could not write a region mask onto the mesh - with manny.glb's plain
+// turns this off when it could not write a region mask onto the mesh - with plain
 // white vertex colours the mask formula below would otherwise add all three colours together.
 uniform bool use_regions = true;
 
-// Optional base texture. manny.glb currently has no material at all (confirmed empty on export),
-// so this defaults to plain white - set it once a real texture exists without touching the tint
-// logic below.
+// Keep the imported body's albedo and normal maps while applying operator colours.
 uniform sampler2D albedo_texture : source_color, filter_linear_mipmap;
 uniform bool has_albedo_texture = false;
+uniform sampler2D normal_texture : hint_normal, filter_linear_mipmap;
+uniform bool has_normal_texture = false;
 
 uniform float roughness : hint_range(0.0, 1.0) = 0.9;
 uniform float metallic : hint_range(0.0, 1.0) = 0.0;
@@ -41,6 +41,7 @@ void fragment() {
 	}
 
 	ALBEDO = tinted;
+	if (has_normal_texture) NORMAL_MAP = texture(normal_texture, UV).rgb;
 	ROUGHNESS = roughness;
 	METALLIC = metallic;
 }

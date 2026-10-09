@@ -12,7 +12,7 @@ public sealed class MapMarker
 
 /// <summary>
 /// The map overlay ([M]). Top-down, north (-Z) up. Draws every TrainingZone as a named, coloured rectangle, the
-/// trainee as an arrow, friendly Mannys as green dots, and whatever markers the active drill registers on
+/// trainee as an arrow, friendly shared characters as green dots, and whatever markers the active drill registers on
 /// TrainingSession.MapMarkers. With no zones in the scene it becomes a radar centred on the trainee.
 /// It is also the reading surface for the map-reading drill: it never shows enemies unless the drill reports them.
 /// </summary>

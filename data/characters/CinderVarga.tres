@@ -23,4 +23,4 @@ Class = 4
 SkillName = "Short Fuse"
 Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1")])
 Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1")])
-MeshScenePath = "res://art/characters/manny.glb"
+MeshScenePath = "res://art/characters/AshenCorvus.fbx"

@@ -40,8 +40,7 @@ public partial class CharacterRigOverrideModifier : SkeletonModifier3D
 		var skeleton = GetSkeleton();
 		if (skeleton == null || _movement == null || _controller == null) return;
 
-		// Metres -> the skeleton's own raw authored units (Mixamo centimetres, undone by the 0.01
-		// scale manny.glb carries at its root). Recomputed fresh every frame rather than cached, so a
+		// Metres -> the skeleton's own raw authored units (the imported skeleton scale). Recomputed fresh every frame rather than cached, so a
 		// live "whole character scale" edit never leaves this conversion stale - see
 		// CharacterRigCameraScaleApplier and WeaponAttachment.InverseScaleOf for the same correction.
 		float rawScale = skeleton.GlobalTransform.Basis.Scale.X;

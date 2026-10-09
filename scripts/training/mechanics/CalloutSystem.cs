@@ -76,7 +76,7 @@ public sealed class LocalCalloutTransport : ICalloutTransport
 }
 
 /// <summary>
-/// Comms. Anyone (the trainee, a friendly Manny, a drill) calls Send(); every listener - friend AI, drills,
+/// Comms. Anyone (the trainee, a friendly shared character, a drill) calls Send(); every listener - friend AI, drills,
 /// the HUD log - subscribes to Issued. World markers (floating text + a ping ring) are drawn here.
 /// </summary>
 public partial class CalloutSystem : Node3D

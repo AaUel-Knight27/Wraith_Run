@@ -2,7 +2,7 @@
 
 Headless checks confirm the five map scenes load, the lean export resolves all eleven weapon models and all 21 audio folders that currently contain clips, and the pause menu changes its open state. These checks cannot confirm rendered quality, audible mix, or real input feel.
 
-- **Player body and character roster — blocked:** `res://art/characters/manny.glb` is missing. `Player.tscn` cannot resolve its Armature; the headless run reports a scene parse error and WeaponSwitcher null reference. The character menu also cannot load its model, and TrainingCenter cannot create its trainee. Restore Manny or prepare and wire a compatible replacement before testing character visuals, animation, weapon grip, movement, or training.
+- **Player body and character roster:** now use the shared `res://art/characters/AshenCorvus.fbx` model. Visual rig, weapon grip, and character preview require in-game confirmation after the cleanup changes.
 - **Weapon play in a real match — blocked:** the isolated AK attachment loads and starts `ak47_shooting.mp3`, but firing, reloads, hitscan, muzzle effects, and sound positioning need a working Player skeleton and a live match.
 - **Pause menu presentation and input:** the menu opens/closes in code, but verify its rendered tablet/menu, mouse capture, Escape, gamepad Start, and Android Back on a running game.
 - **Audio quality:** listen on a real audio device to footsteps, impacts, weapon reports, UI sounds, music, and spatial falloff. Dummy headless audio only confirms streams load and playback starts.

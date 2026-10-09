@@ -13,7 +13,7 @@ using System.Collections.Generic;
 /// per repair charge, smoke for a medic who is not Ashen Corvus) the value is marked ASSUMED - tune it
 /// here and every drill follows.
 ///
-/// Modifiers is empty in training: training is per CLASS, on the baseline kit, and only ever on Manny.
+/// Modifiers is empty in training: training is per CLASS, on the baseline kit, and only ever on shared character.
 /// ApplyCharacter() is the future hook for "practice as operator X" - it changes NUMBERS only, never the body.
 /// </summary>
 public sealed class TrainingKit

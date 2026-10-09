@@ -1,8 +1,8 @@
 using Godot;
 
 /// <summary>
-/// Compatibility surface for gameplay systems that used the former Manny full-body animation graph.
-/// Manny clips are no longer loaded or played. First-person motion is driven exclusively by the
+/// Compatibility surface for gameplay systems that used the former full-body animation graph.
+/// Full-body clips are no longer loaded or played. First-person motion is driven exclusively by the
 /// equipped FPS viewmodel rig through ViewModelManager.
 /// </summary>
 public partial class PlayerAnimationController : Node

@@ -10,7 +10,7 @@ using Godot;
 /// bind pose, so this node needs no position/rotation of its own - see MP5_VIEWMODEL_README.md for
 /// the full derivation.
 ///
-/// Local player only. Manny's own body mesh and the world-model weapon (WeaponAttachment on
+/// Local player only. the shared character body mesh and the world-model weapon (WeaponAttachment on
 /// Armature) are untouched for every other peer - this only ever changes what the owning player
 /// sees of their own hands, exactly like Camera3D.Current already does for the camera itself
 /// (PlayerMovement._Ready).
@@ -73,14 +73,14 @@ public partial class FirstPersonMp5Viewmodel : Node3D
 		foreach (string name in EmbeddedGunMeshNames)
 			if (FindChild(name, true, false) is VisualInstance3D mesh) mesh.Visible = false;
 
-		// Manny's own body has no local/remote split of its own today - FirstPersonArms.cs would do
+		// the shared body's has no local/remote split of its own today - FirstPersonArms.cs would do
 		// exactly this, but it is not instanced anywhere in Player.tscn and refers to mesh names
-		// ("Armature_Mesh"/"Armature_Mesh_ArmsOnly") manny.glb's single "Manny" mesh does not have,
-		// so it would throw if it ever ran. Doing it here instead, since Manny's body is exactly
+		// ("Armature_Mesh"/"Armature_Mesh_ArmsOnly") the imported character's single body mesh does not have,
+		// so it would throw if it ever ran. Doing it here instead, since the shared body's is exactly
 		// what would otherwise double up with this viewmodel for the local player. Remote peers are
 		// unaffected - this whole block only runs where _isLocal is true (see above).
-		if (GetNodeOrNull<Node3D>("../../../Armature")?.FindChild("Manny", true, false) is VisualInstance3D manny)
-			manny.Visible = false;
+		if (GetNodeOrNull<Node3D>("../../../Armature")?.FindChild("vanguard_Mesh", true, false) is VisualInstance3D body)
+			body.Visible = false;
 
 		PlayIdle();
 	}

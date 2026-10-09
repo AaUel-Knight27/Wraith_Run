@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /// <summary>
 /// The Training Center. Root of scenes/training/TrainingCenter.tscn.
 ///
-/// Owns the trainee (always plain Manny - see MannyOnly), the placeholder arena, the drill lifecycle, the
+/// Owns the trainee (always plain shared character - see SharedCharacterModel), the placeholder arena, the drill lifecycle, the
 /// helpers drills use to spawn things, and the plumbing that turns weapon events and hit reports into TrainingStats.
 ///
 /// MAP: the arena is placeholder geometry. To use your own map, add it to TrainingCenter.tscn, drop TrainingAnchor
@@ -110,23 +110,23 @@ public partial class TrainingSession : Node3D
 
     private void SpawnTrainee()
     {
-        var scene = ResourceLoader.Load<PackedScene>(MannyOnly.PlayerScenePath);
+        var scene = ResourceLoader.Load<PackedScene>(SharedCharacterModel.PlayerScenePath);
         if (scene == null)
         {
-            GD.PushError("Training Center: could not load " + MannyOnly.PlayerScenePath);
+            GD.PushError("Training Center: could not load " + SharedCharacterModel.PlayerScenePath);
             return;
         }
 
         var player = scene.Instantiate<CharacterBody3D>();
-        MannyOnly.PrepareTrainee(player);
-        player.Name = "TraineeManny";
+        SharedCharacterModel.PrepareTrainee(player);
+        player.Name = "Trainee";
         AddChild(player);
 
         Player = player;
         PlayerHealth = player.GetNode<Health>("Health");
         Movement = (PlayerMovement)player;
         Weapons = player.GetNode<WeaponSwitcher>("WeaponSwitcher");
-        MannyOnly.VerifyTrainee(player);
+        SharedCharacterModel.VerifyTrainee(player);
     }
 
     private void WireWeaponEvents()
@@ -403,7 +403,7 @@ public partial class TrainingSession : Node3D
     }
 
     // ---------------------------------------------------------------------------------------------
-    // Spawning (all Manny, all under Props so they vanish when the drill ends)
+    // Spawning (all shared-model actors, all under Props so they vanish when the drill ends)
     // ---------------------------------------------------------------------------------------------
     public TrainingActor SpawnActor(TrainingActor.FactionType side, Vector3 position, string name, Action<TrainingActor>? configure = null)
     {

@@ -25,7 +25,7 @@ public partial class CharacterData : Resource
 	[Export] public StatModifier[] Buffs { get; set; } = Array.Empty<StatModifier>();
 	[Export] public StatModifier[] Drawbacks { get; set; } = Array.Empty<StatModifier>();
 
-	[Export(PropertyHint.File, "*.glb,*.gltf,*.tscn")] public string MeshScenePath { get; set; } = string.Empty;
+	[Export(PropertyHint.File, "*.glb,*.gltf,*.fbx,*.tscn")] public string MeshScenePath { get; set; } = string.Empty;
 	[Export(PropertyHint.File, "*.png,*.jpg")] public string PortraitPath { get; set; } = string.Empty;
 
 	// ---------------------------------------------------------------------------------------

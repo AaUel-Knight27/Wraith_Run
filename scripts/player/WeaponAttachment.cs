@@ -3,7 +3,7 @@ using Godot;
 /// <summary>
 /// Attaches a weapon to a skeleton's hand bone and owns everything that lives on the weapon
 /// itself: the model transform, the muzzle flash, and the fire/reload audio players. Two
-/// instances exist on the player: one on Manny's "Armature" skeleton (the world-model, seen by
+/// instances exist on the player: one on the shared character's "Armature" skeleton (the world-model, seen by
 /// every peer), and one on the first-person viewmodel's own skeleton (fps_mp5_arms.glb, local
 /// player only) - see MP5_VIEWMODEL_README.md. HandBoneFragment/UseViewmodelGrip/HiddenFromOwner/
 /// SkipAudio are what let the same class serve both.
@@ -20,7 +20,7 @@ public partial class WeaponAttachment : Node3D
 	// turns out to be; this is already confirmed working in the runtime logs.
 	//
 	// [Export] rather than a const because this same class now runs on two different skeletons: the
-	// default "righthand" finds Manny's world-model hand, while the first-person viewmodel
+	// default "righthand" finds the shared character's world-model hand, while the first-person viewmodel
 	// (fps_mp5_arms.glb) instance sets this to "Hand.R" in Player.tscn - a different rig, with plain
 	// (unsanitized) bone names, so a substring match still works without needing two classes.
 	[Export] public string HandBoneFragment { get; set; } = "righthand";
@@ -35,7 +35,7 @@ public partial class WeaponAttachment : Node3D
 
 	/// <summary>Use WeaponData's ViewmodelGripPosition/RotationDegrees (added on top of the baseline
 	/// above) instead of GripPosition/GripRotationDegrees. Set true on the viewmodel's attachment
-	/// only - the world-model attachment on Manny keeps using the world-space grip as before.</summary>
+	/// only - the world-model attachment keeps using the world-space grip as before.</summary>
 	[Export] public bool UseViewmodelGrip { get; set; }
 
 	/// <summary>Model and muzzle flash are built and kept for everyone (so this still reports the
@@ -176,8 +176,8 @@ public partial class WeaponAttachment : Node3D
 			return;
 		}
 
-		// There is one shared "Manny" body mesh (no separate remote/local view-model split),
-		// skinned to the skeleton manny.glb imports. Search by type rather than by a hardcoded
+		// There is one shared character body mesh (no separate remote/local view-model split),
+		// skinned to the imported character skeleton. Search by type rather than by a hardcoded
 		// node name - a hardcoded name is exactly what broke weapon attachment twice already.
 		var skeleton = (GetParent() as Skeleton3D) ?? FindSkeleton3D(GetParent());
 		int handBoneIndex = skeleton == null ? -1 : FindBoneContaining(skeleton, HandBoneFragment.ToLowerInvariant());
@@ -201,10 +201,8 @@ public partial class WeaponAttachment : Node3D
 		};
 		skeleton.AddChild(attachment);
 
-		// manny.glb's skeleton is authored in Mixamo centimetres and brought back to metres by a
-		// 0.01 scale on the glTF root node. Everything parented under a bone inherits that 0.01,
-		// so a weapon authored in metres renders at 1/100 size. Undo the skeleton's scale rather
-		// than hardcoding 100, so this survives a re-export at a different unit scale.
+		// Convert weapon offsets and scale into the skeleton's authored unit space. Derive it from the live skeleton rather than hardcoding a
+		// model scale, so this survives a re-export at a different unit scale.
 		Vector3 unitFix = InverseScaleOf(skeleton);
 
 		// The grip pivot carries the per-weapon offset/rotation and the unit correction. The model

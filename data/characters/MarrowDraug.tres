@@ -29,4 +29,4 @@ Class = 3
 SkillName = "Steady Hands"
 Buffs = Array[ExtResource("2_mod")]([SubResource("Buff_1")])
 Drawbacks = Array[ExtResource("2_mod")]([SubResource("Drawback_1"), SubResource("Drawback_2")])
-MeshScenePath = "res://art/characters/manny.glb"
+MeshScenePath = "res://art/characters/AshenCorvus.fbx"

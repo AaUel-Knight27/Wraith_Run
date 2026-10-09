@@ -8,7 +8,7 @@ using Godot;
 /// already owns the character's lifetime.
 ///
 /// The tint shader wants a mask in the mesh's vertex colours (R = jacket, G = pants,
-/// B = boots/gloves, black = skin). manny.glb ships with plain white vertex colours, so before
+/// B = boots/gloves, black = skin). Before
 /// tinting, PaintRegions writes that mask onto a copy of the mesh from the skin weights: every
 /// vertex is coloured by how much of it is driven by arm/spine bones (jacket), leg/hip bones
 /// (pants) or hand/foot bones (accent). Head and neck stay unpainted, i.e. skin. The imported
@@ -28,14 +28,14 @@ public static class CharacterAppearance
 	public static void Apply(Node root, CharacterData data) =>
 		Apply(root, data.JacketColor, data.PantsColor, data.AccentColor);
 
-	/// <summary>Finds the first MeshInstance3D under root (depth-first) and applies a tint
+	/// <summary>Finds the character body MeshInstance3D under root and applies a tint
 	/// material as a surface override. Searches rather than assumes a fixed path, since the
-	/// internal node layout under an imported glb (Armature/Skeleton3D/...) varies by how the
+	/// internal node layout under an imported model (Armature/Skeleton3D/...) varies by how the
 	/// source file was rigged and exported. Returns the material so a caller can recolour it
 	/// live with SetShaderParameter, or null when nothing could be applied.</summary>
 	public static ShaderMaterial? Apply(Node root, Color jacket, Color pants, Color accent)
 	{
-		var mesh = FindFirstMeshInstance(root);
+		var mesh = FindCharacterBodyMesh(root);
 		if (mesh == null)
 		{
 			GD.PushWarning($"CharacterAppearance: no MeshInstance3D found under {root.Name}.");
@@ -49,7 +49,13 @@ public static class CharacterAppearance
 			return null;
 		}
 
-		bool painted = PaintRegions(mesh);
+		var sourceMaterial = mesh.Mesh?.GetSurfaceCount() > 0
+			? mesh.Mesh.SurfaceGetMaterial(0) as StandardMaterial3D
+			: null;
+		// Godot's FBX importer exposes this rig's compressed skin arrays in a format
+		// that cannot be rebuilt with AddSurfaceFromArrays. Keep the imported mesh intact
+		// and use its source textures with a flat operator tint instead of corrupting it.
+		bool painted = mesh.Name.ToString() != "vanguard_Mesh" && PaintRegions(mesh);
 
 		var material = new ShaderMaterial { Shader = _shader };
 		material.SetShaderParameter("jacket_color", jacket);
@@ -59,6 +65,11 @@ public static class CharacterAppearance
 		// If the region mask could not be written the whole body wears the jacket colour rather
 		// than the mask-sum blow-out white vertex colours would cause.
 		material.SetShaderParameter("use_regions", painted);
+		material.SetShaderParameter("albedo_texture", sourceMaterial?.AlbedoTexture);
+		material.SetShaderParameter("has_albedo_texture", sourceMaterial?.AlbedoTexture != null);
+		material.SetShaderParameter("normal_texture", sourceMaterial?.NormalTexture);
+		material.SetShaderParameter("has_normal_texture", sourceMaterial?.NormalEnabled == true && sourceMaterial.NormalTexture != null);
+		material.SetShaderParameter("roughness", sourceMaterial?.Roughness ?? 0.9f);
 
 		int surfaces = mesh.Mesh?.GetSurfaceCount() ?? 0;
 		for (int surface = 0; surface < surfaces; surface++)
@@ -184,12 +195,18 @@ public static class CharacterAppearance
 		return table;
 	}
 
-	private static MeshInstance3D? FindFirstMeshInstance(Node node)
+	private static MeshInstance3D? FindCharacterBodyMesh(Node node)
 	{
-		if (node is MeshInstance3D mesh) return mesh;
+		if (node.FindChild("vanguard_Mesh", true, false) is MeshInstance3D body) return body;
+		return FindNonVisorMesh(node);
+	}
+
+	private static MeshInstance3D? FindNonVisorMesh(Node node)
+	{
+		if (node is MeshInstance3D mesh && !mesh.Name.ToString().Contains("visor", StringComparison.OrdinalIgnoreCase)) return mesh;
 		foreach (Node child in node.GetChildren())
 		{
-			var found = FindFirstMeshInstance(child);
+			var found = FindNonVisorMesh(child);
 			if (found != null) return found;
 		}
 		return null;

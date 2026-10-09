@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://pikamp6vhtto" path="res://scripts/player/PlayerMovement.cs" id="1"]
 [ext_resource type="Script" uid="uid://nqxihnrb77iw" path="res://scripts/player/PlayerAnimationController.cs" id="2"]
-[ext_resource type="PackedScene" uid="uid://cvu4g1q7u08cn" path="res://art/characters/manny.glb" id="3"]
+[ext_resource type="PackedScene" uid="uid://slepl22na36o" path="res://art/characters/AshenCorvus.fbx" id="3"]
 [ext_resource type="Script" uid="uid://clr0dfqn2qy36" path="res://scripts/player/WeaponAttachment.cs" id="5"]
 [ext_resource type="Script" uid="uid://bv4ex5e47rpam" path="res://scripts/player/WeaponSwitcher.cs" id="6"]
 [ext_resource type="Script" uid="uid://h4aa5jv6d8ix" path="res://scripts/network/PlayerNetworkSynchronizer.cs" id="7"]

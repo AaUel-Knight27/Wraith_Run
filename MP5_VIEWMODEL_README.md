@@ -3,13 +3,13 @@
 You sent two things: `animated-mp5.zip` (an FBX arms+MP5 rig with baked Idle/Reload/Shoot
 animations) and your current `wraith_run_godot.zip`. This patch turns the FBX into a game-ready
 asset and wires it in as the local player's first-person hands + camera anchor, on top of the
-existing weapon system rather than instead of it - **Manny is untouched**: his skeleton, his body
+existing weapon system rather than instead of it - **shared character is untouched**: his skeleton, his body
 mesh, his locomotion/combat animations, and what every *other* player sees of you are all exactly
 as they were.
 
 ## What changed, in one paragraph
 
-There are now two `WeaponAttachment`s per player instead of one. The original, on Manny's
+There are now two `WeaponAttachment`s per player instead of one. The original, on shared character's
 `Armature`, still renders the world-space weapon everyone else sees. A new one, on the new
 viewmodel's own skeleton, renders a second copy of the equipped weapon positioned for your own
 first-person view, parented under `FirstPersonCamera` so it inherits every bit of head look and
@@ -23,7 +23,7 @@ second set of numbers (`ViewmodelGripPosition`/`ViewmodelGripRotationDegrees`) f
 
 I don't have Godot, Blender, or a GPU in the environment I did this in, so this went FBX ->
 (`assimp`) -> glTF -> a Python script (`pygltflib`) that fixed the following, then Godot's own
-importer takes it from there exactly like `manny.glb`:
+importer takes it from there exactly like `AshenCorvus.fbx`:
 
 - **Removed 14 nodes** that were Blender rig gizmos, not art: a camera-frustum outline, IK pole
   shapes, reticle rings, and the loose `A_Camera` reference object. None of it was meant to render;
@@ -39,7 +39,7 @@ importer takes it from there exactly like `manny.glb`:
   texture with normal PNG compression - the shipped files were ~12.6 MB each for what's actually
   2048x2048 (essentially uncompressed); they're now 3-4 MB with no quality loss.
 - **Fixed the unit scale and placed it relative to the camera.** The source FBX is authored in
-  centimetres (confirmed by comparing its own bone lengths against `manny.glb`'s). The rig also
+  centimetres (confirmed by comparing its own bone lengths against `AshenCorvus.fbx`'s). The rig also
   ships its own camera reference - a bone called `CameraHelper`, which its Blender camera was
   constrained to. I measured `CameraHelper`'s bind-pose transform and baked the inverse of it,
   scale included, directly into the file's root node. The practical effect: this asset, instanced
@@ -77,14 +77,14 @@ needs its green channel flipped.
 **New:**
 - `art/characters/fps_mp5_arms.glb` - the cleaned, corrected asset described above.
 - `scripts/player/FirstPersonMp5Viewmodel.cs` - drives the viewmodel: local-only visibility, hides
-  Manny's body for your own view, hides the rig's own (broken-scale) gun meshes, plays
+  shared character's body for your own view, hides the rig's own (broken-scale) gun meshes, plays
   Idle/Shoot/Reload/Equip.
 
 **Changed (additive - diff them before merging, same as your character-system patch):**
 - `scripts/data/WeaponData.cs` - added `ViewmodelGripPosition`/`ViewmodelGripRotationDegrees`.
   Nothing existing renamed or removed.
 - `scripts/player/WeaponAttachment.cs` - the hand-bone-name const became an `[Export]`
-  (`HandBoneFragment`, still defaults to `"righthand"` - Manny's attachment is unaffected), plus
+  (`HandBoneFragment`, still defaults to `"righthand"` - shared character's attachment is unaffected), plus
   three new `[Export]`s (`UseViewmodelGrip`, `HiddenFromOwner`, `SkipAudio`) that are all off by
   default, so this class behaves exactly as before unless a scene opts in.
 - `scripts/player/WeaponSwitcher.cs` - equips/fires/reloads the viewmodel attachment alongside the
@@ -100,7 +100,7 @@ needs its green channel flipped.
 
 ```
 Player
-├─ Armature (manny.glb)               <- world model: body, legs, third-person weapon, unchanged
+├─ Armature (AshenCorvus.fbx)               <- world model: body, legs, third-person weapon, unchanged
 │   └─ WeaponAttachment                  HiddenFromOwner=true (see below)
 ├─ Head
 │   └─ FirstPersonCamera                 <- PlayerMovement owns look/recoil/FOV, still does
@@ -114,7 +114,7 @@ hit registration, damage, and everything networked are untouched - this patch is
 see and hear of your own weapon.
 
 `HiddenFromOwner = true` on the world attachment stops you from seeing two overlapping guns (the
-close-up viewmodel one and Manny's own world-scale one) - it hides that attachment's model **and**
+close-up viewmodel one and shared character's own world-scale one) - it hides that attachment's model **and**
 muzzle flash from the device that owns the player, while leaving both fully visible to everyone
 else, the same way `PlayerMovement` already makes only your own `Camera3D` current. **This will get
 in your way the next time you use `WeaponGripTuner` (F3)** to tune a *world*-model grip, since
