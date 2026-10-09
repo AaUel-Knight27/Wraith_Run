@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://7a62o7eturl7"]
 
 [ext_resource type="Script" uid="uid://pikamp6vhtto" path="res://scripts/player/PlayerMovement.cs" id="1"]
-[ext_resource type="Script" uid="uid://nqxihnrb77iw" path="res://scripts/player/PlayerAnimationController.cs" id="2"]
 [ext_resource type="PackedScene" uid="uid://slepl22na36o" path="res://art/characters/AshenCorvus.fbx" id="3"]
 [ext_resource type="Script" uid="uid://clr0dfqn2qy36" path="res://scripts/player/WeaponAttachment.cs" id="5"]
 [ext_resource type="Script" uid="uid://bv4ex5e47rpam" path="res://scripts/player/WeaponSwitcher.cs" id="6"]
@@ -91,9 +90,6 @@ script = ExtResource("18_viewmodels")
 [node name="FirstPersonCamera" type="Camera3D" parent="Head/CameraShake" unique_id=250919579]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0052988976, 0.08884847, -0.15)
 near = 0.03
-
-[node name="AnimationController" type="Node" parent="." unique_id=1167327812]
-script = ExtResource("2")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=830123937]
 replication_config = SubResource("3")

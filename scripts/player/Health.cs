@@ -4,8 +4,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Networked health and death/respawn. Lives on the owning peer's Player instance.
 /// CurrentHealth is replicated outward by PlayerNetworkSynchronizer, so every peer's copy of
-/// this node ends up running the same setter - that's what actually disables the hitbox and
-/// plays the death animation on remote clients, not just the local owner.
+/// this node runs the same setter and disables the hitbox when the player dies.
 ///
 /// Health is currently replicated from each player's owning device. Incoming damage claims are
 /// bound to the authenticated sender and checked against that attacker's current weapon, but the
@@ -68,7 +67,7 @@ public partial class Health : Node
             bool wasAlive = _currentHealth > 0.0f || !_hasInitialized;
             _hasInitialized = true;
             _currentHealth = Mathf.Clamp(value, 0.0f, MaxHealth);
-            ApplyVisualState(wasAlive, _currentHealth > 0.0f);
+            ApplyVisualState(_currentHealth > 0.0f);
             if (wasAlive && _currentHealth <= 0.0f) EmitSignal(SignalName.Died);
         }
     }
@@ -88,7 +87,6 @@ public partial class Health : Node
     private float _giveUpProgress;
     private CharacterBody3D _player = null!;
     private CollisionShape3D? _collision;
-    private PlayerAnimationController? _animation;
     private CharacterLoadout? _loadout;
     private KillFeed? _killFeed;
 
@@ -104,7 +102,6 @@ public partial class Health : Node
     {
         _player = (CharacterBody3D)GetParent();
         _collision = _player.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
-        _animation = _player.GetNodeOrNull<PlayerAnimationController>("AnimationController");
         _loadout = _player.GetNodeOrNull<CharacterLoadout>("CharacterLoadout");
         _killFeed = KillFeed.From(this);
         _botRng.Randomize();
@@ -328,9 +325,6 @@ public partial class Health : Node
         _player.Velocity = Vector3.Zero;
         _damageContribution.Clear();
         _deathAnnounced = false;
-        // The setter drives the animation reset (see ApplyVisualState) so that the owning peer and
-        // every remote observer take the same path. Calling ResetAfterRespawn again here would be
-        // redundant, and it used to be the ONLY call - which is why remote copies stayed dead.
         CurrentHealth = MaxHealth;
         EmitSignal(SignalName.Respawned);
     }
@@ -362,23 +356,12 @@ public partial class Health : Node
     }
 
     /// <summary>
-    /// Reacts to a health change. Both transitions are handled here, on purpose: this runs on the
-    /// owning peer AND on every remote copy, because CurrentHealth is replicated and each peer's
-    /// setter fires. Respawn() only ever executes on the owner, so hanging the animation reset off
-    /// Respawn() left every other peer's copy of this player frozen in the death pose forever -
-    /// that was the "respawns as a corpse" bug.
-    ///
-    /// Only the alive-to-dead and dead-to-alive EDGES act. Firing on every write would restart the
-    /// locomotion state machine on each point of damage taken.
+    /// Reacts to health changes on the owning peer and each remote copy, because CurrentHealth is
+    /// replicated and each peer's setter fires. Collision changes only on alive/dead transitions.
     /// </summary>
-    private void ApplyVisualState(bool wasAlive, bool alive)
+    private void ApplyVisualState(bool alive)
     {
-        // The body mesh always stays visible now - death is shown by actually playing a death
-        // animation (see PlayDeath below), not by hiding the model. Collision still turns off
-        // so a corpse doesn't block foot traffic during the respawn delay.
         if (_collision != null) _collision.Disabled = !alive;
-        if (wasAlive && !alive) _animation?.PlayDeath();
-        else if (!wasAlive && alive) _animation?.ResetAfterRespawn();
     }
 
     /// <summary>Owner-side: give up while downed, and revive a downed teammate in front of us.</summary>
