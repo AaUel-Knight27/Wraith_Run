@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" load_steps=5 format=3]
+
+[ext_resource type="Texture2D" path="res://art/materials/prison/textures/dirty_tiles/dirty_tiles_diff_1k.jpg" id="diff"]
+[ext_resource type="Texture2D" path="res://art/materials/prison/textures/dirty_tiles/dirty_tiles_nor_gl_1k.jpg" id="normal"]
+[ext_resource type="Texture2D" path="res://art/materials/prison/textures/dirty_tiles/dirty_tiles_rough_1k.jpg" id="rough"]
+[ext_resource type="Texture2D" path="res://art/materials/prison/textures/dirty_tiles/dirty_tiles_ao_1k.jpg" id="ao"]
+
+[resource]
+resource_name = "Dirty Tiles Floor"
+albedo_texture = ExtResource("diff")
+metallic = 0.0
+roughness = 0.88
+roughness_texture = ExtResource("rough")
+normal_enabled = true
+normal_texture = ExtResource("normal")
+ao_enabled = true
+ao_texture = ExtResource("ao")
+uv1_scale = Vector3(9, 9, 1)

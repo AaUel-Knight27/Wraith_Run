@@ -130,6 +130,8 @@ public partial class OutdoorMapBuilder : Node3D
         Func<object, Material?> resolve = mat => mat is SurfaceLayer sl ? sl.CreateMaterial() : null;
         MapKitUtil.EmitBatch(batch, resolve, visual, collision, owner, genFolder, "Terrain", castShadows: true, visibleRange: 0.0f);
 
+        (owner.GetNodeOrNull<RuinPass>("RuinPass") ?? GetNodeOrNull<RuinPass>("RuinPass"))?.ApplyTo(root);
+
         MapKitUtil.Log($"OutdoorMapBuilder: {batch.TotalTriangles} triangles, {batch.BucketCount} draw calls before scatter.");
     }
 

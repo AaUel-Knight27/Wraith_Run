@@ -9,7 +9,7 @@ using Godot;
 /// "team_spawn_area_0" (Alpha) or "team_spawn_area_1" (Bravo) - matching MatchManager's team indices
 /// so no name lookup is needed. The zone's half-width/half-depth on the X/Z plane is read from that
 /// node's "half_extent" metadata (a Vector2); if a map has the group but no metadata, a small default
-/// area is used instead of failing outright. See Warzone.tscn's "TeamSpawnAreas" node for the pattern
+/// area is used instead of failing outright. See Prison.tscn's "TeamSpawnAreas" node for the pattern
 /// to copy onto a new map - two of these, one on each side, is all a map needs to support the mode.
 ///
 /// If a map has no areas for the current team at all (an older or Free-For-All-only map loaded into a

@@ -6,7 +6,7 @@ using Godot;
 /// that cares about an operator's kit does GetNodeOrNull&lt;CharacterLoadout&gt;("../CharacterLoadout")
 /// and calls GetModifier - if this node is missing, or CharacterId is empty, or the registry does
 /// not contain it, every lookup falls back to its default and the game behaves exactly as it does
-/// today with the single manny character. Nothing about existing behavior changes until an
+/// today with the single shared character. Nothing about existing behavior changes until an
 /// operator is selected in the lobby (Standard Issue = no operator = no modifiers).
 ///
 /// Placed first among Player's children in the scene so its _Ready() (which loads Data) runs

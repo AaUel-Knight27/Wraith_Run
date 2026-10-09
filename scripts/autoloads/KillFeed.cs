@@ -8,8 +8,8 @@ using Godot;
 /// every peer, which is what an RPC needs, and because the SDLC architecture doc already puts
 /// cross-cutting match state in scripts/autoloads/ (GameManager, NetworkManager, AudioManager).
 ///
-/// Only the victim's authoritative device publishes a death (same rule Health already applies to
-/// damage), so AnnounceKill accepts a call only from the victim peer itself.
+/// A client can submit only its own death report; the host confirms the victim is dead and then
+/// broadcasts the event. The reported killer/style still depend on client-reported damage context.
 /// </summary>
 public partial class KillFeed : Node
 {
@@ -42,22 +42,37 @@ public partial class KillFeed : Node
                 assistPoints, struggles);
             return;
         }
+        if (Multiplayer.IsServer())
+            Rpc(MethodName.AnnounceKill, killerPeerId, victimPeerId, styleFlags, basePoints, totalPoints,
+                assistPeerId, assistPoints, struggles);
+        else
+            RpcId(1, MethodName.SubmitKill, killerPeerId, victimPeerId, styleFlags, basePoints,
+                totalPoints, assistPeerId, assistPoints, struggles);
+    }
+
+    /// <summary>Clients may report only their own death; the server checks the victim is actually
+    /// dead, then relays the event through its authority-only broadcast.</summary>
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    public void SubmitKill(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
+        int totalPoints, long assistPeerId, int assistPoints, bool struggles)
+    {
+        if (!Multiplayer.IsServer()) return;
+        long sender = Multiplayer.GetRemoteSenderId();
+        if (sender != victimPeerId) return;
+        if (GetTree().GetNodesInGroup("players").Count == 0) return;
+        CharacterBody3D? victim = null;
+        foreach (Node node in GetTree().GetNodesInGroup("players"))
+            if (node is CharacterBody3D body && PlayerIdentity.IdOf(body) == victimPeerId) { victim = body; break; }
+        if (victim?.GetNodeOrNull<Health>("Health")?.IsDead != true) return;
         Rpc(MethodName.AnnounceKill, killerPeerId, victimPeerId, styleFlags, basePoints, totalPoints,
             assistPeerId, assistPoints, struggles);
     }
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true,
         TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     public void AnnounceKill(long killerPeerId, long victimPeerId, int styleFlags, int basePoints,
         int totalPoints, long assistPeerId, int assistPoints, bool struggles)
     {
-        long sender = Multiplayer.GetRemoteSenderId();
-        // 0 means this execution is the local call_local copy, published by the victim's own device.
-        // A bot has no device of its own: the host simulates it, so the host (peer 1) is the one
-        // legitimately speaking for a bot victim.
-        bool senderOk = sender == 0 || sender == victimPeerId || (sender == 1 && BotRoster.IsBot(victimPeerId));
-        if (!senderOk) return;
-
         EmitKill(killerPeerId, victimPeerId, styleFlags, basePoints, totalPoints, assistPeerId,
             assistPoints, struggles);
     }

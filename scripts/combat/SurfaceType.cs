@@ -14,9 +14,8 @@ using Godot;
 ///    "surface_metal", "surface_wood" or "surface_glass" in the editor's Groups panel and this
 ///    always wins.
 ///  - Failing that, it falls back to guessing from the collider's own node name, which already
-///    gets Warzone's hand-placed shipping containers and oil drums right for free (they're
-///    genuinely named "Container0_0", "Drum0", etc.) since those are discrete scene nodes, not
-///    batched procedural geometry.
+///    can classify a discrete prop when its name includes a material clue (for example, a steel
+///    door or barrel), since those are separate scene nodes rather than batched geometry.
 ///  - Everything else - the procedurally-built walls/floors/ruins in all three maps, which carry no
 ///    material identity at all once MeshBatcher merges them - falls through to Generic. That's
 ///    still a real upgrade over the single shared pistol-impact thud every surface used before this

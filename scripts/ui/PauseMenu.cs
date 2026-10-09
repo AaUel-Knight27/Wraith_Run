@@ -142,9 +142,6 @@ public partial class PauseMenu : CanvasLayer
             return;
         }
 
-        // The F2 debug hub uses Escape to close its own list; do not also open the game menu then.
-        if (!_open && DebugHub.IsOpen) return;
-
         GetViewport().SetInputAsHandled();
         Toggle();
     }

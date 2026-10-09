@@ -86,17 +86,18 @@ public partial class MatchResults : CanvasLayer
         // ---- headline ---------------------------------------------------------------------
         string headline;
         Color headlineColor;
-        if (!teamMode || WinningTeam < 0) { headline = "MATCH OVER"; headlineColor = MenuStyle.TextMain; }
-        else if (myTeam == WinningTeam) { headline = "VICTORY"; headlineColor = MatchManager.TeamColor(WinningTeam); }
+        bool won = teamMode ? myTeam == WinningTeam : PlayerIdentity.IdOf(Player) == WinningTeam;
+        if (WinningTeam < 0) { headline = "DRAW"; headlineColor = MenuStyle.TextMain; }
+        else if (won) { headline = "VICTORY"; headlineColor = teamMode ? MatchManager.TeamColor(WinningTeam) : MenuStyle.Accent; }
         else { headline = "DEFEAT"; headlineColor = MenuStyle.Accent; }
-        if (teamMode && WinningTeam < 0) headline = "DRAW";
 
         column.AddChild(MenuStyle.Text(headline, 60, headlineColor, MenuStyle.Spaced(MenuStyle.Bold, 3), HorizontalAlignment.Center));
 
         string reasonText = Reason == "time" ? "Time limit reached" : "Score limit reached";
-        string sub = teamMode
-            ? $"{(WinningTeam < 0 ? "NO WINNER" : $"TEAM {MatchManager.TeamName(WinningTeam)} WINS")}   -   {reasonText}"
-            : reasonText;
+        string winnerName = teamMode
+            ? $"TEAM {MatchManager.TeamName(WinningTeam)} WINS"
+            : $"{BotRoster.DisplayName(WinningTeam)} WINS";
+        string sub = $"{(WinningTeam < 0 ? "NO WINNER" : winnerName)}   -   {reasonText}";
         column.AddChild(MenuStyle.Text(sub, 20, MenuStyle.TextDim, MenuStyle.SemiBold, HorizontalAlignment.Center));
         if (teamMode && match != null)
         {

@@ -193,27 +193,30 @@ public partial class PlayerHud : CanvasLayer
     /// <summary>Fires once, locally, when this peer's own MatchManager tally hits the score limit
     /// or the clock runs out (see MatchManager.EndMatch) - every peer reaches the same result
     /// independently, so there is nothing to wait for here.</summary>
-    private void OnMatchEnded(int winningTeam, string reason)
+    private void OnMatchEnded(int winner, string reason)
     {
         string reasonText = reason == "time" ? "Time Limit" : "Score Limit";
-        string resultText = winningTeam < 0 ? "MATCH DRAW" : $"TEAM {MatchManager.TeamName(winningTeam)} WINS";
+        bool teamMode = MatchManager.Instance?.IsTeamMode == true;
+        string resultText = teamMode
+            ? (winner < 0 ? "MATCH DRAW" : $"TEAM {MatchManager.TeamName(winner)} WINS")
+            : (winner < 0 ? "MATCH DRAW" : $"{BotRoster.DisplayName(winner)} WINS");
         _matchOverLabel.Text = $"{resultText}\n({reasonText} Reached)";
         _matchOverLabel.Visible = true;
 
         // Then the full ranked results screen, which takes over and returns to the menu by itself.
         // Deferred one frame: MatchStats counts the winning kill from the same KillAnnounced signal
         // that ended the match and may not have run yet, and the board is a snapshot.
-        Callable.From(() => ShowResults(winningTeam, reason)).CallDeferred();
+        Callable.From(() => ShowResults(winner, reason)).CallDeferred();
     }
 
-    private void ShowResults(int winningTeam, string reason)
+    private void ShowResults(int winner, string reason)
     {
         if (!IsInsideTree() || GetNodeOrNull("MatchResults") != null) return;
         AddChild(new MatchResults
         {
             Name = "MatchResults",
             Player = (CharacterBody3D)GetParent(),
-            WinningTeam = winningTeam,
+            WinningTeam = winner,
             Reason = reason,
         });
     }

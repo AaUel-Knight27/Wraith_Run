@@ -66,7 +66,6 @@ public partial class WeaponSwitcher : Node
 	private Camera3D _camera = null!;
 	private CharacterBody3D _player = null!;
 	private PlayerMovement _movement = null!;
-	private PlayerAnimationController? _animation;
 	private RotationWindowTracker _rotationWindow = null!;
 	private Health? _health;
 	private CharacterLoadout? _loadout;
@@ -162,6 +161,16 @@ public partial class WeaponSwitcher : Node
 	{
 		int index = System.Array.IndexOf(Loadout, weaponName);
 		return index >= 0 && TryEquip(index);
+	}
+
+	/// <summary>Practice range rack: equip any registered weapon without changing the player's saved
+	/// weapon set. This entry point is used only by the offline shooting range.</summary>
+	public bool EquipByNameForPractice(string weaponName)
+	{
+		int index = System.Array.IndexOf(Loadout, weaponName);
+		if (index < 0 || !PlayerIdentity.HasAuthority(_player) || (_health != null && _health.IsDead)) return false;
+		ReplicatedWeaponIndex = index;
+		return _appliedWeaponIndex == index;
 	}
 
 	/// <summary>Slot in Loadout of the weapon that is actually equipped right now (-1 before the
@@ -263,7 +272,6 @@ public partial class WeaponSwitcher : Node
 		_rotationWindow = GetNode<RotationWindowTracker>("../RotationWindow");
 		_health = GetNodeOrNull<Health>("../Health");
 		_loadout = GetNodeOrNull<CharacterLoadout>("../CharacterLoadout");
-		_animation = GetNodeOrNull<PlayerAnimationController>("../AnimationController");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
 
 		// The hit-marker tick is a non-positional UI sound: only the person at this machine gets one
@@ -373,7 +381,6 @@ public partial class WeaponSwitcher : Node
 			}
 			_cooldownRemaining = 0.0f;
 			_reloadRemaining = 0.0f;
-			_animation?.CancelReload();
 			_attachment.Equip(weapon);
 			_viewmodel?.EquipWeapon(weapon.WeaponName);
 			WeaponEquipped?.Invoke(weapon);
@@ -402,7 +409,6 @@ public partial class WeaponSwitcher : Node
 		_currentAmmo = _currentWeapon.MagazineSize;
 		_currentReserve = _currentWeapon.MaxReserveAmmo;
 		_reloadRemaining = 0.0f;
-		_animation?.CancelReload();
 	}
 
 	// -------------------------------------------------------------------------------------------
@@ -431,7 +437,6 @@ public partial class WeaponSwitcher : Node
 		{
 			if (!_currentWeapon.ShellByShellReload) return;
 			_reloadRemaining = 0.0f;
-			_animation?.CancelReload();
 			// Everyone else's copy of this reload sound is still playing - cut it off too.
 			Rpc(MethodName.RpcCancelReloadEffects);
 		}
@@ -454,35 +459,44 @@ public partial class WeaponSwitcher : Node
 				: 0.0f);
 	}
 
-	/// <summary>Fire audio, muzzle flash and the upper-body fire animation. Broadcast so remote
-	/// peers see and hear the shot; CallLocal so the shooter runs the same path.</summary>
+	/// <summary>Broadcasts fire audio and muzzle flash so remote peers see and hear each shot.
+	/// CallLocal makes the shooter's viewmodel run the same effect path.</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
 		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
 	public void RpcFireEffects()
 	{
+		if (!IsAuthorizedEffectSender()) return;
 		_attachment.PlayFire();
-		_animation?.PlayFire();
 		_viewmodel?.Play("fire");
 		// Bots (host only) hear the shot: everyone nearby learns roughly where it came from.
 		if (_currentWeapon != null && _currentWeapon.WeaponClass != "Melee")
 			BotSenses.ReportGunshot(_player.GlobalPosition, Mathf.Min(_currentWeapon.FireMaxDistanceMeters, 80.0f), _player);
 	}
 
-	/// <summary>Reload audio and animation. Reliable, unlike fire: a dropped reload would leave a
-	/// remote observer watching an idle pose for two seconds.</summary>
+	/// <summary>Broadcasts reload audio and drives the local viewmodel reload. Reliable, unlike
+	/// fire, because losing the event would leave audio out of sync with the reload.</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
 		TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void RpcReloadEffects()
 	{
+		if (!IsAuthorizedEffectSender()) return;
 		_attachment.PlayReload();
-		_animation?.PlayReload();
 		_viewmodel?.PlayReload(_currentWeapon?.ReloadTime ?? 0.0f, _currentAmmo == 0);
 	}
 
 	/// <summary>A shell-by-shell reload interrupted by firing: stop the reload sound on every peer.</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
 		TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void RpcCancelReloadEffects() => _attachment.StopReload();
+	public void RpcCancelReloadEffects()
+	{
+		if (IsAuthorizedEffectSender()) _attachment.StopReload();
+	}
+
+	private bool IsAuthorizedEffectSender()
+	{
+		long sender = Multiplayer.GetRemoteSenderId();
+		return sender == 0 || sender == _player.GetMultiplayerAuthority();
+	}
 
 	/// <summary>
 	/// Recoil is applied to the Head pivot, not just to the visible camera, so it moves the actual
@@ -647,8 +661,11 @@ public partial class WeaponSwitcher : Node
 	/// sound (and ricochet, if one was rolled) at the impact point.</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
 		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-	public void RpcGeometryImpact(Vector3 worldPosition, int surface, bool ricochet) =>
+	public void RpcGeometryImpact(Vector3 worldPosition, int surface, bool ricochet)
+	{
+		if (!IsAuthorizedEffectSender() || surface < 0 || surface > (int)SurfaceType.Glass) return;
 		_attachment.PlayGeometryImpact(worldPosition, (SurfaceType)surface, ricochet);
+	}
 
 	/// <summary>
 	/// Runs on every peer EXCEPT the shooter (no CallLocal). If the shot's path passed within
@@ -657,7 +674,10 @@ public partial class WeaponSwitcher : Node
 	/// send one small message per shot instead of working out who might be near.
 	/// </summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-	public void RpcShotPath(Vector3 from, Vector3 to, bool rocket) => HearShotPath(from, to, rocket);
+	public void RpcShotPath(Vector3 from, Vector3 to, bool rocket)
+	{
+		if (IsAuthorizedEffectSender()) HearShotPath(from, to, rocket);
+	}
 
 	private void HearShotPath(Vector3 from, Vector3 to, bool rocket)
 	{
@@ -689,7 +709,10 @@ public partial class WeaponSwitcher : Node
 	/// every peer including itself.</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true,
 		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-	public void RpcFleshImpact(Vector3 worldPosition) => _attachment.PlayFleshImpact(worldPosition);
+	public void RpcFleshImpact(Vector3 worldPosition)
+	{
+		if (IsAuthorizedEffectSender()) _attachment.PlayFleshImpact(worldPosition);
+	}
 
 	/// <summary>Scatters a direction inside a cone. Uniform over the disc rather than over the
 	/// angle, so a shotgun pattern does not clump in the middle.</summary>
@@ -811,6 +834,5 @@ public partial class WeaponSwitcher : Node
 		_currentAmmo = _currentWeapon.MagazineSize;
 		_currentReserve = _currentWeapon.MaxReserveAmmo;
 		_reloadRemaining = 0.0f;
-		_animation?.CancelReload();
 	}
 }
