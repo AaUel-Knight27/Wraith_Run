@@ -163,7 +163,6 @@ GripPosition = Vector3(0.036, 0.164, 0)
 GripRotationDegrees = Vector3(-90, -90, 0)
 ModelScale = 1.0
 MuzzleDistance = 0.34
-LeftHandPosition = Vector3(0, -0.06, 0)
 PelletsPerShot = 1
 SpreadDegrees = 0.7
 ShellByShellReload = false

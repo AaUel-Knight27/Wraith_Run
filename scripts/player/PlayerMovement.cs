@@ -8,9 +8,7 @@ public partial class PlayerMovement : CharacterBody3D
 {
     public enum MovementState { Idle, Walk, Sprint, Crouch, CrouchWalk, Slide, Jump, Fall, Aim }
 
-    // [Export] rather than const so an operator's kit (MoveSpeedMult/CrouchWalkSpeedMult) can scale
-    // these once in _Ready(), and so the F8 AnimationTuner's Move Speed sliders - which already read
-    // and write these three by name via Get()/Set() - have an actual Godot property to bind to.
+    // Exported so an operator's kit can apply its movement modifiers once in _Ready().
     [Export] public float WalkSpeed { get; set; } = 4.7f;
     [Export] public float SprintSpeed { get; set; } = 7.2f;
     [Export] public float CrouchSpeed { get; set; } = 2.3f;
@@ -72,7 +70,6 @@ public partial class PlayerMovement : CharacterBody3D
     private Node3D _head = null!;
     private Camera3D _camera = null!;
     private ViewModelManager? _viewModelManager;
-    private PlayerAnimationController _animationController = null!;
     private Health? _health;
     private CapsuleShape3D _capsule = null!;
     private Vector3 _slideVelocity;
@@ -118,7 +115,6 @@ public partial class PlayerMovement : CharacterBody3D
         _head = GetNode<Node3D>("Head");
         _camera = GetNode<Camera3D>("Head/CameraShake/FirstPersonCamera");
         _viewModelManager = GetNodeOrNull<ViewModelManager>("Head/CameraShake/ViewModelManager");
-        _animationController = GetNode<PlayerAnimationController>("AnimationController");
         _health = GetNodeOrNull<Health>("Health");
         _capsule = (CapsuleShape3D)_collisionShape.Shape;
         _headBaseHeight = _head.Position.Y;
@@ -255,12 +251,7 @@ public partial class PlayerMovement : CharacterBody3D
 
     public override void _PhysicsProcess(double deltaValue)
     {
-        if (!PlayerIdentity.HasAuthority(this))
-        {
-            if (Enum.TryParse(ReplicatedMovementState, out MovementState remoteState))
-                _animationController.SetMovementState(remoteState);
-            return;
-        }
+        if (!PlayerIdentity.HasAuthority(this)) return;
         if (_health != null && _health.IsDead)
         {
             Velocity = Vector3.Zero;
@@ -274,7 +265,6 @@ public partial class PlayerMovement : CharacterBody3D
             State = MovementState.Crouch;
             IsAiming = AimHeld();
             UpdateHeadAim((float)deltaValue);
-            _animationController.SetMovementState(State);
             ReplicatedMovementState = State.ToString();
             ReplicatedAimState = IsAiming;
             _viewModelManager?.UpdateMovement(State);
@@ -324,7 +314,6 @@ public partial class PlayerMovement : CharacterBody3D
         _wasGrounded = IsOnFloor() || _groundProbe.IsColliding();
         ReplicatedMovementState = State.ToString();
         ReplicatedAimState = IsAiming;
-        _animationController.SetMovementState(State);
         _viewModelManager?.UpdateMovement(State);
         Bot?.ClearJump(); // a jump request that could not happen this frame is dropped, not banked
     }
@@ -574,6 +563,5 @@ public partial class PlayerMovement : CharacterBody3D
     {
         if (State == state) return;
         State = state;
-        _animationController.SetMovementState(state);
     }
 }

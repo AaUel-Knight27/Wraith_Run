@@ -12,6 +12,58 @@
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AUDIO_MISSING_ASSETS.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/BOTS_README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/CREDITS.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Character Rig README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/MP5_VIEWMODEL_README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/NEEDS_HAND_TEST.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PATCH_NOTES.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README-settings and mobile control.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README_ACCOUNT_AND_STATS.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README_CHARACTER_SYSTEM.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README_DEBUG_HUB.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README_PAUSE_MENU_AND_SCOREBOARD.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README_sound system.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/TRAINING_CENTER_README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/WEAPON_SETS_2026-10-01.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/materials/egyptian_village/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/materials/lab/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/materials/prison/ASSET_SOURCES.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/materials/warehouse/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/SOUND_SLOTS.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mapkit/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/Player.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/Player.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponData.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/debug/AnimationTuner.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/debug/WeaponGripTuner.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/import/AK47MaterialPostImport.gd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/import/AK47MaterialPostImport.gd.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/import/M4MaterialPostImport.gd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/import/M4MaterialPostImport.gd.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/AnimationTuning.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/AnimationTuning.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/CharacterRigApplier.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/CharacterRigApplier.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/CharacterRigTuning.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/CharacterRigTuning.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/FirstPersonArms.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/FirstPersonArms.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/FirstPersonMp5Viewmodel.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/FirstPersonMp5Viewmodel.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/Health.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/Health.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/LeftHandIk.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/LeftHandIk.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/LegHeadingTwist.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/LegHeadingTwist.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerAnimationController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerAnimationController.cs.uid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerMovement.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerMovement.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/OperatorColorPicker.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/OperatorColorPicker.cs.uid" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,29 +171,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;GDScript Start and Debug.Player GDScript.executor&quot;: &quot;Debug&quot;,
-    &quot;Git.Working.Tree.Tab.closed.by.user&quot;: &quot;closed&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/aauel/Downloads/cline-2.0.4.zip&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "GDScript Start and Debug.Player GDScript.executor": "Debug",
+    "Git.Working.Tree.Tab.closed.by.user": "closed",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "cidr.known.project.marker": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "cleanup",
+    "last_opened_file_path": "/home/aauel/Downloads/cline-2.0.4.zip",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="GDScript Start and Debug.Player GDScript">
     <configuration name="Debug GDScript (Running session)" type="GDSCRIPT_DEBUG_RUN_CONFIGURATION" factoryName="GdScriptRunFactory">
       <option name="json" value="{&#10;  // Launch: &quot;Launch a new instance of the game&quot;,&#10;  // Attach: &quot;Attach to an already running game, which was started from the Godot Editor&quot;&#10;  &quot;request&quot; : &quot;Attach&quot;,&#10;  &quot;debugServer&quot; : 6006, // port should match the Debug Adapter port in the Godot Editor project settings.&#10;  &quot;scene&quot; : &quot;main&quot;, // main, current, res://path/to/file.tscn&#10;  &#10;  // &quot;playArgs&quot; : [ &quot;--editor&quot; ], // debugging a tool script&#10;  // &quot;playArgs&quot;: [&quot;--debug-collisions&quot;,&quot;--debug-navigation&quot;], // different options&#10;  &#10;  // one click deploy and debug via Godot Editor:&#10;  // &quot;platform&quot;: &quot;Android&quot;, // including Android, iOS, Web and W4 consoles&#10;  // &quot;device&quot;: &quot;0&quot;, // index of the device of a &quot;platform&quot; type&#10;}" />
@@ -220,7 +272,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="main" />
+                        <option value="cleanup" />
                       </list>
                     </value>
                   </entry>
