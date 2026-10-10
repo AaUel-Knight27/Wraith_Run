@@ -14,6 +14,11 @@
 [ext_resource type="Script" uid="uid://cxg1yq5hqar8y" path="res://scripts/player/CharacterLoadout.cs" id="17"]
 [ext_resource type="Script" uid="uid://c3jrms6yk8aun" path="res://scripts/player/ViewModelManager.cs" id="18_viewmodels"]
 [ext_resource type="Script" uid="uid://cd53owxr5ayrl" path="res://scripts/player/ViewModelCameraMotion.cs" id="19_camera_motion"]
+[ext_resource type="Script" path="res://scripts/player/PlayerAnimator.cs" id="20_player_animator"]
+[ext_resource type="AnimationLibrary" path="res://art/animations/player/body/locomotion_lib.res" id="21_loco_lib"]
+[ext_resource type="AnimationLibrary" path="res://art/animations/player/body/rifle_lib.res" id="22_rifle_lib"]
+[ext_resource type="AnimationLibrary" path="res://art/animations/player/body/pistol_lib.res" id="23_pistol_lib"]
+[ext_resource type="AnimationLibrary" path="res://art/animations/player/body/death_lib.res" id="24_death_lib"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.35
@@ -77,6 +82,15 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
 [node name="WeaponAttachment" type="Node3D" parent="Armature" unique_id=305083634]
 script = ExtResource("5")
+
+[node name="BodyAnimationPlayer" type="AnimationPlayer" parent="Armature"]
+libraries/locomotion_lib = ExtResource("21_loco_lib")
+libraries/rifle_lib = ExtResource("22_rifle_lib")
+libraries/pistol_lib = ExtResource("23_pistol_lib")
+libraries/death_lib = ExtResource("24_death_lib")
+
+[node name="PlayerAnimator" type="Node" parent="Armature"]
+script = ExtResource("20_player_animator")
 
 [node name="Head" type="Node3D" parent="." unique_id=410578168]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)

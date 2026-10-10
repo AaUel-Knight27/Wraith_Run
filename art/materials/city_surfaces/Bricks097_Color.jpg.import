@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bujlxidi5iq08"
-path="res://.godot/imported/ak_47_idle.png-3d2d0949fff863a6e537ec56bdb764fe.ctex"
+path="res://.godot/imported/Bricks097_Color.jpg-7ea15c4fbf1390dc6474c9ebe4749c05.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://debug_shots/ak_47_idle.png"
-dest_files=["res://.godot/imported/ak_47_idle.png-3d2d0949fff863a6e537ec56bdb764fe.ctex"]
+source_file="res://art/materials/city_surfaces/Bricks097_Color.jpg"
+dest_files=["res://.godot/imported/Bricks097_Color.jpg-7ea15c4fbf1390dc6474c9ebe4749c05.ctex"]
 
 [params]
 
