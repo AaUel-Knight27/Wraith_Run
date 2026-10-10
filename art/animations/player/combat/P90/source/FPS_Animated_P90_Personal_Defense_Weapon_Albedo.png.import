@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cx6euqwnccg4k"
+uid="uid://bbu8cwyyai4qn"
 path.s3tc="res://.godot/imported/FPS_Animated_P90_Personal_Defense_Weapon_Albedo.png-ae62c70c2c4ddd7da59dc47291af8dda.s3tc.ctex"
 path.etc2="res://.godot/imported/FPS_Animated_P90_Personal_Defense_Weapon_Albedo.png-ae62c70c2c4ddd7da59dc47291af8dda.etc2.ctex"
 metadata={
@@ -10,7 +10,7 @@ metadata={
 "vram_texture": true
 }
 generator_parameters={
-"md5": "5a4399631f701b90697fd320b35dbef1"
+"md5": "2b783f9560b6f4943cf00dc8084d5eb9"
 }
 
 [deps]

@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d2sve443cwtgs"
+uid="uid://t2eclk22ockw"
 path.s3tc="res://.godot/imported/FPS_Animated_P90_arms_Normal.png-38e2551cd423d84fd43cea875759bea8.s3tc.ctex"
 path.etc2="res://.godot/imported/FPS_Animated_P90_arms_Normal.png-38e2551cd423d84fd43cea875759bea8.etc2.ctex"
 metadata={
@@ -10,7 +10,7 @@ metadata={
 "vram_texture": true
 }
 generator_parameters={
-"md5": "9e7d1d0b713bdb24f29ed2fab77cae5f"
+"md5": "b396c0b3dccae767931b821e64582a64"
 }
 
 [deps]
