@@ -7,11 +7,11 @@ using Row = ScoreboardData.Row;
 /// The scoreboard: hold Tab (or gamepad Back/Select) to show it, release to hide it. On a phone the
 /// SCORE button TouchControls draws toggles it instead, since there is nothing to hold.
 ///
-/// Shows, for the current match: the mode, the match clock (time left in Team Deathmatch), your own
-/// K/D ratio with kills / deaths / assists / score, and one row per player with kills, deaths,
-/// assists, K/D and score. In Team Deathmatch the rows are split into YOUR TEAM (friends) and the
-/// ENEMY TEAM; in Deathmatch everyone is one list, ranked. You are highlighted and dead players are
-/// dimmed.
+/// Shows, for the current match, one thin line (mode | map on the left, match time on the right) and
+/// then compact tables: one per team (your team first) with the team's kills over the score limit,
+/// or a single ranked list in modes without teams. Each row is a name plus Score / Kills / Deaths /
+/// K/D. You are the gold row and dead players are dimmed. There is no separate "your stats" box -
+/// your own row is already in the table.
 ///
 /// Where the numbers come from: kills / deaths / assists from MatchStats (identical on every peer -
 /// see its doc for why PlayerScore.Kills could not be used), score points from each player's
@@ -29,7 +29,8 @@ public partial class Scoreboard : CanvasLayer
 
 	private const float RefreshSeconds = 0.2f;
 
-	private static readonly Color DeadTint = new(1, 1, 1, 0.45f);
+	private static readonly Color Gold = new(1.0f, 0.82f, 0.32f);
+	private const float DeadAlpha = 0.45f;
 
 	private Control _root = null!;
 	private VBoxContainer _column = null!;
@@ -44,16 +45,22 @@ public partial class Scoreboard : CanvasLayer
 		MenuStyle.Fill(_root);
 		AddChild(_root);
 
-		var dim = new ColorRect { Color = new Color(0, 0, 0, 0.55f), MouseFilter = Control.MouseFilterEnum.Ignore };
-		MenuStyle.Fill(dim);
-		_root.AddChild(dim);
+		// One translucent band across the screen with the board centred in it, so the game stays
+		// visible above and below. Anchored by its top edge: a board that grows with more players
+		// grows downward instead of jumping around.
+		var band = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+		var bandStyle = new StyleBoxFlat { BgColor = new Color(0.02f, 0.02f, 0.025f, 0.66f) };
+		bandStyle.ContentMarginTop = 12;
+		bandStyle.ContentMarginBottom = 14;
+		band.AddThemeStyleboxOverride("panel", bandStyle);
+		MenuStyle.Place(band, 0, 0.2f, 1, 0.2f, 0, 0, 0, 0);
+		_root.AddChild(band);
 
-		// Centred, fixed-width column. Top-anchored (not vertically centred) so a board that grows
-		// with more players grows downward instead of jumping around.
+		var center = new CenterContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+		band.AddChild(center);
 		_column = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-		_column.AddThemeConstantOverride("separation", 10);
-		MenuStyle.Place(_column, 0.5f, 0, 0.5f, 0, -400, 26, 400, 26);
-		_root.AddChild(_column);
+		_column.AddThemeConstantOverride("separation", 8);
+		center.AddChild(_column);
 	}
 
 	/// <summary>The touch SCORE button: show it, tap again to hide it.</summary>
@@ -97,146 +104,158 @@ public partial class Scoreboard : CanvasLayer
 			_column.RemoveChild(child);
 			child.QueueFree();
 		}
-		
-		MatchManager match = MatchManager.Instance;
+
+		MatchManager? match = MatchManager.Instance;
 		bool teamMode = match != null && match.IsTeamMode;
 		long me = PlayerIdentity.IdOf(Player);
 		List<Row> rows = ScoreboardData.Collect(GetTree());
-		MatchStats.Stats mine = MatchStats.Instance?.Get(me) ?? new MatchStats.Stats();
-		int myPoints = Player.GetNodeOrNull<PlayerScore>("Score")?.TotalPoints ?? 0;
 
-		_column.AddChild(BuildHeader(match, teamMode));
-		_column.AddChild(BuildSummary(mine, myPoints));
+		// Three quarters of the screen, like the reference, but never absurdly narrow or wide.
+		float width = Mathf.Clamp(GetViewport().GetVisibleRect().Size.X * 0.75f, 480.0f, 1100.0f);
+		_column.CustomMinimumSize = new Vector2(width, 0);
 
-		if (!teamMode)
+		_column.AddChild(BuildInfoLine(match));
+
+		if (!teamMode || match == null)
 		{
-			_column.AddChild(BuildTable("PLAYERS", null, MenuStyle.Accent, rows, me, null, showScoreOfTeam: false));
+			_column.AddChild(BuildBoard("PLAYERS", null, null, MenuStyle.TextDim, new Color(0.05f, 0.07f, 0.10f, 0.62f), rows, me));
 			return;
 		}
 
-		int myTeam = match!.GetTeam(me);
+		int myTeam = match.GetTeam(me);
 		int first = myTeam >= 0 ? myTeam : 0;
-		int second = 1 - first;
-		AddTeamTable(rows, first, myTeam >= 0 ? "YOUR TEAM" : null, me, match);
-		AddTeamTable(rows, second, myTeam >= 0 ? "ENEMY TEAM" : null, me, match);
+		AddTeamBoard(rows, first, me, match);
+		AddTeamBoard(rows, 1 - first, me, match);
 		var unassigned = rows.FindAll(r => r.Team < 0);
 		if (unassigned.Count > 0)
-			_column.AddChild(BuildTable("JOINING", null, MenuStyle.TextDim, unassigned, me, null, showScoreOfTeam: false));
+			_column.AddChild(BuildBoard("JOINING", null, null, MenuStyle.TextDim, new Color(0.05f, 0.07f, 0.10f, 0.62f), unassigned, me));
 	}
 
-	private void AddTeamTable(List<Row> all, int team, string? role, long me, MatchManager match)
+	private void AddTeamBoard(List<Row> all, int team, long me, MatchManager match)
 	{
-		var members = all.FindAll(r => r.Team == team);
 		Color color = MatchManager.TeamColor(team);
-		string title = role != null ? $"{role}  -  {MatchManager.TeamName(team)}" : $"TEAM {MatchManager.TeamName(team)}";
-		_column.AddChild(BuildTable(title, match.GetTeamScore(team).ToString(), color, members, me, team, showScoreOfTeam: true));
+		var tint = new Color(color.R * 0.30f, color.G * 0.30f, color.B * 0.30f, 0.62f);
+		_column.AddChild(BuildBoard(MatchManager.TeamName(team), match.GetTeamScore(team).ToString(),
+			match.ScoreLimit.ToString(), color, tint, all.FindAll(r => r.Team == team), me));
 	}
 
-	private Control BuildHeader(MatchManager match, bool teamMode)
+	/// <summary>The one thin line above the tables: mode | map on the left, the match time on the right.</summary>
+	private static Control BuildInfoLine(MatchManager? match)
 	{
-		var bar = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-		bar.AddThemeConstantOverride("separation", 16);
-
-		var left = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseFilter = Control.MouseFilterEnum.Ignore };
-		left.AddThemeConstantOverride("separation", -4);
-		left.AddChild(MenuStyle.Text("SCOREBOARD", 34, MenuStyle.TextMain, MenuStyle.Spaced(MenuStyle.Bold, 2)));
-		string mode = teamMode ? "TEAM DEATHMATCH" : "DEATHMATCH";
-		if (teamMode) mode += $"   -   first to {match.ScoreLimit} kills";
-		left.AddChild(MenuStyle.Text(mode, 17, MenuStyle.Accent, MenuStyle.SemiBold));
-		bar.AddChild(left);
-
-		string timeText;
-		string timeCaption;
-		if (match == null) { timeText = "--:--"; timeCaption = "TIME"; }
-		else if (match.IsMatchEnded)
-		{
-			timeText = match.WinningTeam < 0 ? "DRAW" : $"TEAM {MatchManager.TeamName(match.WinningTeam)} WINS";
-			timeCaption = "MATCH OVER";
-		}
-		else if (match.HasTimeLimit)
-		{
-			timeText = GameUiState.FormatClock(match.TimeRemainingSeconds);
-			timeCaption = "TIME LEFT";
-		}
-		else
-		{
-			timeText = GameUiState.FormatClock(match.ElapsedSeconds);
-			timeCaption = "MATCH TIME";
-		}
-		var right = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-		right.AddThemeConstantOverride("separation", -6);
-		right.AddChild(MenuStyle.Text(timeCaption, 14, MenuStyle.TextMuted, MenuStyle.SemiBold, HorizontalAlignment.Right));
-		right.AddChild(MenuStyle.Text(timeText, 36, MenuStyle.TextMain, MenuStyle.Bold, HorizontalAlignment.Right));
-		bar.AddChild(right);
-		return bar;
-	}
-
-	/// <summary>Your own numbers, big: K/D first because it is what the scoreboard is opened for.</summary>
-	private Control BuildSummary(MatchStats.Stats mine, int points)
-	{
-		var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-		var style = MenuStyle.Box(MenuStyle.PanelFill, MenuStyle.SelectedBorder);
-		style.SetContentMarginAll(10);
-		panel.AddThemeStyleboxOverride("panel", style);
-		var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-		row.AddThemeConstantOverride("separation", 8);
-		panel.AddChild(row);
-
-		void Tile(string caption, string value, Color? color = null)
-		{
-			var box = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseFilter = Control.MouseFilterEnum.Ignore };
-			box.AddThemeConstantOverride("separation", -4);
-			box.AddChild(MenuStyle.Text(caption, 14, MenuStyle.TextMuted, MenuStyle.SemiBold, HorizontalAlignment.Center));
-			box.AddChild(MenuStyle.Text(value, 32, color ?? MenuStyle.TextMain, MenuStyle.Bold, HorizontalAlignment.Center));
-			row.AddChild(box);
-		}
-		Tile("YOUR K/D", GameUiState.FormatKd(mine.Kills, mine.Deaths), MenuStyle.Accent);
-		Tile("KILLS", mine.Kills.ToString());
-		Tile("DEATHS", mine.Deaths.ToString());
-		Tile("ASSISTS", mine.Assists.ToString());
-		Tile("SCORE", points.ToString());
-		return panel;
-	}
-
-	private Control BuildTable(string title, string? teamScore, Color accent, List<Row> rows, long me,
-		int? team, bool showScoreOfTeam)
-	{
-		var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-		var style = MenuStyle.Box(MenuStyle.PanelFill, MenuStyle.Hairline);
-		style.SetContentMarginAll(12);
-		panel.AddThemeStyleboxOverride("panel", style);
 		var box = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
 		box.AddThemeConstantOverride("separation", 4);
+
+		var line = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+		string left = match == null ? string.Empty : $"{match.ModeRules.DisplayName} | {match.MapDisplayName}";
+		Label mode = MenuStyle.Text(left, 17, MenuStyle.TextDim, MenuStyle.Medium);
+		mode.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+		line.AddChild(mode);
+		line.AddChild(MenuStyle.Text(TimeText(match), 17, MenuStyle.TextDim, MenuStyle.Medium, HorizontalAlignment.Right));
+		box.AddChild(line);
+
+		box.AddChild(new ColorRect { Color = new Color(1, 1, 1, 0.55f), CustomMinimumSize = new Vector2(0, 1), MouseFilter = Control.MouseFilterEnum.Ignore });
+		return box;
+	}
+
+	private static string TimeText(MatchManager? match)
+	{
+		if (match == null) return string.Empty;
+		if (match.IsMatchEnded)
+			return match.WinningTeam < 0 ? "Match over - draw" : $"Match over - Team {MatchManager.TeamName(match.WinningTeam)} wins";
+		return match.HasTimeLimit
+			? $"Time Left - {GameUiState.FormatClock(match.TimeRemainingSeconds)}"
+			: $"Match Time - {GameUiState.FormatClock(match.ElapsedSeconds)}";
+	}
+
+	/// <summary>One tinted block: a header (team kills / limit and the name, with the column titles on the
+	/// right) and one slim row per player.</summary>
+	private static Control BuildBoard(string name, string? score, string? limit, Color accent, Color tint,
+		List<Row> rows, long me)
+	{
+		var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+		var style = new StyleBoxFlat { BgColor = tint };
+		style.ContentMarginLeft = 10;
+		style.ContentMarginRight = 10;
+		style.ContentMarginTop = 6;
+		style.ContentMarginBottom = 8;
+		panel.AddThemeStyleboxOverride("panel", style);
+		var box = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+		box.AddThemeConstantOverride("separation", 2);
 		panel.AddChild(box);
 
 		var head = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-		var titleLabel = MenuStyle.Text(title, 22, accent, MenuStyle.Bold);
-		titleLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-		head.AddChild(titleLabel);
-		if (showScoreOfTeam && teamScore != null)
-			head.AddChild(MenuStyle.Text($"{teamScore} kills", 22, accent, MenuStyle.Bold, HorizontalAlignment.Right));
+		head.AddThemeConstantOverride("separation", 6);
+		if (score != null)
+		{
+			head.AddChild(MenuStyle.Text(score, 30, accent, MenuStyle.SemiBold));
+			if (limit != null)
+			{
+				Label of = MenuStyle.Text("/" + limit, 22, MenuStyle.TextMuted, MenuStyle.Medium);
+				of.SizeFlagsVertical = Control.SizeFlags.ShrinkEnd;
+				head.AddChild(of);
+			}
+		}
+		Label title = MenuStyle.Text(name, 28, MenuStyle.TextMain, MenuStyle.SemiBold);
+		title.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+		title.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+		title.ClipText = true;
+		head.AddChild(title);
+		head.AddChild(StatCells("Score", "Kills", "Deaths", "K/D", MenuStyle.TextDim, 15));
 		box.AddChild(head);
 
-		box.AddChild(ColumnsRow("#", "PLAYER", "SCORE", "K", "D", "A", "K/D", MenuStyle.TextMuted, 14, null, false));
+		box.AddChild(new ColorRect { Color = accent, CustomMinimumSize = new Vector2(0, 2), MouseFilter = Control.MouseFilterEnum.Ignore });
+
 		if (rows.Count == 0)
 		{
 			box.AddChild(MenuStyle.Text("No players", 17, MenuStyle.TextMuted, MenuStyle.Medium));
 			return panel;
 		}
-
-		for (int i = 0; i < rows.Count; i++)
-		{
-			Row r = rows[i];
-			bool isMe = r.PeerId == me;
-			string name = ScoreboardData.DisplayName(r, me);
-			if (r.Dead) name += "  - dead";
-			Color textColor = isMe ? MenuStyle.TextMain : MenuStyle.TextDim;
-			if (r.Dead) textColor = new Color(textColor, DeadTint.A);
-			box.AddChild(ColumnsRow((i + 1).ToString(), name, r.Points.ToString(), r.Kills.ToString(),
-				r.Deaths.ToString(), r.Assists.ToString(), GameUiState.FormatKd(r.Kills, r.Deaths),
-				textColor, 19, isMe ? MenuStyle.SelectedFill : null, true));
-		}
+		foreach (Row r in rows) box.AddChild(BuildPlayerRow(r, me));
 		return panel;
+	}
+
+	private static Control BuildPlayerRow(Row r, long me)
+	{
+		bool isMe = r.PeerId == me;
+		Color color = isMe ? Gold : MenuStyle.TextMain;
+		if (r.Dead) color = new Color(color, DeadAlpha);
+
+		var panel = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+		var style = new StyleBoxFlat { BgColor = isMe ? new Color(Gold, 0.14f) : new Color(0, 0, 0, 0.28f) };
+		style.ContentMarginLeft = 10;
+		style.ContentMarginRight = 10;
+		style.ContentMarginTop = 2;
+		style.ContentMarginBottom = 2;
+		panel.AddThemeStyleboxOverride("panel", style);
+
+		var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+		Label name = MenuStyle.Text(BotRoster.DisplayName(r.PeerId), 19, color, MenuStyle.SemiBold);
+		name.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+		name.ClipText = true;
+		row.AddChild(name);
+		row.AddChild(StatCells(r.Points.ToString(), r.Kills.ToString(), r.Deaths.ToString(),
+			GameUiState.FormatKd(r.Kills, r.Deaths), color, 19));
+		panel.AddChild(row);
+		return panel;
+	}
+
+	/// <summary>The four number columns, used by the header and every row so they line up exactly.</summary>
+	private static Control StatCells(string score, string kills, string deaths, string kd, Color color, int size)
+	{
+		var cells = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+		cells.AddThemeConstantOverride("separation", 0);
+		void Cell(string text, float width)
+		{
+			Label label = MenuStyle.Text(text, size, color, MenuStyle.SemiBold, HorizontalAlignment.Center);
+			label.CustomMinimumSize = new Vector2(width, 0);
+			label.ClipText = true;
+			cells.AddChild(label);
+		}
+		Cell(score, 96);
+		Cell(kills, 84);
+		Cell(deaths, 84);
+		Cell(kd, 84);
+		return cells;
 	}
 
 	internal static Control ColumnsRow(string rank, string name, string score, string kills, string deaths,

@@ -12,9 +12,7 @@
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/training/ShootingRange.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/training/ShootingRange.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/MenuStyle.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/MenuStyle.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,23 +57,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.291208184911862" />
-      <entry key="MS500" value="2.7056894822072106" />
-      <entry key="S2" value="4.170349984360112" />
-      <entry key="S5" value="4.639555157119677" />
-      <entry key="S10" value="4.814618425768181" />
-      <entry key="S30" value="4.937021422503511" />
-      <entry key="S60" value="4.977264909578565" />
-      <entry key="M2" value="5.8599840028160175" />
-      <entry key="M5" value="19.16769541089666" />
-      <entry key="M10" value="41.10066427432855" />
-      <entry key="M15" value="54.60880694233585" />
-      <entry key="M30" value="75.07284843790171" />
-      <entry key="H1" value="92.12198278003939" />
-      <entry key="H2" value="108.5400365897279" />
-      <entry key="H4" value="140.88403762964495" />
-      <entry key="D1" value="327.70423665887205" />
-      <entry key="W1" value="419.993891877059" />
+      <entry key="MS100" value="1.0001824838014057" />
+      <entry key="MS500" value="1.2879575942612467" />
+      <entry key="S2" value="3.671193080034361" />
+      <entry key="S5" value="6.03972892379173" />
+      <entry key="S10" value="7.326290348997212" />
+      <entry key="S30" value="8.392049107741915" />
+      <entry key="S60" value="8.69780061366792" />
+      <entry key="M2" value="9.700236729287122" />
+      <entry key="M5" value="22.990199459585355" />
+      <entry key="M10" value="44.918232166273306" />
+      <entry key="M15" value="58.44868281896319" />
+      <entry key="M30" value="78.96360924755467" />
+      <entry key="H1" value="96.05520894968996" />
+      <entry key="H2" value="112.50079984902517" />
+      <entry key="H4" value="144.8586606718349" />
+      <entry key="D1" value="331.6944644771348" />
+      <entry key="W1" value="423.9921046929665" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -97,23 +95,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.0600827585438513" />
-      <entry key="MS500" value="2.59595102898633" />
-      <entry key="S2" value="4.122002011397934" />
-      <entry key="S5" value="4.617375781226154" />
-      <entry key="S10" value="4.802991660747544" />
-      <entry key="S30" value="4.933019948204961" />
-      <entry key="S60" value="4.975241047224827" />
-      <entry key="M2" value="5.858639282618797" />
-      <entry key="M5" value="19.165180646074205" />
-      <entry key="M10" value="41.097794499414974" />
-      <entry key="M15" value="54.606239389361285" />
-      <entry key="M30" value="75.07108660775248" />
-      <entry key="H1" value="92.12092035525066" />
-      <entry key="H2" value="108.53943421850117" />
-      <entry key="H4" value="140.88368764007353" />
-      <entry key="D1" value="327.70413709302716" />
-      <entry key="W1" value="419.99387475709153" />
+      <entry key="MS100" value="0.4061643099402659" />
+      <entry key="MS500" value="1.0425302289668164" />
+      <entry key="S2" value="3.464543271142625" />
+      <entry key="S5" value="5.911345695979264" />
+      <entry key="S10" value="7.250648531120473" />
+      <entry key="S30" value="8.363785086996584" />
+      <entry key="S60" value="8.683244099201806" />
+      <entry key="M2" value="9.692529219709268" />
+      <entry key="M5" value="22.985129527333978" />
+      <entry key="M10" value="44.9140829751369" />
+      <entry key="M15" value="58.44526071785239" />
+      <entry key="M30" value="78.96141862382794" />
+      <entry key="H1" value="96.05393153678264" />
+      <entry key="H2" value="112.50008979655172" />
+      <entry key="H4" value="144.85825679085224" />
+      <entry key="D1" value="331.6943559211431" />
+      <entry key="W1" value="423.9920862883229" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -243,7 +241,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="more professional FPS game menu" />
     <MESSAGE value="add bots with different skills and abilities" />
     <MESSAGE value="rebuild match Result" />
     <MESSAGE value="remove unneccessary files" />
@@ -268,7 +265,8 @@
     <MESSAGE value="added characters and still working on weapons" />
     <MESSAGE value="more work on the modeling and animations" />
     <MESSAGE value="added player animations back" />
-    <option name="LAST_COMMIT_MESSAGE" value="added player animations back" />
+    <MESSAGE value="fixing menu and buttons bug" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixing menu and buttons bug" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

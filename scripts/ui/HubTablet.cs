@@ -31,7 +31,21 @@ public partial class HubTablet : CanvasLayer
     private TabletDevice? _device;
     private bool _pointerInside;
     private Vector2 _lastPixel;
-    private HubController _hub = null!;
+    private HubController? _hub;
+    private SettingsPanel? _settingsPanel;
+    private bool _confirmLeave;
+    private bool _connectionLost;
+
+    /// <summary>Set before the tablet enters the tree to make it the in-game menu of this player (a match or
+    /// the shooting range) rather than the hub's: same device, same look, but the pages are RESUME / LEAVE,
+    /// OPERATOR and SETTINGS, and PauseMenu decides when it opens and closes.</summary>
+    public CharacterBody3D? GamePlayer { get; set; }
+    private bool InGame => GamePlayer != null;
+    private bool InSession => _hub != null && _hub.InSession;
+    private string StatusLine => _hub?.StatusLine ?? string.Empty;
+    public bool IsOpen => _open;
+    /// <summary>A key row in SETTINGS > CONTROLS is waiting for a key (Escape then means cancel the rebind).</summary>
+    public bool IsCapturingKey => _settingsPanel != null && IsInstanceValid(_settingsPanel) && _settingsPanel.IsInsideTree() && _settingsPanel.IsCapturingKey;
 
     private Section _section = Section.Home;
     private PlayStep _playStep = PlayStep.Home;
@@ -73,12 +87,15 @@ public partial class HubTablet : CanvasLayer
         Instance = this;
         Layer = 30;
         ProcessMode = ProcessModeEnum.Always;
-        _hub = HubController.Instance!;
         BuildShell();
-        BuildChatFeed();
-        _hub.ChatReceived += OnChat;
-        _hub.RosterChanged += () => _lobbyDirty = true;
-        if (MatchManager.Instance != null) MatchManager.Instance.LobbyChanged += OnLobbyChanged;
+        if (!InGame)
+        {
+            _hub = HubController.Instance!;
+            BuildChatFeed();
+            _hub.ChatReceived += OnChat;
+            _hub.RosterChanged += () => _lobbyDirty = true;
+            if (MatchManager.Instance != null) MatchManager.Instance.LobbyChanged += OnLobbyChanged;
+        }
         AttachTabletModel();
     }
 
@@ -108,6 +125,12 @@ public partial class HubTablet : CanvasLayer
         _open = true;
         _device.Fit(camera);
         GameUiState.SetMenuOpen(true);
+        if (GamePlayer != null)
+        {
+            // a finger still on the joystick or FIRE would otherwise stay "pressed" for good; the scoreboard must not sit under the tablet
+            GamePlayer.GetNodeOrNull<TouchControls>("TouchControls")?.ReleaseAllHeld();
+            GamePlayer.GetNodeOrNull<Scoreboard>("Hud/Scoreboard")?.HideNow();
+        }
         if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
         _device.Raise();
         SetOverlays(true);
@@ -117,7 +140,8 @@ public partial class HubTablet : CanvasLayer
 
     private void Close()
     {
-        if (!_open) return;
+        if (!_open || _connectionLost) return; // with the host gone the only way out is LEAVE
+        _confirmLeave = false;
         _open = false;
         StopListening();
         GameUiState.SetMenuOpen(false);
@@ -141,13 +165,16 @@ public partial class HubTablet : CanvasLayer
                 if (hot.PhysicalKeycode == Key.E) { GetViewport().SetInputAsHandled(); CycleTab(1); return; }
                 if (hot.PhysicalKeycode == Key.Space) { GetViewport().SetInputAsHandled(); PrimaryAction(); return; }
             }
-            bool closing = @event.IsActionPressed(GameUiState.PauseAction) || @event.IsActionPressed("ui_cancel");
+            // Esc closes the tablet - except while a key row waits for a key, where it cancels the rebind
+            bool closing = !IsCapturingKey && (@event.IsActionPressed(GameUiState.PauseAction) || @event.IsActionPressed("ui_cancel"));
             if (!closing && ForwardToScreen(@event))
             {
                 GetViewport().SetInputAsHandled();
                 return;
             }
         }
+        // In a match or the range PauseMenu opens and closes the tablet; the hub keys below are the hub's.
+        if (InGame) return;
         if (@event is InputEventKey key && key.Pressed && !key.Echo)
         {
             if (_typing)
@@ -182,7 +209,7 @@ public partial class HubTablet : CanvasLayer
         if (!tab && !back) return;
         if (GameUiState.ResultsOpen) return;
         GetViewport().SetInputAsHandled();
-        if (_open && _section == Section.Play && !_hub.InSession && (_playStep == PlayStep.Host || _playStep == PlayStep.Join))
+        if (_open && _section == Section.Play && !InSession && (_playStep == PlayStep.Host || _playStep == PlayStep.Join))
         {
             // one step back inside HOST / JOIN before the tablet closes
             _playStep = PlayStep.Home;
@@ -194,7 +221,7 @@ public partial class HubTablet : CanvasLayer
 
     public override void _Notification(int what)
     {
-        if (what == (int)Node.NotificationWMGoBackRequest && !GameUiState.ResultsOpen) Toggle();
+        if (what == (int)Node.NotificationWMGoBackRequest && !GameUiState.ResultsOpen && !InGame) Toggle();
     }
 
     public override void _Process(double delta)
@@ -206,7 +233,7 @@ public partial class HubTablet : CanvasLayer
         if (_liveTimer < 0.5) return;
         _liveTimer = 0;
         if (!_open || !Multiplayer.HasMultiplayerPeer()) return;
-        if (!(_lobbyDirty || _section == Section.Status || _section == Section.Home || (_section == Section.Play && _hub.InSession))) return;
+        if (!(_lobbyDirty || _section == Section.Status || _section == Section.Home || (_section == Section.Play && InSession))) return;
 
         // Rebuild only when something this page shows has actually changed. Rebuilding on a timer threw
         // the reader back to the top of the page and could swallow a click that landed mid-rebuild.
@@ -223,7 +250,7 @@ public partial class HubTablet : CanvasLayer
     {
         if (!Multiplayer.HasMultiplayerPeer()) return string.Empty;
         var sb = new StringBuilder();
-        sb.Append(_hub.InSession).Append('|').Append(_hub.StatusLine).Append('|').Append(PlayerDirectory.Version).Append('|');
+        sb.Append(InSession).Append('|').Append(StatusLine).Append('|').Append(PlayerDirectory.Version).Append('|');
         sb.Append(Multiplayer.GetPeers().Length).Append('|');
         MatchManager? match = MatchManager.Instance;
         if (match == null) return sb.ToString();
@@ -254,7 +281,7 @@ public partial class HubTablet : CanvasLayer
     private bool RefreshLiveSection()
     {
         // Only the cheap-to-rebuild screens are rebuilt live.
-        if (_section == Section.Status || _section == Section.Home || (_section == Section.Play && _hub.InSession && _playStep == PlayStep.Home))
+        if (_section == Section.Status || _section == Section.Home || (_section == Section.Play && InSession && _playStep == PlayStep.Home))
         {
             ShowSection(_section);
             return true;
@@ -303,8 +330,16 @@ public partial class HubTablet : CanvasLayer
         page.AddChild(_content);
     }
 
-    private Camera3D? LocalCamera() =>
-        GetTree().CurrentScene?.GetNodeOrNull<Camera3D>($"Players/Player_{Multiplayer.GetUniqueId()}/Head/CameraShake/FirstPersonCamera");
+    private const string CameraPath = "Head/CameraShake/FirstPersonCamera";
+
+    private int LocalPeerId() => Multiplayer.HasMultiplayerPeer() ? Multiplayer.GetUniqueId() : 1;
+
+    private Camera3D? LocalCamera()
+    {
+        if (GamePlayer != null)
+            return IsInstanceValid(GamePlayer) ? GamePlayer.GetNodeOrNull<Camera3D>(CameraPath) : null;
+        return GetTree()?.CurrentScene?.GetNodeOrNull<Camera3D>($"Players/Player_{LocalPeerId()}/{CameraPath}");
+    }
 
     /// <summary>Hang the tablet on the local player's camera as soon as that camera exists.</summary>
     private void AttachTabletModel() => CallDeferred(nameof(MountDevice));
@@ -327,7 +362,9 @@ public partial class HubTablet : CanvasLayer
     private void SetOverlays(bool tabletUp)
     {
         if (_feedRoot != null) _feedRoot.Visible = !tabletUp;
-        var hud = GetTree().CurrentScene?.GetNodeOrNull<CanvasLayer>($"Players/Player_{Multiplayer.GetUniqueId()}/Hud");
+        CanvasLayer? hud = GamePlayer != null
+            ? (IsInstanceValid(GamePlayer) ? GamePlayer.GetNodeOrNull<CanvasLayer>("Hud") : null)
+            : GetTree()?.CurrentScene?.GetNodeOrNull<CanvasLayer>($"Players/Player_{LocalPeerId()}/Hud");
         if (hud != null) hud.Visible = !tabletUp;
     }
 
@@ -367,6 +404,7 @@ public partial class HubTablet : CanvasLayer
     }
 
     private static readonly Section[] TabOrder = { Section.Home, Section.Operator, Section.Status, Section.Chat, Section.Settings };
+    private static readonly Section[] GameTabOrder = { Section.Home, Section.Operator, Section.Settings };
 
     private static Button Sized(Button button, float width)
     {
@@ -393,7 +431,8 @@ public partial class HubTablet : CanvasLayer
 
     private string PrimaryLabel()
     {
-        if (!_hub.InSession) return "PLAY";
+        if (InGame) return "RESUME";
+        if (!InSession) return "PLAY";
         if (Multiplayer.IsServer()) return "START";
         return MatchManager.Instance.LocalPlayerReady ? "UNREADY" : "READY";
     }
@@ -401,11 +440,12 @@ public partial class HubTablet : CanvasLayer
     /// <summary>The big red button: PLAY before there is a lobby, then START GAME (host) or READY (others).</summary>
     private void PrimaryAction()
     {
+        if (InGame) { Close(); return; }
         MatchManager match = MatchManager.Instance;
-        if (!_hub.InSession) { _playStep = PlayStep.Solo; ShowSection(Section.Play); return; }
+        if (!InSession) { _playStep = PlayStep.Solo; ShowSection(Section.Play); return; }
         if (Multiplayer.IsServer())
         {
-            if (match.CanHostStartMatch) _hub.StartMatch();
+            if (match.CanHostStartMatch) _hub?.StartMatch();
             else { _playStep = PlayStep.Home; ShowSection(Section.Play); } // the lobby page says what is missing
             return;
         }
@@ -417,17 +457,18 @@ public partial class HubTablet : CanvasLayer
 
     private void BackPressed()
     {
-        if (_section == Section.Play && !_hub.InSession && (_playStep == PlayStep.Host || _playStep == PlayStep.Join)) { _playStep = PlayStep.Home; ShowSection(Section.Play); }
+        if (_section == Section.Play && !InSession && (_playStep == PlayStep.Host || _playStep == PlayStep.Join)) { _playStep = PlayStep.Home; ShowSection(Section.Play); }
         else if (_section != Section.Home) { _playStep = PlayStep.Home; ShowSection(Section.Home); }
         else Close();
     }
 
     private void CycleTab(int direction)
     {
-        int index = System.Array.IndexOf(TabOrder, _section);
-        index = index < 0 ? 0 : (index + direction + TabOrder.Length) % TabOrder.Length;
+        Section[] order = InGame ? GameTabOrder : TabOrder;
+        int index = System.Array.IndexOf(order, _section);
+        index = index < 0 ? 0 : (index + direction + order.Length) % order.Length;
         _playStep = PlayStep.Home;
-        ShowSection(TabOrder[index]);
+        ShowSection(order[index]);
     }
 
     private void BuildTopBar()
@@ -447,28 +488,34 @@ public partial class HubTablet : CanvasLayer
         tabs.AddChild(KeyCap("Q"));
         tabs.AddChild(Tab("HOME", Section.Home));
         tabs.AddChild(Tab("OPERATOR", Section.Operator));
-        tabs.AddChild(Tab("PLAYERS", Section.Status));
-        tabs.AddChild(Tab("CHAT", Section.Chat));
+        if (!InGame)
+        {
+            tabs.AddChild(Tab("PLAYERS", Section.Status));
+            tabs.AddChild(Tab("CHAT", Section.Chat));
+        }
         tabs.AddChild(KeyCap("E"));
         _topBar.AddChild(tabs);
 
         _topBar.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
 
-        // who is in the room, settings (there is no exit button: Esc asks to leave)
-        var people = new PanelContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkCenter, MouseFilter = Control.MouseFilterEnum.Ignore };
-        people.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        // who is in the room (the hub only), settings (there is no exit button: Esc asks to leave)
+        if (!InGame)
         {
-            BgColor = new Color(0, 0, 0, 0.35f), BorderColor = MenuStyle.Hairline,
-            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
-            ContentMarginLeft = 10, ContentMarginRight = 10, ContentMarginTop = 6, ContentMarginBottom = 6,
-        });
-        var row = new HBoxContainer();
-        row.AddThemeConstantOverride("separation", 8);
-        row.AddChild(MenuStyle.Icon("users", 18));
-        int inRoom = Math.Max(1, MatchManager.Instance.LobbyPeerIds().Length);
-        row.AddChild(MenuStyle.Text(inRoom.ToString(), 20, MenuStyle.TextMain, MenuStyle.Bold));
-        people.AddChild(row);
-        _topBar.AddChild(people);
+            var people = new PanelContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkCenter, MouseFilter = Control.MouseFilterEnum.Ignore };
+            people.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+            {
+                BgColor = new Color(0, 0, 0, 0.35f), BorderColor = MenuStyle.Hairline,
+                BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+                ContentMarginLeft = 10, ContentMarginRight = 10, ContentMarginTop = 6, ContentMarginBottom = 6,
+            });
+            var row = new HBoxContainer();
+            row.AddThemeConstantOverride("separation", 8);
+            row.AddChild(MenuStyle.Icon("users", 18));
+            int inRoom = Math.Max(1, MatchManager.Instance.LobbyPeerIds().Length);
+            row.AddChild(MenuStyle.Text(inRoom.ToString(), 20, MenuStyle.TextMain, MenuStyle.Bold));
+            people.AddChild(row);
+            _topBar.AddChild(people);
+        }
 
         _topBar.AddChild(MenuStyle.IconButton("settings", 24, _section == Section.Settings ? MenuStyle.Accent : MenuStyle.TextMain, () => { _playStep = PlayStep.Home; ShowSection(Section.Settings); }));
     }
@@ -496,7 +543,7 @@ public partial class HubTablet : CanvasLayer
     private void ShowSection(Section section)
     {
         // Same page rebuilt (a refresh, or picking a choice on it): keep it scrolled where it was.
-        string pageKey = $"{section}:{_playStep}:{_hub.InSession}";
+        string pageKey = $"{section}:{_playStep}:{InSession}";
         _pendingScroll = _scroll != null && IsInstanceValid(_scroll) && _scrollKey == pageKey ? _scroll.ScrollVertical : 0;
         _scrollKey = pageKey;
         _scroll = null;
@@ -517,7 +564,7 @@ public partial class HubTablet : CanvasLayer
                 BuildOperator();
                 break;
             case Section.Status:
-                PageHeader("PLAYERS", _hub.InSession ? "in this room" : "alone in the warehouse");
+                PageHeader("PLAYERS", InSession ? "in this room" : "alone in the warehouse");
                 Scrolled(BuildStatus);
                 break;
             case Section.Chat:
@@ -526,8 +573,8 @@ public partial class HubTablet : CanvasLayer
                 break;
             case Section.Settings:
                 PageHeader("SETTINGS", "controls, sound and display");
-                var settings = new SettingsPanel();
-                _content.AddChild(ContentFrame(settings));
+                _settingsPanel = new SettingsPanel();
+                _content.AddChild(ContentFrame(_settingsPanel));
                 break;
         }
         _liveSignature = LiveSignature();
@@ -535,7 +582,7 @@ public partial class HubTablet : CanvasLayer
 
     private void PlayHeader()
     {
-        if (_hub.InSession)
+        if (InSession)
         {
             PageHeader("LOBBY", Multiplayer.IsServer() ? "you are hosting" : "in a lobby");
             return;
@@ -576,7 +623,7 @@ public partial class HubTablet : CanvasLayer
 
     private void BuildPlay()
     {
-        if (_hub.InSession) { Scrolled(BuildLobby); return; }
+        if (InSession) { Scrolled(BuildLobby); return; }
         switch (_playStep)
         {
             case PlayStep.Solo: Scrolled(BuildSolo); break;
@@ -618,8 +665,9 @@ public partial class HubTablet : CanvasLayer
 
     private void BuildHome()
     {
+        if (InGame) { BuildGameHome(); return; }
         MatchManager match = MatchManager.Instance;
-        bool inSession = _hub.InSession;
+        bool inSession = InSession;
 
         // Background: the wordmark, very faint, so the screen has depth without noise.
         var mark = MenuStyle.Text("WRAITH RUN", 150, new Color(0.9f, 0.08f, 0.08f, 0.06f), MenuStyle.Bold);
@@ -648,8 +696,8 @@ public partial class HubTablet : CanvasLayer
                 : "Everyone is in the same warehouse until the match starts.")
             : "Walk the warehouse and take weapons off the wall. Then host a game or join one on this Wi-Fi.";
         left.AddChild(MenuStyle.Wrapped(body, 20, MenuStyle.TextDim, MenuStyle.Medium));
-        if (!string.IsNullOrEmpty(_hub.StatusLine))
-            left.AddChild(MenuStyle.Text(_hub.StatusLine, 18, MenuStyle.Accent, MenuStyle.SemiBold));
+        if (!string.IsNullOrEmpty(StatusLine))
+            left.AddChild(MenuStyle.Text(StatusLine, 18, MenuStyle.Accent, MenuStyle.SemiBold));
 
         // Right column: the actions, compact so the three of them read at a glance.
         var right = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
@@ -661,7 +709,7 @@ public partial class HubTablet : CanvasLayer
         if (inSession)
         {
             right.AddChild(MenuStyle.CompactHero("LOBBY", "Ready-up and players", () => { _playStep = PlayStep.Home; ShowSection(Section.Play); }));
-            right.AddChild(MenuStyle.CompactHero("LEAVE LOBBY", "Back to the warehouse", () => _hub.LeaveSession()));
+            right.AddChild(MenuStyle.CompactHero("LEAVE LOBBY", "Back to the warehouse", () => _hub?.LeaveSession()));
         }
         else
         {
@@ -669,6 +717,97 @@ public partial class HubTablet : CanvasLayer
             right.AddChild(MenuStyle.CompactHero("PLAY", "Solo match against bots", () => { _playStep = PlayStep.Solo; ShowSection(Section.Play); }));
             right.AddChild(MenuStyle.CompactHero("CUSTOM GAME", "Host or join on this Wi-Fi", () => { _playStep = PlayStep.Home; ShowSection(Section.Play); }));
         }
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // In a match or the shooting range
+    // -------------------------------------------------------------------------------------------
+
+    /// <summary>Called by PauseMenu when the host drops: the tablet opens and stays open on a single way out.</summary>
+    public void ShowConnectionLost()
+    {
+        _connectionLost = true;
+        _confirmLeave = false;
+        if (!_open) Open();
+        if (_open) ShowSection(Section.Home);
+    }
+
+    /// <summary>Escape / Back while the "leave this match?" question is up answers NO. Returns whether it did.</summary>
+    public bool CancelLeaveQuestion()
+    {
+        if (!_confirmLeave) return false;
+        _confirmLeave = false;
+        ShowSection(Section.Home);
+        return true;
+    }
+
+    private void BuildGameHome()
+    {
+        MatchManager? match = MatchManager.Instance;
+        bool range = GetTree().CurrentScene is ShootingRange;
+
+        var mark = MenuStyle.Text("WRAITH RUN", 150, new Color(0.9f, 0.08f, 0.08f, 0.06f), MenuStyle.Bold);
+        MenuStyle.Place(mark, 0, 0, 1, 0, 0, 40, 0, 300);
+        mark.MouseFilter = Control.MouseFilterEnum.Ignore;
+        _content.AddChild(mark);
+
+        var left = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Place(left, 0, 0.12f, 0.50f, 1, 0, 0, -24, -8);
+        left.Alignment = BoxContainer.AlignmentMode.End;
+        left.AddThemeConstantOverride("separation", 14);
+        _content.AddChild(left);
+
+        var tag = MenuStyle.Chip(_connectionLost ? "HOST LINK LOST" : range ? "PRACTICE" : "IN A MATCH", MenuStyle.Accent, 14, true);
+        tag.SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin;
+        left.AddChild(tag);
+
+        string title = range ? "SHOOTING RANGE" : match != null ? match.ModeRules.DisplayName.ToUpperInvariant() : "WRAITH RUN";
+        left.AddChild(MenuStyle.Wrapped(title, 60, MenuStyle.TextMain, MenuStyle.Bold));
+        if (!range && match != null)
+            left.AddChild(MenuStyle.Text(match.MapDisplayName.ToUpperInvariant(), 26, MenuStyle.Accent, MenuStyle.Bold));
+        string body = _connectionLost
+            ? "The host closed the match or the connection dropped. There is nothing left to play."
+            : range
+                ? "Practice with any weapon. Nothing here counts toward a match."
+                : "The match keeps running while the tablet is up, so keep an eye out.";
+        left.AddChild(MenuStyle.Wrapped(body, 20, MenuStyle.TextDim, MenuStyle.Medium));
+
+        var right = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        MenuStyle.Place(right, 0.60f, 0.22f, 1, 0.96f, 0, 0, -4, 0);
+        right.AddThemeConstantOverride("separation", 10);
+        right.Alignment = BoxContainer.AlignmentMode.Center;
+        _content.AddChild(right);
+
+        if (_confirmLeave)
+        {
+            bool hosting = GetNodeOrNull<LanSession>("/root/LanSession")?.IsHosting ?? false;
+            right.AddChild(MenuStyle.Wrapped(hosting
+                ? "You are hosting this match. Leaving ends it for every player connected to you."
+                : "Leave this match and go back to the warehouse? Your score for this match will be lost.",
+                20, hosting ? MenuStyle.Accent : MenuStyle.TextDim, MenuStyle.Medium));
+            right.AddChild(MenuStyle.CompactHero("YES, LEAVE", "End my match", LeaveNow));
+            right.AddChild(MenuStyle.CompactHero("NO, STAY", "Back to the tablet", () => CancelLeaveQuestion()));
+            return;
+        }
+        if (!_connectionLost) right.AddChild(MenuStyle.CompactHero("RESUME", "Back to the game", Close));
+        right.AddChild(MenuStyle.CompactHero(range ? "LEAVE RANGE" : "LEAVE MATCH", "Back to the warehouse", LeaveGame));
+    }
+
+    private void LeaveGame()
+    {
+        // Nothing is lost leaving the range, and with the host gone there is nothing to ask: go straight out.
+        if (_connectionLost || GetTree().CurrentScene is ShootingRange) { LeaveNow(); return; }
+        _confirmLeave = true;
+        ShowSection(Section.Home);
+    }
+
+    private void LeaveNow()
+    {
+        if (_leaving) return;
+        _connectionLost = false; // the way out is always allowed
+        Close();
+        _leaving = true;
+        GameSession.LeaveToMainMenu(GetTree());
     }
 
     /// <summary>CUSTOM GAME: the two ways in - host a lobby, or join one on this Wi-Fi.</summary>
@@ -681,8 +820,8 @@ public partial class HubTablet : CanvasLayer
         box.AddChild(MenuStyle.Wrapped("Host a game for your friends, or join one on this Wi-Fi.", 18, MenuStyle.TextDim, MenuStyle.Medium));
         box.AddChild(MenuStyle.CompactHero("HOST", "Choose the mode and the map", () => { _playStep = PlayStep.Host; ShowSection(Section.Play); }, 68));
         box.AddChild(MenuStyle.CompactHero("JOIN", "Find a game on this Wi-Fi", () => { _playStep = PlayStep.Join; ShowSection(Section.Play); }, 68));
-        if (!string.IsNullOrEmpty(_hub.StatusLine))
-            box.AddChild(MenuStyle.Wrapped(_hub.StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold));
+        if (!string.IsNullOrEmpty(StatusLine))
+            box.AddChild(MenuStyle.Wrapped(StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold));
     }
 
     /// <summary>Team Deathmatch first (the hub's default), then every other mode once. SelectableModes already
@@ -750,14 +889,14 @@ public partial class HubTablet : CanvasLayer
         name.TextChanged += text => _gameName = text;
         body.AddChild(name);
 
-        var status = MenuStyle.Text(_hub.StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold);
+        var status = MenuStyle.Text(StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold);
         body.AddChild(status);
         body.AddChild(MenuStyle.Primary("CREATE LOBBY", new Vector2(320, 64), () =>
         {
             match.BotCount = 0; // a fresh lobby starts with people only; bots are added in the lobby
             SyncLobbySize();
-            if (_hub.HostSession(_gameName)) { _playStep = PlayStep.Home; ShowSection(Section.Play); }
-            else status.Text = _hub.StatusLine;
+            if (_hub != null && _hub.HostSession(_gameName)) { _playStep = PlayStep.Home; ShowSection(Section.Play); }
+            else status.Text = StatusLine;
         }));
         column.AddChild(setup);
     }
@@ -806,14 +945,14 @@ public partial class HubTablet : CanvasLayer
         }));
 
         body.AddChild(MenuStyle.Wrapped($"{rules.PlayerFormat}   -   {match.MapDisplayName}   -   you + {match.BotCount} bots", 17, MenuStyle.TextDim, MenuStyle.Medium));
-        var status = MenuStyle.Text(_hub.StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold);
+        var status = MenuStyle.Text(StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold);
         body.AddChild(status);
         body.AddChild(MenuStyle.Primary("START MATCH", new Vector2(320, 64), () =>
         {
             ClampSoloBots(match);
             SyncLobbySize();
             if (!match.CanHostStartMatch) { status.Text = "This mode needs more players than that."; return; }
-            _hub.StartMatch();
+            _hub?.StartMatch();
         }));
         column.AddChild(setup);
     }
@@ -875,7 +1014,7 @@ public partial class HubTablet : CanvasLayer
         string need = ReadyBlocker(match);
         if (host)
         {
-            Button start = MenuStyle.Primary("START GAME", new Vector2(340, 70), () => _hub.StartMatch());
+            Button start = MenuStyle.Primary("START GAME", new Vector2(340, 70), () => _hub?.StartMatch());
             start.Disabled = !match.CanHostStartMatch;
             column.AddChild(start);
             column.AddChild(MenuStyle.Text(need.Length == 0 ? "Everyone is ready." : need, 17, need.Length == 0 ? MenuStyle.TextDim : MenuStyle.Accent, MenuStyle.SemiBold));
@@ -1001,12 +1140,12 @@ public partial class HubTablet : CanvasLayer
 
     private void JoinGame(string address)
     {
-        if (_hub.JoinSession(address))
+        if (_hub != null && _hub.JoinSession(address))
         {
             if (_joinStatus != null) _joinStatus.Text = $"Connecting to {address}...";
             Close();
         }
-        else if (_joinStatus != null) _joinStatus.Text = _hub.StatusLine;
+        else if (_joinStatus != null) _joinStatus.Text = StatusLine;
     }
 
     // -------------------------------------------------------------------------------------------
@@ -1038,7 +1177,7 @@ public partial class HubTablet : CanvasLayer
         var panel = MenuStyle.Panel("IN THE ROOM", "users", out VBoxContainer body);
         FillPlayerRows(body);
         column.AddChild(panel);
-        if (!_hub.InSession)
+        if (!InSession)
             column.AddChild(MenuStyle.Wrapped("You are alone in the warehouse. Host a game or join one to meet other players.", 18, MenuStyle.TextMuted));
     }
 
@@ -1071,7 +1210,7 @@ public partial class HubTablet : CanvasLayer
         column.AddThemeConstantOverride("separation", 10);
         _content.AddChild(column);
         MatchManager match = MatchManager.Instance;
-        string channel = HubController.SplitRooms(match) && _hub.InSession ? $"{MatchManager.TeamName(match.GetTeam(Multiplayer.GetUniqueId()))} only" : "everyone in the room";
+        string channel = HubController.SplitRooms(match) && InSession ? $"{MatchManager.TeamName(match.GetTeam(Multiplayer.GetUniqueId()))} only" : "everyone in the room";
         column.AddChild(MenuStyle.Text($"Messages go to: {channel}", 16, MenuStyle.TextMuted, MenuStyle.SemiBold));
 
         _chatLog = new RichTextLabel { BbcodeEnabled = true, ScrollFollowing = true, SizeFlagsVertical = Control.SizeFlags.ExpandFill, FitContent = false };
@@ -1082,7 +1221,7 @@ public partial class HubTablet : CanvasLayer
 
         var input = new LineEdit { PlaceholderText = "Type a message and press Enter", MaxLength = 140 };
         MenuStyle.StyleLineEdit(input);
-        input.TextSubmitted += text => { _hub.SendChat(text); input.Text = string.Empty; input.GrabFocus(); };
+        input.TextSubmitted += text => { _hub?.SendChat(text); input.Text = string.Empty; input.GrabFocus(); };
         column.AddChild(input);
     }
 
@@ -1115,7 +1254,7 @@ public partial class HubTablet : CanvasLayer
 
     private void BeginQuickChat()
     {
-        if (_quickChat == null || !_hub.InSession) { AddLog("", -1, "Chat opens once you host or join a lobby."); return; }
+        if (_quickChat == null || !InSession) { AddLog("", -1, "Chat opens once you host or join a lobby."); return; }
         _typing = true;
         GameUiState.SetMenuOpen(true);
         _quickChat.Text = string.Empty;
@@ -1131,7 +1270,7 @@ public partial class HubTablet : CanvasLayer
         _quickChat.ReleaseFocus();
         _typing = false;
         GameUiState.SetMenuOpen(false);
-        if (send) _hub.SendChat(text);
+        if (send) _hub?.SendChat(text);
     }
 
     private void OnChat(string sender, int team, string text) => AddLog(sender, team, text);
