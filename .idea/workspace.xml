@@ -12,7 +12,8 @@
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/AK/source/FpsAnims.fbx.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/AK/source/FpsAnims.fbx.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/Scoreboard.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/Scoreboard.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,11 +45,14 @@
     <setting file="file://$PROJECT_DIR$/scripts/data/WeaponData.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/network/LanMenu.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/CharacterAppearance.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/player/PlayerHud.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/PlayerMovement.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/training/ShootingRange.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/ui/HubTablet.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/ui/MenuStyle.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/ui/PauseMenu.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/ui/Scoreboard.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
     <commands />
@@ -57,23 +61,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0001824838014057" />
-      <entry key="MS500" value="1.2879575942612467" />
-      <entry key="S2" value="3.671193080034361" />
-      <entry key="S5" value="6.03972892379173" />
-      <entry key="S10" value="7.326290348997212" />
-      <entry key="S30" value="8.392049107741915" />
-      <entry key="S60" value="8.69780061366792" />
-      <entry key="M2" value="9.700236729287122" />
-      <entry key="M5" value="22.990199459585355" />
-      <entry key="M10" value="44.918232166273306" />
-      <entry key="M15" value="58.44868281896319" />
-      <entry key="M30" value="78.96360924755467" />
-      <entry key="H1" value="96.05520894968996" />
-      <entry key="H2" value="112.50079984902517" />
-      <entry key="H4" value="144.8586606718349" />
-      <entry key="D1" value="331.6944644771348" />
-      <entry key="W1" value="423.9921046929665" />
+      <entry key="MS100" value="1.0058470033219" />
+      <entry key="MS500" value="1.615513895779272" />
+      <entry key="S2" value="2.939773405107343" />
+      <entry key="S5" value="4.296653145763006" />
+      <entry key="S10" value="6.019311893775129" />
+      <entry key="S30" value="8.687684135272558" />
+      <entry key="S60" value="9.73184886593209" />
+      <entry key="M2" value="10.33571862304194" />
+      <entry key="M5" value="11.261850049424094" />
+      <entry key="M10" value="17.71867801253846" />
+      <entry key="M15" value="27.602305452991178" />
+      <entry key="M30" value="53.155334316805884" />
+      <entry key="H1" value="81.19866262237024" />
+      <entry key="H2" value="107.17870723369373" />
+      <entry key="H4" value="144.94099521646677" />
+      <entry key="D1" value="338.3921460891216" />
+      <entry key="W1" value="434.20210170721936" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -95,23 +99,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.4061643099402659" />
-      <entry key="MS500" value="1.0425302289668164" />
-      <entry key="S2" value="3.464543271142625" />
-      <entry key="S5" value="5.911345695979264" />
-      <entry key="S10" value="7.250648531120473" />
-      <entry key="S30" value="8.363785086996584" />
-      <entry key="S60" value="8.683244099201806" />
-      <entry key="M2" value="9.692529219709268" />
-      <entry key="M5" value="22.985129527333978" />
-      <entry key="M10" value="44.9140829751369" />
-      <entry key="M15" value="58.44526071785239" />
-      <entry key="M30" value="78.96141862382794" />
-      <entry key="H1" value="96.05393153678264" />
-      <entry key="H2" value="112.50008979655172" />
-      <entry key="H4" value="144.85825679085224" />
-      <entry key="D1" value="331.6943559211431" />
-      <entry key="W1" value="423.9920862883229" />
+      <entry key="MS100" value="0.8807996775713222" />
+      <entry key="MS500" value="1.4803830750258213" />
+      <entry key="S2" value="2.838059099106991" />
+      <entry key="S5" value="4.237428784617487" />
+      <entry key="S10" value="5.982111666726713" />
+      <entry key="S30" value="8.672235584334194" />
+      <entry key="S60" value="9.723592775644354" />
+      <entry key="M2" value="10.331441646594456" />
+      <entry key="M5" value="11.259983593996322" />
+      <entry key="M10" value="17.71716397738949" />
+      <entry key="M15" value="27.60073944096871" />
+      <entry key="M30" value="53.15386854079331" />
+      <entry key="H1" value="81.19758107252085" />
+      <entry key="H2" value="107.17802623560158" />
+      <entry key="H4" value="144.94058480251886" />
+      <entry key="D1" value="338.39203277987434" />
+      <entry key="W1" value="434.20208245668175" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -241,7 +245,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="add bots with different skills and abilities" />
     <MESSAGE value="rebuild match Result" />
     <MESSAGE value="remove unneccessary files" />
     <MESSAGE value="edited bots and entire game to add sound system" />
@@ -266,7 +269,8 @@
     <MESSAGE value="more work on the modeling and animations" />
     <MESSAGE value="added player animations back" />
     <MESSAGE value="fixing menu and buttons bug" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixing menu and buttons bug" />
+    <MESSAGE value="fix ingame meun and score board" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix ingame meun and score board" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
