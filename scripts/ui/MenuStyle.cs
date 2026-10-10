@@ -273,6 +273,107 @@ public static class MenuStyle
         return button;
     }
 
+    /// <summary>A compact Hero for stacked menu actions: smaller type, a title and one short subtitle line.
+    /// It fills whatever width its parent gives it instead of forcing its own, so a long name such as
+    /// SHOOTING RANGE is never clipped.</summary>
+    public static Button CompactHero(string title, string subtitle, Action onPressed, int height = 62)
+    {
+        var button = NewButton(new Vector2(0, height), onPressed, UiSounds.Sound.Start);
+        button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        StyleButton(button, Box(PlayFill, PlayBorder, 2, 2, 8),
+            Box(PlayFillHover, BorderHot, 2, 2, 14), Box(PlayFillPressed, BorderHot, 2),
+            Box(DisabledFill, DisabledBorder, 2));
+
+        var pad = Padding(16, 4);
+        button.AddChild(pad);
+        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 14);
+        pad.AddChild(row);
+        var arrow = Icon("play-solid", 22);
+        arrow.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(arrow);
+
+        var texts = new VBoxContainer
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        texts.AddThemeConstantOverride("separation", string.IsNullOrEmpty(subtitle) ? 0 : -4);
+        texts.AddChild(Text(title, 28, TextMain, Bold));
+        if (!string.IsNullOrEmpty(subtitle)) texts.AddChild(Text(subtitle, 15, Hex(0xf0dcdc), Medium));
+        row.AddChild(texts);
+        return button;
+    }
+
+    /// <summary>
+    /// An inline drop-down: a closed header showing the current choice; click it and the options open
+    /// underneath, pick one and it closes again. It is built from plain controls on purpose - an
+    /// OptionButton's list is a separate popup window, which does not work on the tablet's in-world
+    /// screen or with touch input. The caller owns the state: onSelected gets the chosen index.
+    /// </summary>
+    public static Control Dropdown(string label, (string Icon, string Title, string Detail)[] options,
+        int selected, Action<int> onSelected)
+    {
+        var box = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        box.AddThemeConstantOverride("separation", 6);
+        box.AddChild(Text(label, 14, TextMuted, Bold));
+        if (options.Length == 0) return box;
+        selected = Math.Clamp(selected, 0, options.Length - 1);
+
+        var list = new VBoxContainer { Visible = false, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        list.AddThemeConstantOverride("separation", 4);
+
+        TextureRect chevronDown = Icon("chevron-down", 22);
+        TextureRect chevronUp = Icon("chevron-up", 22);
+        chevronUp.Visible = false;
+        chevronDown.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        chevronUp.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+
+        var header = NewButton(new Vector2(0, 52), () =>
+        {
+            list.Visible = !list.Visible;
+            chevronDown.Visible = !list.Visible;
+            chevronUp.Visible = list.Visible;
+        });
+        StyleButton(header, Box(RowFill, Border), Box(HoverFill, BorderHot), Box(PressFill, BorderHot),
+            Box(RowFill, Hairline));
+        var pad = Padding(14, 0);
+        header.AddChild(pad);
+        var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 12);
+        pad.AddChild(row);
+        var glyph = Icon(options[selected].Icon, 24);
+        glyph.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(glyph);
+        var current = Text(options[selected].Title, 24, TextMain, SemiBold);
+        current.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        row.AddChild(current);
+        var detail = Text(options[selected].Detail, 17, TextMuted, Medium);
+        detail.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        detail.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        detail.ClipText = true;
+        row.AddChild(detail);
+        row.AddChild(chevronDown);
+        row.AddChild(chevronUp);
+        box.AddChild(header);
+
+        for (int i = 0; i < options.Length; i++)
+        {
+            int index = i;
+            string text = string.IsNullOrEmpty(options[i].Detail)
+                ? options[i].Title
+                : $"{options[i].Title}   -   {options[i].Detail}";
+            list.AddChild(SelectRow(options[i].Icon, text, i == selected, () =>
+            {
+                list.Visible = false;
+                onSelected(index);
+            }));
+        }
+        box.AddChild(list);
+        return box;
+    }
+
     /// <summary>The slanted red action button used inside sub-screens (PLAY / START HOSTING).</summary>
     public static Button Primary(string text, Vector2 size, Action onPressed,
         UiSounds.Sound sound = UiSounds.Sound.Start)

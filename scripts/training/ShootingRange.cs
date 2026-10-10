@@ -15,15 +15,42 @@ public partial class ShootingRange : Node3D
 	private WeaponSwitcher? _weapons;
 	private OptionButton? _weaponPicker;
 	private bool _resetWasDown;
+	private bool _ownsOfflinePeer;
 
 	public override void _Ready()
 	{
+		EnterOfflineSession();
 		BuildLighting();
 		BuildRangeGeometry();
 		BuildLaneSigns();
 		BuildTargets();
 		SpawnPlayer();
 		BuildHud();
+		// Whoever sent the player here (the hub tablet, the old menu) put the loading screen up; only a match
+		// scene used to take it down, so without this it covered the range for good and looked like a freeze.
+		LoadingScreen.Instance?.Hide();
+	}
+
+	public override void _ExitTree()
+	{
+		// Hand the hub the same state it expects after leaving a session (no peer), so it starts its own.
+		if (_ownsOfflinePeer && Multiplayer.MultiplayerPeer is OfflineMultiplayerPeer)
+			Multiplayer.MultiplayerPeer = null;
+	}
+
+	/// <summary>The range is a private, offline scene. Coming from the hub the network session has just been
+	/// torn down and no peer is assigned, so every Multiplayer.GetUniqueId() in the Player and HUD code
+	/// logged an error each frame (thousands of them, which is what froze the debugger). Close any leftover
+	/// session and give the scene Godot's own offline peer: this machine is peer 1 and the authority.</summary>
+	private void EnterOfflineSession()
+	{
+		GetNodeOrNull<LanSession>("/root/LanSession")?.Stop();
+		MatchManager.Instance?.EndSession();
+		if (Multiplayer.MultiplayerPeer == null)
+		{
+			Multiplayer.MultiplayerPeer = new OfflineMultiplayerPeer();
+			_ownsOfflinePeer = true;
+		}
 	}
 
 	public override void _Process(double delta)
