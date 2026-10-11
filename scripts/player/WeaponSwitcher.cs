@@ -306,7 +306,7 @@ public partial class WeaponSwitcher : Node
 		// A person carries two primaries, one pistol, one knife and - Demolisher only - one heavy, so
 		// the keys are the five carry slots (1 Primary 1, 2 Primary 2, 3 Pistol, 4 Knife, 5 Heavy),
 		// not the nine weapons in Loadout. Bots are not limited by this (they pick their own).
-        if (bot == null && !inputBlocked && !_movement.IsVehicleDriver)
+		if (bot == null && !inputBlocked && !_movement.IsVehicleDriver)
 		{
 			for (int slot = 0; slot < WeaponRules.SlotCount; slot++)
 			{
@@ -329,14 +329,14 @@ public partial class WeaponSwitcher : Node
 			if (_reloadRemaining <= 0.0f) FinishReload();
 		}
 
-        if (! _movement.IsVehicleDriver && (bot != null ? bot.ConsumeReload() : (!inputBlocked && Input.IsActionJustPressed("reload")))) StartReload();
+		if (! _movement.IsVehicleDriver && (bot != null ? bot.ConsumeReload() : (!inputBlocked && Input.IsActionJustPressed("reload")))) StartReload();
 
 		// Rate-limited by FireRateRPM below. Semi-auto weapons (Glock, Desert Eagle, shotgun)
 		// require a fresh press per shot - holding the trigger on them fires one round and then
 		// waits for the cooldown to drain without firing again. Full-auto keeps firing on hold.
 		bool fireRequested = FireMode == WeaponData.FireModeType.FullAuto
-            ? (bot != null ? bot.FireHeld : (!inputBlocked && !_movement.IsVehicleDriver && Input.IsActionPressed("fire")))
-            : (bot != null ? bot.ConsumeFirePulse() : (!inputBlocked && !_movement.IsVehicleDriver && Input.IsActionJustPressed("fire")));
+			? (bot != null ? bot.FireHeld : (!inputBlocked && !_movement.IsVehicleDriver && Input.IsActionPressed("fire")))
+			: (bot != null ? bot.ConsumeFirePulse() : (!inputBlocked && !_movement.IsVehicleDriver && Input.IsActionJustPressed("fire")));
 		if (fireRequested && _cooldownRemaining <= 0.0f) TryFire();
 	}
 

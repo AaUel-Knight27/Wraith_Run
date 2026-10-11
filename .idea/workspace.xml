@@ -12,6 +12,14 @@
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Impacts/Surfaces/BulletRicochet.wav.import" beforeDir="false" afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Impacts/Surfaces/BulletRicochet.wav.import" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/maps/Lab.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Lab.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/maps/Prison.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Prison.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment-backup.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs.uid" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment-backup.cs.uid" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/Scoreboard.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/Scoreboard.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/world/RespawnPointSelector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/world/RespawnPointSelector.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,18 +51,23 @@
     <setting file="file://$PROJECT_DIR$/scripts/autoloads/MatchManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/autoloads/SettingsManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/data/WeaponData.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/network/GameWorld.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/network/LanMenu.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/CharacterAppearance.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/PlayerHud.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/PlayerMovement.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/ViewModelBase.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/player/WeaponAttachment-backup.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/player/Weaponattachment.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/ui/GameCursor.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/ui/GameUiState.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/ui/HubTablet.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/ui/MenuStyle.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/ui/PauseMenu.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/scripts/ui/Scoreboard.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/ui/Scoreboard.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock:///home/aauel/Documents/Projects/Games/wraith_run_godot/scripts/player/WeaponAttachment.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
     <commands />
@@ -63,23 +76,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0155218619365187" />
-      <entry key="MS500" value="1.5997005051084514" />
-      <entry key="S2" value="4.2134729811091205" />
-      <entry key="S5" value="7.117398412363244" />
-      <entry key="S10" value="9.043402863191387" />
-      <entry key="S30" value="10.863536258602378" />
-      <entry key="S60" value="11.409970094655513" />
-      <entry key="M2" value="11.699284973408794" />
-      <entry key="M5" value="11.879546059351838" />
-      <entry key="M10" value="12.009166078635356" />
-      <entry key="M15" value="12.22981392616388" />
-      <entry key="M30" value="13.201529061975064" />
-      <entry key="H1" value="19.34673546546433" />
-      <entry key="H2" value="47.10562469945864" />
-      <entry key="H4" value="105.82390983825196" />
-      <entry key="D1" value="367.1132255932651" />
-      <entry key="W1" value="507.7826264373236" />
+      <entry key="MS100" value="1.0036957445165735" />
+      <entry key="MS500" value="1.536504282396939" />
+      <entry key="S2" value="2.885252182533467" />
+      <entry key="S5" value="3.4843018132169847" />
+      <entry key="S10" value="3.728732358551585" />
+      <entry key="S30" value="3.9064068610411598" />
+      <entry key="S60" value="3.9527957265343066" />
+      <entry key="M2" value="3.979853583939107" />
+      <entry key="M5" value="4.456171819599248" />
+      <entry key="M10" value="6.372937906030853" />
+      <entry key="M15" value="8.151295631566853" />
+      <entry key="M30" value="11.692764990691403" />
+      <entry key="H1" value="18.769243894419034" />
+      <entry key="H2" value="45.1581202758764" />
+      <entry key="H4" value="102.91824618877737" />
+      <entry key="D1" value="367.007476917924" />
+      <entry key="W1" value="510.96743008410823" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -101,23 +114,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.8836027063322645" />
-      <entry key="MS500" value="1.551606411444921" />
-      <entry key="S2" value="4.178860406310708" />
-      <entry key="S5" value="7.093571498038641" />
-      <entry key="S10" value="9.028195252039689" />
-      <entry key="S30" value="10.857433326894533" />
-      <entry key="S60" value="11.406763798365379" />
-      <entry key="M2" value="11.697640866670119" />
-      <entry key="M5" value="11.878878008315162" />
-      <entry key="M10" value="12.008822664771305" />
-      <entry key="M15" value="12.22956974757468" />
-      <entry key="M30" value="13.201370956886352" />
-      <entry key="H1" value="19.346543626704495" />
-      <entry key="H2" value="47.10529728259326" />
-      <entry key="H4" value="105.82353973193453" />
-      <entry key="D1" value="367.11306771571486" />
-      <entry key="W1" value="507.7825980528283" />
+      <entry key="MS100" value="0.8735155303875629" />
+      <entry key="MS500" value="1.4896259106807446" />
+      <entry key="S2" value="2.862479771698447" />
+      <entry key="S5" value="3.4733002531745343" />
+      <entry key="S10" value="3.72284841066623" />
+      <entry key="S30" value="3.904352986100939" />
+      <entry key="S60" value="3.951756723649457" />
+      <entry key="M2" value="3.9793305277461526" />
+      <entry key="M5" value="4.455935871458167" />
+      <entry key="M10" value="6.372764909814625" />
+      <entry key="M15" value="8.151142654173961" />
+      <entry key="M30" value="11.692637812354173" />
+      <entry key="H1" value="18.769079919592784" />
+      <entry key="H2" value="45.15782543579581" />
+      <entry key="H4" value="102.91789585339865" />
+      <entry key="D1" value="367.0073200759976" />
+      <entry key="W1" value="510.96740164088834" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -125,6 +138,9 @@
   &quot;fromUser&quot;: false
 }</component>
   <component name="ProjectId" id="3JOIF5KAEzPOjZ1knUWbyQctk2Z" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -247,7 +263,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="cleaned respawn system and textures bug" />
     <MESSAGE value="created all the 7 modes and edit the bots" />
     <MESSAGE value="audio and mesh fix" />
     <MESSAGE value="fix host and peer bugs" />
@@ -272,7 +287,8 @@
     <MESSAGE value="debugging movemnt" />
     <MESSAGE value="fixed the maps" />
     <MESSAGE value="update on team death match spawn" />
-    <option name="LAST_COMMIT_MESSAGE" value="update on team death match spawn" />
+    <MESSAGE value="in game bugs fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="in game bugs fix" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

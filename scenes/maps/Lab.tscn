@@ -2590,8 +2590,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.5, 0.1, 55.5)
 
 [node name="TeamAlphaSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=1967941850 groups=["team_spawn_area_0"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.415844, 0.15, -16.400518)
-metadata/half_extent = Vector2(35, 4)
+metadata/half_extent = Vector2(4, 2)
 
 [node name="TeamBravoSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=1592904636 groups=["team_spawn_area_1"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.27744, 0.18875328, 16)
-metadata/half_extent = Vector2(35, 4)
+metadata/half_extent = Vector2(4, 2)

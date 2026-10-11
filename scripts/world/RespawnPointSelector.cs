@@ -49,10 +49,12 @@ public static class RespawnPointSelector
 	private const float GroundRayStartHeight = 50.0f;
 	private const float GroundRayLength = 100.0f;
 	private const float SpawnGroundClearance = 0.1f;
+	private const float MinGroundHeight = -5.0f;
 
 	/// <summary>The ray comes from high above, so over a wall, pillar or container it lands on the TOP
-	/// of it. Ground in every map is within about a metre of y = 0; anything higher is not somewhere
-	/// to respawn - this is what stops a respawn landing on top of a crate or wall instead of the floor.</summary>
+	/// of it. Playable ground in every map is above -5m and within about a metre of y = 0; anything
+	/// outside that band is not somewhere to respawn. The lower bound is essential on maps with a deep
+	/// safety floor: without it, the ray mistakes that catch floor for valid ground below the level.</summary>
 	private const float MaxGroundHeight = 1.0f;
 
 	private const int DefaultCandidateCount = 32;
@@ -250,7 +252,7 @@ public static class RespawnPointSelector
 		if (result.Count == 0) return false;
 
 		var hit = (Vector3)result["position"];
-		if (hit.Y > MaxGroundHeight) return false;
+		if (hit.Y > MaxGroundHeight || hit.Y < MinGroundHeight) return false;
 		grounded = new Vector3(hit.X, hit.Y + SpawnGroundClearance, hit.Z);
 		return true;
 	}

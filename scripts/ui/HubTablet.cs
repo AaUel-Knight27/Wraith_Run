@@ -120,7 +120,7 @@ public partial class HubTablet : CanvasLayer
     {
         if (_open || GameUiState.ResultsOpen) return;
         Camera3D? camera = LocalCamera();
-        if (_device == null || camera == null) return; // the player is not in the room yet
+        if (GetInputScreen() == null || camera == null) return; // the player or the tablet viewport is not in the room yet
         if (_typing) EndQuickChat(send: false);
         _open = true;
         _device.Fit(camera);
@@ -360,7 +360,15 @@ public partial class HubTablet : CanvasLayer
         if (_device.GetParent() == null) camera.AddChild(_device);
     }
 
-    private bool TypingOnScreen() => _device != null && _device.Screen.GuiGetFocusOwner() is LineEdit or TextEdit;
+    private SubViewport? GetInputScreen()
+    {
+        TabletDevice? device = _device;
+        if (device == null || !IsInstanceValid(device) || !device.IsInsideTree()) return null;
+        SubViewport screen = device.Screen;
+        return IsInstanceValid(screen) && screen.IsInsideTree() ? screen : null;
+    }
+
+    private bool TypingOnScreen() => GetInputScreen()?.GuiGetFocusOwner() is LineEdit or TextEdit;
 
     private void SetOverlays(bool tabletUp)
     {
@@ -373,7 +381,11 @@ public partial class HubTablet : CanvasLayer
 
     private bool ForwardToScreen(InputEvent e)
     {
-        if (_device == null) return false;
+        SubViewport? screen = GetInputScreen();
+        // The tablet is mounted onto the player's camera asynchronously. Input can arrive during
+        // that gap (or while a scene is being torn down), so never PushInput into an unattached
+        // SubViewport; Godot reports errors and can throw from that call when it is outside the tree.
+        if (screen == null) return true;
         switch (e)
         {
             case InputEventMouseMotion or InputEventMouseButton:
@@ -386,7 +398,7 @@ public partial class HubTablet : CanvasLayer
                     if (_pointerInside)
                     {
                         _pointerInside = false; // let go of any hover on the screen
-                        _device.Screen.PushInput(new InputEventMouseMotion { Position = new Vector2(-300, -300), GlobalPosition = new Vector2(-300, -300) }, true);
+                        screen.PushInput(new InputEventMouseMotion { Position = new Vector2(-300, -300), GlobalPosition = new Vector2(-300, -300) }, true);
                     }
                     return true;
                 }
@@ -396,11 +408,11 @@ public partial class HubTablet : CanvasLayer
                 copy.GlobalPosition = pixel;
                 if (copy is InputEventMouseMotion moved) moved.Relative = pixel - _lastPixel;
                 _lastPixel = pixel;
-                _device.Screen.PushInput(copy, true);
+                screen.PushInput(copy, true);
                 return true;
             }
             case InputEventKey:
-                _device.Screen.PushInput(e, true);
+                screen.PushInput(e, true);
                 return true;
         }
         return false;
