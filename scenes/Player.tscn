@@ -84,6 +84,7 @@ transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 script = ExtResource("5")
 
 [node name="BodyAnimationPlayer" type="AnimationPlayer" parent="Armature"]
+root_node = NodePath("..")
 libraries/locomotion_lib = ExtResource("21_loco_lib")
 libraries/rifle_lib = ExtResource("22_rifle_lib")
 libraries/pistol_lib = ExtResource("23_pistol_lib")

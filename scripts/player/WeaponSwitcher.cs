@@ -61,6 +61,7 @@ public partial class WeaponSwitcher : Node
 	};
 
 	private WeaponAttachment _attachment = null!;
+	private PlayerAnimator? _bodyAnimator;
 	private ViewModelManager? _viewmodel;
 	private WeaponRegistry _registry = null!;
 	private Camera3D _camera = null!;
@@ -267,6 +268,7 @@ public partial class WeaponSwitcher : Node
 		_player = (CharacterBody3D)GetParent();
 		_movement = (PlayerMovement)GetParent();
 		_attachment = GetNode<WeaponAttachment>("../Armature/WeaponAttachment");
+		_bodyAnimator = GetNodeOrNull<PlayerAnimator>("../Armature/PlayerAnimator");
 		_viewmodel = GetNodeOrNull<ViewModelManager>("../Head/CameraShake/ViewModelManager");
 		_camera = GetNode<Camera3D>("../Head/CameraShake/FirstPersonCamera");
 		_rotationWindow = GetNode<RotationWindowTracker>("../RotationWindow");
@@ -467,6 +469,7 @@ public partial class WeaponSwitcher : Node
 	{
 		if (!IsAuthorizedEffectSender()) return;
 		_attachment.PlayFire();
+		_bodyAnimator?.PlayFireOneShot();
 		_viewmodel?.Play("fire");
 		// Bots (host only) hear the shot: everyone nearby learns roughly where it came from.
 		if (_currentWeapon != null && _currentWeapon.WeaponClass != "Melee")
@@ -481,6 +484,7 @@ public partial class WeaponSwitcher : Node
 	{
 		if (!IsAuthorizedEffectSender()) return;
 		_attachment.PlayReload();
+		_bodyAnimator?.PlayReloadOneShot();
 		_viewmodel?.PlayReload(_currentWeapon?.ReloadTime ?? 0.0f, _currentAmmo == 0);
 	}
 

@@ -91,6 +91,11 @@ func _build_from_map(src_path: String, strip_prefix: String, name_map: Dictionar
 func _strip(s: String) -> String:
 	return s
 
+func _set_looping(lib: AnimationLibrary, clip_names: Array) -> void:
+	for clip_name in clip_names:
+		if lib.has_animation(clip_name):
+			lib.get_animation(clip_name).loop_mode = Animation.LOOP_LINEAR
+
 func _init():
 	# ---- locomotion.fbx -> locomotion_lib.res (generic universal movement) ----
 	var loco_lib := AnimationLibrary.new()
@@ -107,6 +112,14 @@ func _init():
 		loco_map[n] = n.substr(9) # strip "Armature|" (9 chars)
 	print("=== locomotion.fbx ===")
 	_build_from_map("res://art/animations/player/body/source/locomotion.fbx", "Armature/", loco_map, [], loco_lib)
+	_set_looping(loco_lib, [
+		"locomotion_crouch_idle", "locomotion_crouch_strafe_left", "locomotion_crouch_strafe_right",
+		"locomotion_crouch_walk", "locomotion_crouch_walk_back", "locomotion_crouch_walk_back_left",
+		"locomotion_crouch_walk_back_right", "locomotion_crouch_walk_fwd_left", "locomotion_crouch_walk_fwd_right",
+		"locomotion_idle", "locomotion_sprint_back", "locomotion_sprint_back_left", "locomotion_sprint_back_right",
+		"locomotion_sprint_fwd", "locomotion_sprint_fwd_left", "locomotion_sprint_fwd_right",
+		"locomotion_strafe_right", "locomotion_walk", "locomotion_walk_back", "locomotion_walk_back-right",
+		"locomotion_walk_fwd", "locomotion_walk_fwd_left", "locomotion_walk_fwd_right"])
 	var e1 := ResourceSaver.save(loco_lib, OUT_DIR + "locomotion_lib.res")
 	print("saved locomotion_lib.res err=", e1)
 
@@ -135,6 +148,7 @@ func _init():
 	print("=== Combat.fbx ===")
 	_build_from_map("res://art/animations/player/body/source/Combat.fbx", "Armature/", rifle_map,
 		["Armature|Driving", "Armature|Entering Car"], rifle_lib)
+	_set_looping(rifle_lib, ["combat_ads_idle", "combat_jump"])
 	var e2 := ResourceSaver.save(rifle_lib, OUT_DIR + "rifle_lib.res")
 	print("saved rifle_lib.res err=", e2, "  (skipped 'Driving' and 'Entering Car' - vehicle clips, not body combat)")
 
@@ -194,6 +208,9 @@ func _init():
 		else:
 			var tag = "  [root motion removed, was %.2fm]" % rm["drift"] if rm["fixed"] else ""
 			print("  + %-24s <- %s (%.2fs, %d tracks)%s" % [clean, fname, rewritten.length, rewritten.get_track_count(), tag])
+	_set_looping(pistol_lib, ["pistol_idle", "pistol_kneel_idle", "pistol_run", "pistol_run_back",
+		"pistol_run_back_turn", "pistol_run_turn", "pistol_strafe", "pistol_walk", "pistol_walk_back",
+		"pistol_walk_back_turn", "pistol_walk_turn"])
 	var e4 := ResourceSaver.save(pistol_lib, OUT_DIR + "pistol_lib.res")
 	print("saved pistol_lib.res err=", e4)
 

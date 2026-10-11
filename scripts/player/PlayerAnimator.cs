@@ -6,10 +6,8 @@ using System.Collections.Generic;
 /// from the game's own PlayerMovement.State and WeaponSwitcher.CurrentWeaponData.WeaponClass.
 /// Lives as a sibling of BodyAnimationPlayer, both children of Armature.
 ///
-/// Every clip in the 4 libraries (locomotion_lib / rifle_lib / pistol_lib / death_lib) was
-/// re-exported "in place" -- see tools_build_libs.gd. The CharacterBody3D is still the only
-/// thing that actually moves the player through the world; this script only ever changes
-/// which pose is being shown, it never touches position.
+/// The clips are in-place, and the CharacterBody3D remains the only thing that moves the player
+/// through the world; this script only chooses which pose is shown.
 ///
 /// Coverage is honest, not padded: the uploaded packs do not include a pistol aim/fire/reload
 /// pose or a melee-swing pose, so those cases fall back to the closest available clip and log
@@ -31,6 +29,7 @@ public partial class PlayerAnimator : Node
 	private PlayerMovement.MovementState _lastState = (PlayerMovement.MovementState)(-1);
 	private string _lastCategory = "";
 	private bool _dead;
+	private bool _oneShotActive;
 	private readonly HashSet<string> _warnedOnce = new();
 
 	// ---- Base looped movement, keyed by MovementState. Works for every weapon class and
@@ -63,8 +62,6 @@ public partial class PlayerAnimator : Node
 	private static readonly Dictionary<PlayerMovement.MovementState, string> PistolMap = new()
 	{
 		{ PlayerMovement.MovementState.Idle, "pistol_lib/pistol_idle" },
-		{ PlayerMovement.MovementState.Walk, "pistol_lib/pistol_walk" },
-		{ PlayerMovement.MovementState.Sprint, "pistol_lib/pistol_run" },
 		{ PlayerMovement.MovementState.Crouch, "pistol_lib/pistol_kneel_idle" },
 		// No crouched-walk clip in the pack - kneel idle is the closest available pose.
 		{ PlayerMovement.MovementState.CrouchWalk, "pistol_lib/pistol_kneel_idle" },
@@ -76,11 +73,8 @@ public partial class PlayerAnimator : Node
 		{ PlayerMovement.MovementState.Aim, "pistol_lib/pistol_idle" },
 	};
 
-	// One-shot overlay clips, played once on top of the loop and left to return to it
-	// automatically (AnimationPlayer.AnimationFinished is not hooked here deliberately -
-	// Play() with a short crossfade back onto the looped clip next _PhysicsProcess tick
-	// is enough for a first pass; swap to a proper AnimationTree one-shot transition if the
-	// pop at the end of fire/reload is visible once this is in front of your own eyes).
+	// Body fire and reload clips are one-shots. AnimationFinished returns the controller to the
+	// current movement clip once each action has completed.
 	private const string RifleFireClip = "rifle_lib/combat_fire_rifle";
 	private const string RifleReloadClip = "rifle_lib/combat_reload_rifle";
 	private const string DefaultDeathClip = "death_lib/death_front";
@@ -93,12 +87,10 @@ public partial class PlayerAnimator : Node
 		_anim = GetNodeOrNull<AnimationPlayer>(AnimationPlayerPath);
 
 		if (_anim == null) { GD.PushWarning("PlayerAnimator: no AnimationPlayer at " + AnimationPlayerPath); return; }
+		_anim.AnimationFinished += OnAnimationFinished;
 		if (_movement == null) GD.PushWarning("PlayerAnimator: no PlayerMovement at " + PlayerMovementPath);
-		// WeaponSwitcher has no Fire/Reload *signal* to subscribe to here - it calls
-		// _attachment.PlayFire() / PlayReload() directly from inside RpcFireEffects() and
-		// RpcReloadEffects() (WeaponSwitcher.cs, ~line 466 and ~line 480). Rather than guess at
-		// rewiring that networked RPC code blind, PlayFireOneShot()/PlayReloadOneShot() below are
-		// public so you can add one line calling each from those two spots - see the README.
+		// WeaponSwitcher calls the body one-shots from its broadcast fire/reload RPCs so each
+		// peer sees the same action on the correct character.
 		if (_health != null)
 		{
 			_health.Died += OnDied;
@@ -111,7 +103,8 @@ public partial class PlayerAnimator : Node
 		if (_anim == null || _movement == null || _dead) return;
 
 		string category = CategoryFor(_weapons?.CurrentWeaponData?.WeaponClass);
-		PlayerMovement.MovementState state = _movement.State;
+		PlayerMovement.MovementState state = CurrentMovementState();
+		if (_oneShotActive) return;
 
 		if (state == _lastState && category == _lastCategory) return; // nothing to change
 		_lastState = state;
@@ -119,6 +112,14 @@ public partial class PlayerAnimator : Node
 
 		string clip = ClipFor(category, state);
 		_anim.Play(clip, CrossfadeSeconds);
+	}
+
+	private PlayerMovement.MovementState CurrentMovementState()
+	{
+		if (_movement == null || _movement.IsMultiplayerAuthority())
+			return _movement?.State ?? PlayerMovement.MovementState.Idle;
+		return System.Enum.TryParse(_movement.ReplicatedMovementState, out PlayerMovement.MovementState state)
+			? state : PlayerMovement.MovementState.Idle;
 	}
 
 	private static string CategoryFor(string? weaponClass) => weaponClass switch
@@ -138,6 +139,9 @@ public partial class PlayerAnimator : Node
 		};
 		if (overrideMap != null && overrideMap.TryGetValue(state, out string? clip))
 			return clip;
+		if (state is PlayerMovement.MovementState.Walk or PlayerMovement.MovementState.Sprint or
+			PlayerMovement.MovementState.CrouchWalk)
+			return DirectionalMovementClip(category, state);
 		if (LocomotionMap.TryGetValue(state, out string? baseClip))
 			return baseClip;
 		Warn($"no clip mapped for state {state} (category {category})");
@@ -161,14 +165,77 @@ public partial class PlayerAnimator : Node
 				 "equivalent or extend PlayOneShot's mapping once you have the source animation.");
 			return;
 		}
+		_oneShotActive = true;
 		_anim.Play(clip, CrossfadeSeconds);
-		// Force a re-evaluation next physics tick so the loop resumes once the one-shot ends.
+	}
+
+	private string DirectionalMovementClip(string category, PlayerMovement.MovementState state)
+	{
+		if (_movement == null) return "locomotion_lib/locomotion_walk_fwd";
+		Vector3 localVelocity = _movement.GlobalTransform.Basis.Inverse() * _movement.Velocity;
+		float x = localVelocity.X;
+		float z = localVelocity.Z;
+		bool backward = z > Mathf.Abs(x) * 0.55f;
+		bool diagonal = Mathf.Abs(x) > Mathf.Abs(z) * 0.45f;
+		bool left = x < 0.0f;
+
+		if (category == "pistol")
+		{
+			if (backward) return state == PlayerMovement.MovementState.Sprint
+				? "pistol_lib/pistol_run_back" : "pistol_lib/pistol_walk_back";
+			if (diagonal || Mathf.Abs(x) > 0.1f) return state == PlayerMovement.MovementState.Sprint
+				? "pistol_lib/pistol_run_turn" : "pistol_lib/pistol_walk_turn";
+			return state == PlayerMovement.MovementState.Sprint
+				? "pistol_lib/pistol_run" : "pistol_lib/pistol_walk";
+		}
+
+		if (state == PlayerMovement.MovementState.CrouchWalk)
+		{
+			if (backward && diagonal) return left
+				? "locomotion_lib/locomotion_crouch_walk_back_left"
+				: "locomotion_lib/locomotion_crouch_walk_back_right";
+			if (backward) return "locomotion_lib/locomotion_crouch_walk_back";
+			if (diagonal) return left
+				? "locomotion_lib/locomotion_crouch_walk_fwd_left"
+				: "locomotion_lib/locomotion_crouch_walk_fwd_right";
+			if (Mathf.Abs(x) > 0.1f) return left
+				? "locomotion_lib/locomotion_crouch_strafe_left"
+				: "locomotion_lib/locomotion_crouch_strafe_right";
+			return "locomotion_lib/locomotion_crouch_walk";
+		}
+
+		if (state == PlayerMovement.MovementState.Sprint)
+		{
+			if (backward && diagonal) return left
+				? "locomotion_lib/locomotion_sprint_back_left"
+				: "locomotion_lib/locomotion_sprint_back_right";
+			if (backward) return "locomotion_lib/locomotion_sprint_back";
+			if (diagonal) return left
+				? "locomotion_lib/locomotion_sprint_fwd_left"
+				: "locomotion_lib/locomotion_sprint_fwd_right";
+			return "locomotion_lib/locomotion_sprint_fwd";
+		}
+
+		if (backward && diagonal) return "locomotion_lib/locomotion_walk_back-right";
+		if (backward) return "locomotion_lib/locomotion_walk_back";
+		if (diagonal) return left
+			? "locomotion_lib/locomotion_walk_fwd_left"
+			: "locomotion_lib/locomotion_walk_fwd_right";
+		if (Mathf.Abs(x) > 0.1f) return "locomotion_lib/locomotion_strafe_right";
+		return "locomotion_lib/locomotion_walk_fwd";
+	}
+
+	private void OnAnimationFinished(StringName animationName)
+	{
+		if (!_oneShotActive) return;
+		_oneShotActive = false;
 		_lastState = (PlayerMovement.MovementState)(-1);
 	}
 
 	private void OnDied()
 	{
 		_dead = true;
+		_oneShotActive = false;
 		_anim?.Play(DefaultDeathClip, CrossfadeSeconds);
 		// TODO: Health only exposes a parameterless Died signal today. KillStyle (Headshot /
 		// direction) is computed inside Health.ReceiveDamage but not carried out on the signal,
@@ -180,6 +247,7 @@ public partial class PlayerAnimator : Node
 	private void OnRespawned()
 	{
 		_dead = false;
+		_oneShotActive = false;
 		_lastState = (PlayerMovement.MovementState)(-1);
 		_lastCategory = "";
 	}

@@ -12,26 +12,6 @@
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/AK/source/FpsAnims.fbx.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/AK/source/FpsAnims.fbx.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/M4/source/m4_assult_rfile.fbx.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/M4/source/m4_assult_rfile.fbx.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90.glb" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90.glb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90.glb.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90.glb.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_AO.png" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_AO.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_AO.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_AO.png.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Albedo.png" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Albedo.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Albedo.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Albedo.png.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Metallic.png" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Metallic.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Metallic.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Metallic.png.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Normal.png" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Normal.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Normal.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_Personal_Defense_Weapon_Normal.png.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_arms_Albedo.png" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_arms_Albedo.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_arms_Albedo.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_arms_Albedo.png.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_arms_Normal.png" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_arms_Normal.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_arms_Normal.png.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/P90/source/FPS_Animated_P90_arms_Normal.png.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/Sniper/source/BoltActionRifle.fbx.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/Sniper/source/BoltActionRifle.fbx.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/Vector/source/Vector.fbx.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/Vector/source/Vector.fbx.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/benelli m4/source/HandWithGloves_AnimateRDY.fbx.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/benelli m4/source/HandWithGloves_AnimateRDY.fbx.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/art/animations/player/combat/fn 502/source/FPS_Anims.fbx.import" beforeDir="false" afterPath="$PROJECT_DIR$/art/animations/player/combat/fn 502/source/FPS_Anims.fbx.import" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,23 +59,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0693557836804763" />
-      <entry key="MS500" value="2.1565237285401224" />
-      <entry key="S2" value="5.15143298317831" />
-      <entry key="S5" value="8.444439500513713" />
-      <entry key="S10" value="10.65366778138579" />
-      <entry key="S30" value="12.72231116333724" />
-      <entry key="S60" value="13.339821325275285" />
-      <entry key="M2" value="13.801156227829503" />
-      <entry key="M5" value="15.868086119335437" />
-      <entry key="M10" value="21.406643989392236" />
-      <entry key="M15" value="29.480591884822807" />
-      <entry key="M30" value="53.84356901392465" />
-      <entry key="H1" value="84.30859953244153" />
-      <entry key="H2" value="113.73525590197646" />
-      <entry key="H4" value="153.81858472222328" />
-      <entry key="D1" value="350.3696086479806" />
-      <entry key="W1" value="447.830427614863" />
+      <entry key="MS100" value="1.0404172157157294" />
+      <entry key="MS500" value="1.699352482723405" />
+      <entry key="S2" value="3.22454390203704" />
+      <entry key="S5" value="4.119939808874944" />
+      <entry key="S10" value="4.524637867624406" />
+      <entry key="S30" value="4.834218985327961" />
+      <entry key="S60" value="5.011537708919542" />
+      <entry key="M2" value="5.778736321349071" />
+      <entry key="M5" value="8.258451991089277" />
+      <entry key="M10" value="12.522768051313763" />
+      <entry key="M15" value="18.158434399385833" />
+      <entry key="M30" value="38.945361341711305" />
+      <entry key="H1" value="72.18309922641279" />
+      <entry key="H2" value="108.2334006241415" />
+      <entry key="H4" value="153.54621006960994" />
+      <entry key="D1" value="357.57737844119646" />
+      <entry key="W1" value="458.9510873095794" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -117,23 +97,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.897307059589352" />
-      <entry key="MS500" value="2.052520800650951" />
-      <entry key="S2" value="5.0896133817644875" />
-      <entry key="S5" value="8.401707023470877" />
-      <entry key="S10" value="10.625790727960124" />
-      <entry key="S30" value="12.710921611268773" />
-      <entry key="S60" value="13.333808386655651" />
-      <entry key="M2" value="13.798009420093903" />
-      <entry key="M5" value="15.86649729232233" />
-      <entry key="M10" value="21.405373420695557" />
-      <entry key="M15" value="29.479288994791347" />
-      <entry key="M30" value="53.842258284273655" />
-      <entry key="H1" value="84.30755708511765" />
-      <entry key="H2" value="113.73456923814733" />
-      <entry key="H4" value="153.8181623365706" />
-      <entry key="D1" value="350.36949160358876" />
-      <entry key="W1" value="447.8304077504621" />
+      <entry key="MS100" value="0.9373166237152324" />
+      <entry key="MS500" value="1.6447267587242382" />
+      <entry key="S2" value="3.1984791722806087" />
+      <entry key="S5" value="4.107030482596451" />
+      <entry key="S10" value="4.51764057698554" />
+      <entry key="S30" value="4.831749665245665" />
+      <entry key="S60" value="5.010251670150041" />
+      <entry key="M2" value="5.777961285165453" />
+      <entry key="M5" value="8.257959229801207" />
+      <entry key="M10" value="12.522304511598703" />
+      <entry key="M15" value="18.15787718066831" />
+      <entry key="M30" value="38.94456920649685" />
+      <entry key="H1" value="72.18228973980085" />
+      <entry key="H2" value="108.2327877640811" />
+      <entry key="H4" value="153.54580567680637" />
+      <entry key="D1" value="357.5772604045354" />
+      <entry key="W1" value="458.9510671139724" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -263,8 +243,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="remove unneccessary files" />
-    <MESSAGE value="edited bots and entire game to add sound system" />
     <MESSAGE value="added materials to the maps." />
     <MESSAGE value="add Player account and Status board system" />
     <MESSAGE value="added materials to the existing maps" />
@@ -288,7 +266,9 @@
     <MESSAGE value="fixing menu and buttons bug" />
     <MESSAGE value="fix ingame meun and score board" />
     <MESSAGE value="added more bugs to the file" />
-    <option name="LAST_COMMIT_MESSAGE" value="added more bugs to the file" />
+    <MESSAGE value="weapon animations bug fix" />
+    <MESSAGE value="weapons texture" />
+    <option name="LAST_COMMIT_MESSAGE" value="weapons texture" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
