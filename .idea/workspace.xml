@@ -10,19 +10,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/training/ShootingRange.tscn" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/network/LanMenu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/LanMenu.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerHud.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerHud.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/training/ShootingRange.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/training/ShootingRange.cs.uid" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/training/ShootingTarget.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/training/ShootingTarget.cs.uid" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/MenuStyle.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/MenuStyle.cs" afterDir="false" />
-    </list>
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -72,23 +60,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0159766050051813" />
-      <entry key="MS500" value="1.5830480964850842" />
-      <entry key="S2" value="3.576739522758223" />
-      <entry key="S5" value="6.236935489969635" />
-      <entry key="S10" value="8.33125556342888" />
-      <entry key="S30" value="10.529379429626758" />
-      <entry key="S60" value="11.28457264914303" />
-      <entry key="M2" value="12.65974073324354" />
-      <entry key="M5" value="18.547005770509323" />
-      <entry key="M10" value="26.23755096438031" />
-      <entry key="M15" value="33.124115249254096" />
-      <entry key="M30" value="54.76882244357812" />
-      <entry key="H1" value="89.28889798583788" />
-      <entry key="H2" value="127.47721547417692" />
-      <entry key="H4" value="174.5432353625293" />
-      <entry key="D1" value="381.07715701962377" />
-      <entry key="W1" value="483.6776461278173" />
+      <entry key="MS100" value="1.0081363127890923" />
+      <entry key="MS500" value="1.795087108449421" />
+      <entry key="S2" value="5.141391961925891" />
+      <entry key="S5" value="8.328177978687952" />
+      <entry key="S10" value="10.255249145243635" />
+      <entry key="S30" value="11.971802423712669" />
+      <entry key="S60" value="12.5465398765081" />
+      <entry key="M2" value="13.775482927421704" />
+      <entry key="M5" value="19.72903070568526" />
+      <entry key="M10" value="28.876477113796206" />
+      <entry key="M15" value="36.71510364204799" />
+      <entry key="M30" value="59.359223414517395" />
+      <entry key="H1" value="95.15537390531489" />
+      <entry key="H2" value="135.28120905437652" />
+      <entry key="H4" value="183.9499204691665" />
+      <entry key="D1" value="392.7587250425358" />
+      <entry key="W1" value="496.4382479920113" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -110,23 +98,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9096249950287993" />
-      <entry key="MS500" value="1.5506204249383597" />
-      <entry key="S2" value="3.5577886201519444" />
-      <entry key="S5" value="6.222903280075072" />
-      <entry key="S10" value="8.32170559742976" />
-      <entry key="S30" value="10.525317127111162" />
-      <entry key="S60" value="11.282201241071116" />
-      <entry key="M2" value="12.656774859112119" />
-      <entry key="M5" value="18.542289120783423" />
-      <entry key="M10" value="26.23339609362891" />
-      <entry key="M15" value="33.120618664104576" />
-      <entry key="M30" value="54.76629460162294" />
-      <entry key="H1" value="89.28713435947842" />
-      <entry key="H2" value="127.47609257780496" />
-      <entry key="H4" value="174.54256475472013" />
-      <entry key="D1" value="381.0769925675454" />
-      <entry key="W1" value="483.6776192224738" />
+      <entry key="MS100" value="0.8961794349148472" />
+      <entry key="MS500" value="1.7471864312739047" />
+      <entry key="S2" value="5.061969349777514" />
+      <entry key="S5" value="8.270621746241387" />
+      <entry key="S10" value="10.21948106780181" />
+      <entry key="S30" value="11.957930193619676" />
+      <entry key="S60" value="12.5393137394891" />
+      <entry key="M2" value="13.771562152957124" />
+      <entry key="M5" value="19.725804027811034" />
+      <entry key="M10" value="28.873207528784473" />
+      <entry key="M15" value="36.712097902410044" />
+      <entry key="M30" value="59.35683328383308" />
+      <entry key="H1" value="95.15362612245767" />
+      <entry key="H2" value="135.28006942836134" />
+      <entry key="H4" value="183.94923242373392" />
+      <entry key="D1" value="392.7585559527723" />
+      <entry key="W1" value="496.43822035618103" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -256,7 +244,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="added texture materials to the existing maps" />
     <MESSAGE value="added player status and account managment system" />
     <MESSAGE value="texture materials" />
     <MESSAGE value="fixed overlying bug on the menu" />
@@ -281,7 +268,8 @@
     <MESSAGE value="fix animation bugs" />
     <MESSAGE value="add custome cursor and fix quit session bug" />
     <MESSAGE value="fix warehouse in the maps options" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix warehouse in the maps options" />
+    <MESSAGE value="planing to move shooting range to the warehouse" />
+    <option name="LAST_COMMIT_MESSAGE" value="planing to move shooting range to the warehouse" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

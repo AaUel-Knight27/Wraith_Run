@@ -77,6 +77,24 @@ public partial class GameWorld : Node3D
     /// their mesh bounds and a broad walkable floor so the high-detail art stays usable on mobile.</summary>
     private static void BuildMapCollisions(Node3D map, MatchManager.ArenaMap mapKind)
     {
+        // Maps built by the map kit (Ashfields, Lab) arrive with exact collision for everything they generate: one
+        // trimesh per chunk, under Builder/Generated/Collision. The box proxies and the flat deck below were written
+        // for the imported art maps that have none. On a map-kit map they put an invisible solid box around every
+        // chunk (filling its trenches and reaching up to its tallest ruin) and a flat floor above the real ground,
+        // which is what made Ashfields feel stuck and glitchy. Keep only a deep safety floor so nobody falls forever.
+        Node? ownCollision = map.GetNodeOrNull("Builder/Generated/Collision");
+        if (ownCollision != null && ownCollision.FindChildren("*", "CollisionShape3D", true, false).Count > 0)
+        {
+            var safety = new StaticBody3D { Name = "SafetyFloor" };
+            safety.AddChild(new CollisionShape3D
+            {
+                Shape = new BoxShape3D { Size = new Vector3(600.0f, 0.5f, 600.0f) },
+                Position = new Vector3(0.0f, -15.25f, 0.0f),
+            });
+            map.AddChild(safety);
+            return;
+        }
+
         // The warehouse GLB is several million triangles and its four imported mesh bounds span
         // whole wall sections. A box around each complete mesh blocks the centre of the room, so
         // the free-roam home uses a clear deck and perimeter walls instead of those art bounds.

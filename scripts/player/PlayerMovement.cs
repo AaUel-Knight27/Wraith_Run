@@ -26,6 +26,10 @@ public partial class PlayerMovement : CharacterBody3D
     private const float MaximumSlideSpeed = 9.4f;
     private const float SlideFriction = 10.0f;
     private const float LandingCooldownSeconds = 0.15f;
+    // After a jump starts the ground probe is ignored for this long. The probe reaches 0.2 m below the feet, so on the
+    // frame after take-off (only ~0.1 m up) it still found the floor, the player counted as grounded again and the
+    // ground-stick velocity overwrote the jump - the jump never left the ground.
+    private const float JumpGroundIgnoreSeconds = 0.15f;
 
     // Optional first-person feelers (the TODO these replace). All tuned to read as subtle rather
     // than disorienting - they are meant to sell the movement, not to distract from the shootout.
@@ -75,6 +79,7 @@ public partial class PlayerMovement : CharacterBody3D
     private Vector3 _slideVelocity;
     private float _pitch;
     private float _landingCooldown;
+    private float _jumpGroundIgnore;
     // Starts true: the player spawns on the floor, so the first grounded frame is not a "landing".
     // A real landing is a transition from airborne to grounded, which only happens after _wasGrounded
     // has been set false by a frame where the player was in the air.
@@ -271,7 +276,8 @@ public partial class PlayerMovement : CharacterBody3D
             return;
         }
         float delta = (float)deltaValue;
-        bool grounded = IsOnFloor() || _groundProbe.IsColliding();
+        if (_jumpGroundIgnore > 0.0f) _jumpGroundIgnore -= delta;
+        bool grounded = _jumpGroundIgnore <= 0.0f && (IsOnFloor() || _groundProbe.IsColliding());
         Vector2 moveInput = Bot != null
             ? Bot.Move
             : (GameUiState.BlocksGameplayInput
@@ -311,7 +317,7 @@ public partial class PlayerMovement : CharacterBody3D
         _head.Position = new Vector3(_headOffset.X, _headBaseHeight + _headOffset.Y, _headOffset.Z)
             + _shakeOffset;
         MoveAndSlide();
-        _wasGrounded = IsOnFloor() || _groundProbe.IsColliding();
+        _wasGrounded = _jumpGroundIgnore <= 0.0f && (IsOnFloor() || _groundProbe.IsColliding());
         ReplicatedMovementState = State.ToString();
         ReplicatedAimState = IsAiming;
         _viewModelManager?.UpdateMovement(State);
@@ -477,6 +483,7 @@ public partial class PlayerMovement : CharacterBody3D
         if (canJump && jumpPressed)
         {
             Velocity = new Vector3(Velocity.X, JumpVelocity, Velocity.Z);
+            _jumpGroundIgnore = JumpGroundIgnoreSeconds;
             SetState(MovementState.Jump);
             return;
         }
