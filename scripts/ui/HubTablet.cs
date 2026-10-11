@@ -257,6 +257,7 @@ public partial class HubTablet : CanvasLayer
         MatchManager? match = MatchManager.Instance;
         if (match == null) return sb.ToString();
         sb.Append((int)match.GameMode).Append('|').Append((int)match.SelectedMap).Append('|').Append(match.BotCount).Append('|');
+        sb.Append(match.TimeLimitMinutes).Append('|').Append(match.FriendlyFire).Append('|').Append(match.TeamIndicators).Append('|').Append((int)match.BotLevel).Append('|');
         sb.Append(match.CanHostStartMatch).Append('|').Append(match.LocalPlayerReady).Append('|');
         foreach (long id in match.LobbyPeerIds())
             sb.Append(id).Append(':').Append(match.IsPeerReady(id)).Append(':').Append(match.GetTeam(id)).Append(':')
@@ -819,21 +820,33 @@ public partial class HubTablet : CanvasLayer
         return modes;
     }
 
+    // -------------------------------------------------------------------------------------------
+    // Match set-up controls (shared by PLAY and CUSTOM GAME)
+    // -------------------------------------------------------------------------------------------
+
+    private static readonly int[] DurationChoices = { 3, 5, 10, 15 };
+    /// <summary>Total players in a vs-bots match, counting you. All even, so the two teams always split cleanly.</summary>
+    private static readonly int[] PlayerChoices = { 6, 10, 12, 16 };
+    private static readonly string[] YesNo = { "No", "Yes" };
+    private static readonly string[] BotLevelNames = { "Easy", "Normal", "Advanced", "Mixed" };
+
+    private bool _hostBotsEnabled;
+
     /// <summary>Drop-down for the match mode. A mode that is not on the list (left over from an earlier
     /// session) is reset to Team Deathmatch so the drop-down always shows what will really be played.</summary>
     private static Control ModeDropdown(MatchManager match, Action onChanged)
     {
         List<MatchManager.Mode> modes = HubModes();
         if (!modes.Contains(match.GameMode)) match.GameMode = modes[0];
-        var options = new (string Icon, string Title, string Detail)[modes.Count];
+        var options = new (string Title, string Detail)[modes.Count];
         int selected = 0;
         for (int i = 0; i < modes.Count; i++)
         {
             GameModeBase rules = GameModeBase.For(modes[i]);
-            options[i] = (rules.UsesTeams ? "users" : "user", rules.DisplayName, rules.PlayerFormat);
+            options[i] = (rules.DisplayName, rules.PlayerFormat);
             if (modes[i] == match.GameMode) selected = i;
         }
-        return MenuStyle.Dropdown("GAME MODE", options, selected, index =>
+        return MenuStyle.Dropdown("Mode", options, selected, index =>
         {
             match.GameMode = modes[index];
             onChanged();
@@ -845,122 +858,251 @@ public partial class HubTablet : CanvasLayer
     {
         MatchManager.ArenaMap[] maps = MatchManager.SelectableMaps;
         if (System.Array.IndexOf(maps, match.SelectedMap) < 0) match.SelectedMap = maps[0];
-        var options = new (string Icon, string Title, string Detail)[maps.Length];
+        var options = new (string Title, string Detail)[maps.Length];
         int selected = 0;
         for (int i = 0; i < maps.Length; i++)
         {
-            options[i] = ("map", MatchManager.MapName(maps[i]), string.Empty);
+            options[i] = (MatchManager.MapName(maps[i]), string.Empty);
             if (maps[i] == match.SelectedMap) selected = i;
         }
-        return MenuStyle.Dropdown("MAP", options, selected, index =>
+        return MenuStyle.Dropdown("Map", options, selected, index =>
         {
             match.SelectedMap = maps[index];
             onChanged();
         });
     }
 
-    /// <summary>HOST: mode, map and a name, then CREATE LOBBY. Mode and map are picked here, once; the lobby
-    /// shows them but does not ask again. Bots are added in the lobby, where it is known who joined.</summary>
+    /// <summary>How long the match runs. There is no score limit: the clock decides every match.</summary>
+    private static Control DurationRow(MatchManager match, Action onChanged)
+    {
+        int selected = System.Array.IndexOf(DurationChoices, match.TimeLimitMinutes);
+        if (selected < 0) { match.TimeLimitMinutes = 10; selected = System.Array.IndexOf(DurationChoices, 10); }
+        var labels = new string[DurationChoices.Length];
+        for (int i = 0; i < labels.Length; i++) labels[i] = $"{DurationChoices[i]}m";
+        return MenuStyle.Segmented("Duration", labels, selected, index =>
+        {
+            match.TimeLimitMinutes = DurationChoices[index];
+            onChanged();
+        });
+    }
+
+    private static Control BotDifficultyRow(MatchManager match, Action onChanged) =>
+        MenuStyle.Segmented("Bots Difficulty", BotLevelNames, (int)match.BotLevel, index =>
+        {
+            match.BotLevel = (BotDifficulty)index;
+            onChanged();
+        });
+
+    private static Control YesNoRow(string label, bool value, Action<bool> set, Action onChanged) =>
+        MenuStyle.Segmented(label, YesNo, value ? 1 : 0, index =>
+        {
+            set(index == 1);
+            onChanged();
+        });
+
+    private static VBoxContainer Column(int separation = 12)
+    {
+        var column = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        column.AddThemeConstantOverride("separation", separation);
+        return column;
+    }
+
+    private static HBoxContainer TwoColumns(VBoxContainer left, VBoxContainer right)
+    {
+        var split = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        split.AddThemeConstantOverride("separation", 26);
+        split.AddChild(left);
+        split.AddChild(right);
+        return split;
+    }
+
+    /// <summary>CREATE LOBBY: mode, map, length and the optional rules, then a lobby. Mode and map are picked here,
+    /// once; the lobby shows them but does not ask again. There is no player limit: anyone on the Wi-Fi can join.</summary>
     private void BuildHost(VBoxContainer column)
     {
         MatchManager match = MatchManager.Instance;
-        var setup = MenuStyle.Panel("NEW LOBBY", "wifi", out VBoxContainer body);
-        body.AddChild(ModeDropdown(match, () => ShowSection(Section.Play)));
-        body.AddChild(MapDropdown(match, () => ShowSection(Section.Play)));
+        Action refresh = () => ShowSection(Section.Play);
 
-        body.AddChild(MenuStyle.Text("GAME NAME", 14, MenuStyle.TextMuted, MenuStyle.Bold));
+        VBoxContainer left = Column();
+        left.AddChild(MenuStyle.Text("Game Name", 18, MenuStyle.TextDim, MenuStyle.Medium));
         var name = new LineEdit { PlaceholderText = "Game name", Text = _gameName, MaxLength = 32 };
         MenuStyle.StyleLineEdit(name);
         name.TextChanged += text => _gameName = text;
-        body.AddChild(name);
+        left.AddChild(name);
+        left.AddChild(ModeDropdown(match, refresh));
+        left.AddChild(MapDropdown(match, refresh));
+        left.AddChild(DurationRow(match, refresh));
+
+        VBoxContainer right = Column();
+        if (match.IsTeamMode)
+        {
+            right.AddChild(YesNoRow("Player Marker", match.TeamIndicators, v => match.TeamIndicators = v, refresh));
+            right.AddChild(YesNoRow("Friendly Fire", match.FriendlyFire, v => match.FriendlyFire = v, refresh));
+        }
+        right.AddChild(YesNoRow("Enable Bots", _hostBotsEnabled, v => _hostBotsEnabled = v, refresh));
+        if (_hostBotsEnabled) right.AddChild(BotDifficultyRow(match, refresh));
+
+        column.AddChild(TwoColumns(left, right));
 
         var status = MenuStyle.Text(StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold);
-        body.AddChild(status);
-        body.AddChild(MenuStyle.Primary("CREATE LOBBY", new Vector2(320, 64), () =>
+        column.AddChild(status);
+        Button create = MenuStyle.Primary("CREATE LOBBY", new Vector2(0, 62), () =>
         {
-            match.BotCount = 0; // a fresh lobby starts with people only; bots are added in the lobby
+            // bots are added (and counted) in the lobby, where it is known who joined
+            match.BotCount = _hostBotsEnabled ? Math.Clamp(3, Math.Max(1, match.ModeRules.MinimumPlayers - 1), 15) : 0;
             SyncLobbySize();
             if (_hub != null && _hub.HostSession(_gameName)) { _playStep = PlayStep.Home; ShowSection(Section.Play); }
             else status.Text = StatusLine;
-        }));
-        column.AddChild(setup);
+        });
+        create.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        column.AddChild(create);
     }
 
-    private static readonly string[] BotLevelNames = { "Easy", "Normal", "Advanced", "Mixed" };
-    private static readonly string[] BotLevelDetails =
+    /// <summary>The player totals the chosen mode allows, drawn from PlayerChoices. A mode with a fixed size (Duo
+    /// Buggy: exactly 4) gets just that one.</summary>
+    private static int[] SoloPlayerChoices(GameModeBase rules)
     {
-        "slow to react, forgiving aim", "a fair fight", "sharp and fast", "a different level for each bot",
-    };
-
-    /// <summary>The fewest and most bots the chosen mode allows (you are one of the players).</summary>
-    private static (int Min, int Max) SoloBotRange(GameModeBase rules)
-    {
-        int min = Math.Max(1, rules.MinimumPlayers - 1);
-        int max = Math.Max(min, Math.Min(11, rules.MaximumPlayers - 1));
-        return (min, max);
+        var list = new List<int>();
+        foreach (int n in PlayerChoices)
+            if (n >= rules.MinimumPlayers && n <= rules.MaximumPlayers) list.Add(n);
+        if (list.Count == 0) list.Add(Math.Clamp(rules.MaximumPlayers, rules.MinimumPlayers, rules.MaximumPlayers));
+        return list.ToArray();
     }
 
-    /// <summary>PLAY: a private match against bots. Mode, map, how many bots and how good, then START.</summary>
+    /// <summary>Puts the player total (you + bots) on one of the choices the mode allows. With no earlier choice
+    /// it starts at six players.</summary>
+    private static int ClampSoloPlayers(MatchManager match)
+    {
+        int[] choices = SoloPlayerChoices(match.ModeRules);
+        int total = match.BotCount + 1;
+        if (System.Array.IndexOf(choices, total) < 0)
+            total = System.Array.IndexOf(choices, 6) >= 0 ? 6 : choices[0];
+        match.BotCount = total - 1;
+        SyncLobbySize();
+        return total;
+    }
+
+    /// <summary>PLAY: a private match against bots. Settings on the left, who is playing on the right, then START.</summary>
     private void BuildSolo(VBoxContainer column)
     {
         MatchManager match = MatchManager.Instance;
-        var setup = MenuStyle.Panel("MATCH SETUP", "bot", out VBoxContainer body);
-        body.AddChild(ModeDropdown(match, () => { ClampSoloBots(match); ShowSection(Section.Play); }));
-        body.AddChild(MapDropdown(match, () => ShowSection(Section.Play)));
+        Action refresh = () => { ClampSoloPlayers(match); ShowSection(Section.Play); };
+        int total = ClampSoloPlayers(match);
+        int[] choices = SoloPlayerChoices(match.ModeRules);
 
-        GameModeBase rules = match.ModeRules;
-        (int min, int max) = SoloBotRange(rules);
-        if (match.BotCount < min || match.BotCount > max) ClampSoloBots(match);
-
-        var bots = new HBoxContainer();
-        bots.AddThemeConstantOverride("separation", 12);
-        bots.AddChild(MenuStyle.Text("BOTS", 18, MenuStyle.TextMain, MenuStyle.SemiBold));
-        bots.AddChild(MenuStyle.Outline("-", () => { match.BotCount = Math.Max(min, match.BotCount - 1); SyncLobbySize(); ShowSection(Section.Play); }, null, 40));
-        bots.AddChild(MenuStyle.Text(match.BotCount.ToString(), 22, MenuStyle.TextMain, MenuStyle.Bold, HorizontalAlignment.Center));
-        bots.AddChild(MenuStyle.Outline("+", () => { match.BotCount = Math.Min(max, match.BotCount + 1); SyncLobbySize(); ShowSection(Section.Play); }, null, 40));
-        bots.AddChild(MenuStyle.Text(min == max ? $"this mode needs exactly {max} bots" : $"{min}-{max} for this mode", 16, MenuStyle.TextMuted, MenuStyle.Medium));
-        body.AddChild(bots);
-
-        var levels = new (string Icon, string Title, string Detail)[BotLevelNames.Length];
-        for (int i = 0; i < levels.Length; i++) levels[i] = ("bot", BotLevelNames[i], BotLevelDetails[i]);
-        body.AddChild(MenuStyle.Dropdown("BOT DIFFICULTY", levels, (int)match.BotLevel, index =>
+        VBoxContainer left = Column();
+        left.AddChild(ModeDropdown(match, refresh));
+        left.AddChild(MapDropdown(match, refresh));
+        left.AddChild(DurationRow(match, refresh));
+        var counts = new string[choices.Length];
+        for (int i = 0; i < counts.Length; i++) counts[i] = choices[i].ToString();
+        left.AddChild(MenuStyle.Segmented("Max Players", counts, System.Array.IndexOf(choices, total), index =>
         {
-            match.BotLevel = (BotDifficulty)index;
+            match.BotCount = choices[index] - 1;
+            SyncLobbySize();
             ShowSection(Section.Play);
         }));
+        left.AddChild(BotDifficultyRow(match, refresh));
 
-        body.AddChild(MenuStyle.Wrapped($"{rules.PlayerFormat}   -   {match.MapDisplayName}   -   you + {match.BotCount} bots", 17, MenuStyle.TextDim, MenuStyle.Medium));
+        VBoxContainer right = BuildRoster(match, total);
+        column.AddChild(TwoColumns(left, right));
+
         var status = MenuStyle.Text(StatusLine, 17, MenuStyle.Accent, MenuStyle.SemiBold);
-        body.AddChild(status);
-        body.AddChild(MenuStyle.Primary("START MATCH", new Vector2(320, 64), () =>
+        column.AddChild(status);
+        Button start = MenuStyle.Primary("START MATCH", new Vector2(0, 62), () =>
         {
-            ClampSoloBots(match);
-            SyncLobbySize();
+            ClampSoloPlayers(match);
             if (!match.CanHostStartMatch) { status.Text = "This mode needs more players than that."; return; }
             _hub?.StartMatch();
-        }));
-        column.AddChild(setup);
+        });
+        start.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        column.AddChild(start);
     }
 
-    /// <summary>Puts the bot count inside what the current mode allows (a mode change can leave it outside).
-    /// With no earlier choice the count starts at five bots, a six-player match.</summary>
-    private static void ClampSoloBots(MatchManager match)
+    /// <summary>Who will be in the match: you and the bots, split the way the match will split them (the same rule
+    /// as MatchManager.AssignTeamAndBroadcast). The bot names are the ones the match will really use.</summary>
+    private VBoxContainer BuildRoster(MatchManager match, int total)
     {
-        (int min, int max) = SoloBotRange(match.ModeRules);
-        match.BotCount = Math.Clamp(match.BotCount == 0 ? 5 : match.BotCount, min, max);
-        SyncLobbySize();
+        VBoxContainer panel = Column(14);
+        string me = GameUiState.PlayerName(LocalPeerId());
+        string tag = match.BotLevel switch
+        {
+            BotDifficulty.Easy => " [E]",
+            BotDifficulty.Normal => " [N]",
+            BotDifficulty.Advanced => " [A]",
+            _ => string.Empty,
+        };
+        int bots = total - 1;
+
+        if (!match.IsTeamMode)
+        {
+            var everyone = new List<(string Text, bool Me)> { (me, true) };
+            for (int i = 0; i < bots; i++) everyone.Add((match.PlannedBotName(i) + tag, false));
+            panel.AddChild(RosterBlock("Players", Colors.White, everyone, total));
+            return panel;
+        }
+
+        var teams = new[] { new List<(string Text, bool Me)>(), new List<(string Text, bool Me)>() };
+        int myTeam = Math.Max(0, match.GetTeam(LocalPeerId()));
+        teams[myTeam].Add((me, true));
+        for (int i = 0; i < bots; i++)
+        {
+            int team = teams[0].Count <= teams[1].Count ? 0 : 1; // exactly MatchManager's rule
+            teams[team].Add((match.PlannedBotName(i) + tag, false));
+        }
+        for (int team = 0; team < 2; team++)
+        {
+            string name = MatchManager.TeamName(team);
+            string title = name.Length > 0 ? char.ToUpperInvariant(name[0]) + name.Substring(1).ToLowerInvariant() + " Team" : "Team";
+            panel.AddChild(RosterBlock(title, MatchManager.TeamColor(team), teams[team], (total + 1 - team) / 2));
+        }
+        return panel;
     }
 
-    /// <summary>Bots fill a lobby that is short of people (the host is the only one who can add them).</summary>
+    /// <summary>One team's block: "Alpha Team  3/3", a thin line, then a slim row per player.</summary>
+    private static Control RosterBlock(string title, Color accent, List<(string Text, bool Me)> members, int capacity)
+    {
+        VBoxContainer block = Column(2);
+        var head = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        Label name = MenuStyle.Text(title, 20, MenuStyle.TextMain, MenuStyle.SemiBold);
+        name.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        head.AddChild(name);
+        head.AddChild(MenuStyle.Text($"{members.Count}/{capacity}", 20, MenuStyle.TextDim, MenuStyle.SemiBold, HorizontalAlignment.Right));
+        block.AddChild(head);
+        block.AddChild(new ColorRect { Color = accent, CustomMinimumSize = new Vector2(0, 2), MouseFilter = Control.MouseFilterEnum.Ignore });
+        foreach ((string text, bool isMe) in members) block.AddChild(RosterRow(text, isMe));
+        for (int i = members.Count; i < capacity; i++) block.AddChild(RosterRow("-", false));
+        return block;
+    }
+
+    private static Control RosterRow(string text, bool me)
+    {
+        var row = new PanelContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        var style = new StyleBoxFlat { BgColor = me ? new Color(1.0f, 0.82f, 0.32f, 0.14f) : new Color(0.085f, 0.09f, 0.10f) };
+        style.ContentMarginLeft = 12;
+        style.ContentMarginRight = 12;
+        style.ContentMarginTop = 6;
+        style.ContentMarginBottom = 6;
+        row.AddThemeStyleboxOverride("panel", style);
+        Label label = MenuStyle.Text(text, 19, me ? new Color(1.0f, 0.82f, 0.32f) : MenuStyle.TextDim, MenuStyle.SemiBold);
+        label.ClipText = true;
+        row.AddChild(label);
+        return row;
+    }
+
+    /// <summary>Bots fill a lobby that is short of people (only the host can add them). The count is capped by what
+    /// the mode allows, counting the people already in.</summary>
     private Control BotStepper(Action refresh)
     {
         MatchManager match = MatchManager.Instance;
+        int humans = Math.Max(1, match.LobbyPeerIds().Length);
+        int max = Math.Max(0, match.ModeRules.MaximumPlayers - humans);
         var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 12);
-        row.AddChild(MenuStyle.Text("BOTS", 18, MenuStyle.TextMain, MenuStyle.SemiBold));
+        row.AddChild(MenuStyle.Text("Bots", 18, MenuStyle.TextDim, MenuStyle.Medium));
         row.AddChild(MenuStyle.Outline("-", () => { match.BotCount = Math.Max(0, match.BotCount - 1); SyncLobbySize(); refresh(); }, null, 40));
         row.AddChild(MenuStyle.Text(match.BotCount.ToString(), 22, MenuStyle.TextMain, MenuStyle.Bold, HorizontalAlignment.Center));
-        row.AddChild(MenuStyle.Outline("+", () => { match.BotCount = Math.Min(11, match.BotCount + 1); SyncLobbySize(); refresh(); }, null, 40));
+        row.AddChild(MenuStyle.Outline("+", () => { match.BotCount = Math.Min(max, match.BotCount + 1); SyncLobbySize(); refresh(); }, null, 40));
         return row;
     }
 
@@ -979,16 +1121,20 @@ public partial class HubTablet : CanvasLayer
         bool host = Multiplayer.IsServer();
 
         var about = MenuStyle.Panel(rules.DisplayName.ToUpperInvariant(), "crosshair", out VBoxContainer aboutBody);
-        aboutBody.AddChild(MenuStyle.Wrapped($"{rules.PlayerFormat}\nMap: {match.MapDisplayName}", 19, MenuStyle.TextDim));
+        string details = $"{rules.PlayerFormat}\nMap: {match.MapDisplayName}   |   Time: {match.TimeLimitMinutes} min";
+        if (match.IsTeamMode)
+            details += $"\nFriendly fire: {(match.FriendlyFire ? "On" : "Off")}   |   Player markers: {(match.TeamIndicators ? "On" : "Off")}";
+        aboutBody.AddChild(MenuStyle.Wrapped(details, 19, MenuStyle.TextDim));
         if (HubController.SplitRooms(match))
             aboutBody.AddChild(MenuStyle.Wrapped($"You are on {MatchManager.TeamName(match.GetTeam(Multiplayer.GetUniqueId()))}. Your team has its own warehouse: the other side cannot see or hear you until the match starts.", 17, MenuStyle.TextMuted));
         column.AddChild(about);
 
-        if (host)
+        if (host && _hostBotsEnabled)
         {
-            // Mode and map were chosen when the lobby was created; only the bot count can still change here.
-            var settings = MenuStyle.Panel("HOST CONTROLS", "settings", out VBoxContainer hostBody);
+            // Everything else was chosen when the lobby was created; with bots on, their number can still change here.
+            var settings = MenuStyle.Panel("BOTS", "bot", out VBoxContainer hostBody);
             hostBody.AddChild(BotStepper(refresh: () => { match.BroadcastHostConfig(); ShowSection(Section.Play); }));
+            hostBody.AddChild(BotDifficultyRow(match, () => { match.BroadcastHostConfig(); ShowSection(Section.Play); }));
             column.AddChild(settings);
         }
 

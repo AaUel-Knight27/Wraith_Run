@@ -306,50 +306,62 @@ public static class MenuStyle
         return button;
     }
 
+    // ---- the clean, flat set-up controls (match set-up screens) ----
+    private static readonly Color FlatFill = Hex(0x151618);
+    private static readonly Color FlatHover = Hex(0x232427);
+    private static readonly Color FlatOn = Hex(0x2a2b2f);
+    private static readonly Color FlatLine = Hex(0xf2efef);
+
+    private static StyleBoxFlat FlatBox(Color fill, bool underline = false)
+    {
+        var box = new StyleBoxFlat { BgColor = fill };
+        if (underline)
+        {
+            box.BorderColor = FlatLine;
+            box.BorderWidthBottom = 2;
+        }
+        return box;
+    }
+
     /// <summary>
-    /// An inline drop-down: a closed header showing the current choice; click it and the options open
-    /// underneath, pick one and it closes again. It is built from plain controls on purpose - an
-    /// OptionButton's list is a separate popup window, which does not work on the tablet's in-world
-    /// screen or with touch input. The caller owns the state: onSelected gets the chosen index.
+    /// A flat inline drop-down: a label, then a plain dark bar showing the current choice with a small arrow;
+    /// click it and the options open underneath, pick one and it closes. Built from plain controls on purpose -
+    /// an OptionButton's list is a separate popup window, which does not work on the tablet's in-world screen or
+    /// with touch input. The caller owns the state: onSelected gets the chosen index.
     /// </summary>
-    public static Control Dropdown(string label, (string Icon, string Title, string Detail)[] options,
-        int selected, Action<int> onSelected)
+    public static Control Dropdown(string label, (string Title, string Detail)[] options, int selected, Action<int> onSelected)
     {
         var box = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        box.AddThemeConstantOverride("separation", 6);
-        box.AddChild(Text(label, 14, TextMuted, Bold));
+        box.AddThemeConstantOverride("separation", 5);
+        box.AddChild(Text(label, 18, TextDim, Medium));
         if (options.Length == 0) return box;
         selected = Math.Clamp(selected, 0, options.Length - 1);
 
         var list = new VBoxContainer { Visible = false, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-        list.AddThemeConstantOverride("separation", 4);
+        list.AddThemeConstantOverride("separation", 2);
 
-        TextureRect chevronDown = Icon("chevron-down", 22);
-        TextureRect chevronUp = Icon("chevron-up", 22);
+        TextureRect chevronDown = Icon("chevron-down", 20);
+        TextureRect chevronUp = Icon("chevron-up", 20);
         chevronUp.Visible = false;
         chevronDown.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
         chevronUp.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
 
-        var header = NewButton(new Vector2(0, 52), () =>
+        var header = NewButton(new Vector2(0, 44), () =>
         {
             list.Visible = !list.Visible;
             chevronDown.Visible = !list.Visible;
             chevronUp.Visible = list.Visible;
         });
-        StyleButton(header, Box(RowFill, Border), Box(HoverFill, BorderHot), Box(PressFill, BorderHot),
-            Box(RowFill, Hairline));
+        StyleButton(header, FlatBox(FlatFill), FlatBox(FlatHover), FlatBox(FlatOn), FlatBox(FlatFill));
         var pad = Padding(14, 0);
         header.AddChild(pad);
         var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         row.AddThemeConstantOverride("separation", 12);
         pad.AddChild(row);
-        var glyph = Icon(options[selected].Icon, 24);
-        glyph.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
-        row.AddChild(glyph);
-        var current = Text(options[selected].Title, 24, TextMain, SemiBold);
+        var current = Text(options[selected].Title, 23, TextMain, SemiBold);
         current.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
         row.AddChild(current);
-        var detail = Text(options[selected].Detail, 17, TextMuted, Medium);
+        var detail = Text(options[selected].Detail, 16, TextMuted, Medium);
         detail.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         detail.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
         detail.ClipText = true;
@@ -361,16 +373,57 @@ public static class MenuStyle
         for (int i = 0; i < options.Length; i++)
         {
             int index = i;
-            string text = string.IsNullOrEmpty(options[i].Detail)
-                ? options[i].Title
-                : $"{options[i].Title}   -   {options[i].Detail}";
-            list.AddChild(SelectRow(options[i].Icon, text, i == selected, () =>
+            bool on = i == selected;
+            var option = NewButton(new Vector2(0, 40), () =>
             {
                 list.Visible = false;
                 onSelected(index);
-            }));
+            });
+            StyleButton(option, FlatBox(on ? FlatOn : FlatFill), FlatBox(FlatHover), FlatBox(FlatOn), FlatBox(FlatFill));
+            var optionPad = Padding(14, 0);
+            option.AddChild(optionPad);
+            var optionRow = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+            optionRow.AddThemeConstantOverride("separation", 12);
+            optionPad.AddChild(optionRow);
+            var title = Text(options[i].Title, 21, on ? TextMain : TextDim, on ? SemiBold : Medium);
+            title.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+            optionRow.AddChild(title);
+            var optionDetail = Text(options[i].Detail, 15, TextMuted, Medium);
+            optionDetail.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            optionDetail.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+            optionDetail.ClipText = true;
+            optionRow.AddChild(optionDetail);
+            list.AddChild(option);
         }
         box.AddChild(list);
+        return box;
+    }
+
+    /// <summary>A label above a row of plain choices (3m  5m  10m  15m, or No / Yes). The chosen one has a lifted
+    /// fill, bright text and an underline; the others are dim text. Tap one and onSelected gets its index.</summary>
+    public static Control Segmented(string label, string[] options, int selected, Action<int> onSelected)
+    {
+        var box = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        box.AddThemeConstantOverride("separation", 5);
+        box.AddChild(Text(label, 18, TextDim, Medium));
+        var row = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        row.AddThemeConstantOverride("separation", 2);
+        for (int i = 0; i < options.Length; i++)
+        {
+            int index = i;
+            bool on = i == selected;
+            var choice = NewButton(new Vector2(0, 40), () => onSelected(index));
+            choice.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            StyleButton(choice, FlatBox(on ? FlatOn : FlatFill, on), FlatBox(on ? FlatOn : FlatHover, on),
+                FlatBox(FlatOn, on), FlatBox(FlatFill));
+            var pad = Padding(8, 0);
+            choice.AddChild(pad);
+            Label text = Text(options[i], 22, on ? TextMain : TextMuted, on ? SemiBold : Medium, HorizontalAlignment.Center);
+            text.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+            pad.AddChild(text);
+            row.AddChild(choice);
+        }
+        box.AddChild(row);
         return box;
     }
 

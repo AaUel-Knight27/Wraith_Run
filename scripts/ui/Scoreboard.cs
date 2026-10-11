@@ -136,7 +136,7 @@ public partial class Scoreboard : CanvasLayer
 		Color color = MatchManager.TeamColor(team);
 		var tint = new Color(color.R * 0.30f, color.G * 0.30f, color.B * 0.30f, 0.62f);
 		_column.AddChild(BuildBoard(MatchManager.TeamName(team), match.GetTeamScore(team).ToString(),
-			match.ScoreLimit.ToString(), color, tint, all.FindAll(r => r.Team == team), me));
+			null, color, tint, all.FindAll(r => r.Team == team), me));
 	}
 
 	/// <summary>The one thin line above the tables: mode | map on the left, the match time on the right.</summary>

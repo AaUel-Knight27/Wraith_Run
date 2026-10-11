@@ -451,8 +451,6 @@ public partial class LanMenu : Control
 			v => { match.FriendlyFire = v; rebuild(); }));
 		rulesBody.AddChild(MenuStyle.ToggleRow(null, "Team Indicators", match.TeamIndicators,
 			v => { match.TeamIndicators = v; rebuild(); }));
-		rulesBody.AddChild(MenuStyle.SliderRow("Score Limit", match.ScoreLimit, 10, 100, 5,
-			"{0:0} kills", v => match.ScoreLimit = (int)v));
 		rulesBody.AddChild(MenuStyle.SliderRow("Time Limit", match.TimeLimitMinutes, 3, 20, 1,
 			"{0:0} min", v => match.TimeLimitMinutes = (int)v));
 		left.AddChild(rules);

@@ -121,7 +121,7 @@ public partial class MatchManager : Node
     public Mode GameMode = Mode.FreeForAll;
     public bool FriendlyFire;
     public bool TeamIndicators = true;
-    public int ScoreLimit = 50;
+    /// <summary>How long a match runs, in minutes. There is no score limit: every match is decided by the clock.</summary>
     public int TimeLimitMinutes = 10;
 
     // ---- Bots (host-only: bots are simulated by the host and reach everyone else as ordinary players) ----
@@ -178,7 +178,7 @@ public partial class MatchManager : Node
     {
         if (!Multiplayer.HasMultiplayerPeer() || !Multiplayer.IsServer()) return;
         Rpc(MethodName.ReceiveHostConfig, (int)GameMode, FriendlyFire, TeamIndicators,
-            ScoreLimit, TimeLimitMinutes, (int)SelectedMap, LobbyPlayerCount, _elapsedSeconds);
+            TimeLimitMinutes, (int)SelectedMap, LobbyPlayerCount, _elapsedSeconds);
     }
 
     public string LobbyReadySummary
@@ -204,9 +204,8 @@ public partial class MatchManager : Node
     /// sides show roughly the same time. Read by the Tab scoreboard and the objectives screen.</summary>
     public float ElapsedSeconds => _elapsedSeconds;
 
-    /// <summary>Mode-specific timed resolution; open-ended modes run until the host ends them.</summary>
-    public bool HasTimeLimit => (GameMode == Mode.TeamDeathmatch || ModeRules.HasTimedResolution) &&
-        TimeLimitMinutes > 0;
+    /// <summary>Every match is timed: the clock is the only way one ends (there is no score limit).</summary>
+    public bool HasTimeLimit => TimeLimitMinutes > 0;
 
     /// <summary>Seconds left on the clock, or -1 when this mode has no time limit.</summary>
     public float TimeRemainingSeconds =>
@@ -233,8 +232,7 @@ public partial class MatchManager : Node
     {
         if (!_sessionActive || _matchEnded) return;
         _elapsedSeconds += (float)delta;
-        // Everything below is the Team Deathmatch time limit, unchanged; Free-For-All just keeps
-        // the clock running for the scoreboard and never ends by time.
+        // The time limit is the only thing that ends a match: whoever is ahead when the clock runs out wins.
         if (!HasTimeLimit) return;
         if (_elapsedSeconds < TimeLimitMinutes * 60.0f) return;
 
@@ -249,7 +247,7 @@ public partial class MatchManager : Node
     // -------------------------------------------------------------------------------------------
 
     /// <summary>Called by LanMenu right before LanSession.StartHost. GameMode/FriendlyFire/
-    /// TeamIndicators/ScoreLimit/TimeLimitMinutes are whatever the host just picked on the lobby
+    /// TeamIndicators/TimeLimitMinutes are whatever the host just picked on the lobby
     /// screen and are left alone here; everything that belongs to one match run is reset so a
     /// second match started later in the same app session (once a return-to-lobby flow exists)
     /// never inherits the previous match's teams or score.</summary>
@@ -316,6 +314,7 @@ public partial class MatchManager : Node
     /// everyone else has to press READY again for the next match.</summary>
     public void ResetForHub()
     {
+        RollBotNamePlan();
         _teamScores[0] = 0;
         _teamScores[1] = 0;
         _elapsedSeconds = 0.0f;
@@ -484,7 +483,7 @@ public partial class MatchManager : Node
         // has the right values, this one has whatever GameMode/FriendlyFire/etc. defaulted to
         // when its own copy of this autoload was created (see PrepareClientMatch).
         RpcId(peerId, MethodName.ReceiveHostConfig, (int)GameMode, FriendlyFire, TeamIndicators,
-            ScoreLimit, TimeLimitMinutes, (int)SelectedMap, LobbyPlayerCount, _elapsedSeconds);
+            TimeLimitMinutes, (int)SelectedMap, LobbyPlayerCount, _elapsedSeconds);
         // Teach the newcomer everyone who is already here (the host, other people, bots). The broadcast
         // below only carries the newcomer's own team, so without this a late joiner would not know who
         // is on which side.
@@ -506,20 +505,44 @@ public partial class MatchManager : Node
     private void ApplyTeamAssignment(long peerId, int team) => _peerTeams[peerId] = team;
 
     [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    public void ReceiveHostConfig(int gameMode, bool friendlyFire, bool teamIndicators, int scoreLimit,
+    public void ReceiveHostConfig(int gameMode, bool friendlyFire, bool teamIndicators,
         int timeLimitMinutes, int arenaMap, int lobbyPlayerCount, float hostElapsedSeconds)
     {
         GameMode = System.Enum.IsDefined(typeof(Mode), gameMode) ? (Mode)gameMode : Mode.Default;
         FriendlyFire = friendlyFire;
         TeamIndicators = teamIndicators;
-        ScoreLimit = Math.Clamp(scoreLimit, 1, 10000);
-        TimeLimitMinutes = Math.Clamp(timeLimitMinutes, 0, 240);
+        TimeLimitMinutes = Math.Clamp(timeLimitMinutes, 1, 240);
         SelectedMap = System.Enum.IsDefined(typeof(ArenaMap), arenaMap) ? (ArenaMap)arenaMap : ArenaMap.Prison;
         LobbyPlayerCount = Math.Clamp(lobbyPlayerCount, ModeRules.MinimumPlayers, ModeRules.MaximumPlayers);
         _elapsedSeconds = Mathf.Clamp(hostElapsedSeconds, 0.0f, 86400.0f);
         HostConfigReceived = true;
         _matchEnded = false;
         WinningTeam = -1;
+    }
+
+    // ---- Bot names ----
+    // Picked ahead of the match so the set-up screen can list exactly the bots that will spawn. A new draw is made
+    // after every match (ResetForHub) so the next one is not the same crowd.
+    private readonly List<string> _botNamePlan = new();
+
+    /// <summary>The name the bot with this index (0-based) will have in the next match.</summary>
+    public string PlannedBotName(int index)
+    {
+        if (_botNamePlan.Count == 0) RollBotNamePlan();
+        return index >= 0 && index < _botNamePlan.Count ? _botNamePlan[index] : $"Bot{index + 1}";
+    }
+
+    private void RollBotNamePlan()
+    {
+        _botNamePlan.Clear();
+        _botNamePlan.AddRange(BotRoster.NamePool);
+        var rng = new RandomNumberGenerator();
+        rng.Randomize();
+        for (int i = _botNamePlan.Count - 1; i > 0; i--)
+        {
+            int j = rng.RandiRange(0, i);
+            (_botNamePlan[i], _botNamePlan[j]) = (_botNamePlan[j], _botNamePlan[i]);
+        }
     }
 
     private int FindFfaWinner()
@@ -577,7 +600,6 @@ public partial class MatchManager : Node
         if (killerTeam < 0 || killerTeam == GetTeam(victimPeerId)) return;
 
         _teamScores[killerTeam]++;
-        if (_teamScores[killerTeam] >= ScoreLimit) EndMatch(killerTeam, "score");
     }
 
     private void EndMatch(int winningTeam, string reason)

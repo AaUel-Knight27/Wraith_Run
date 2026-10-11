@@ -11,12 +11,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/scenes/maps/Ashfields.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Ashfields.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/maps/DefaultWarehouse.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/DefaultWarehouse.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/maps/Depot.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Depot.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/maps/Lab.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Lab.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/maps/Prison.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Prison.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/network/GameWorld.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/GameWorld.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,23 +63,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0055882437530965" />
-      <entry key="MS500" value="1.7020513429442734" />
-      <entry key="S2" value="3.035201345796255" />
-      <entry key="S5" value="3.562668710499662" />
-      <entry key="S10" value="3.7716037281349903" />
-      <entry key="S30" value="3.921584010989442" />
-      <entry key="S60" value="3.9604985412795863" />
-      <entry key="M2" value="3.9801752914071167" />
-      <entry key="M5" value="3.9920522824652243" />
-      <entry key="M10" value="3.9960676656511307" />
-      <entry key="M15" value="4.002330186328527" />
-      <entry key="M30" value="4.699522175951488" />
-      <entry key="H1" value="14.427772393467325" />
-      <entry key="H2" value="49.168920935451155" />
-      <entry key="H4" value="111.03265951772983" />
-      <entry key="D1" value="365.2203203973203" />
-      <entry key="W1" value="497.7742628345909" />
+      <entry key="MS100" value="1.0155218619365187" />
+      <entry key="MS500" value="1.5997005051084514" />
+      <entry key="S2" value="4.2134729811091205" />
+      <entry key="S5" value="7.117398412363244" />
+      <entry key="S10" value="9.043402863191387" />
+      <entry key="S30" value="10.863536258602378" />
+      <entry key="S60" value="11.409970094655513" />
+      <entry key="M2" value="11.699284973408794" />
+      <entry key="M5" value="11.879546059351838" />
+      <entry key="M10" value="12.009166078635356" />
+      <entry key="M15" value="12.22981392616388" />
+      <entry key="M30" value="13.201529061975064" />
+      <entry key="H1" value="19.34673546546433" />
+      <entry key="H2" value="47.10562469945864" />
+      <entry key="H4" value="105.82390983825196" />
+      <entry key="D1" value="367.1132255932651" />
+      <entry key="W1" value="507.7826264373236" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -106,23 +101,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.5700661562502805" />
-      <entry key="MS500" value="1.5015496576871352" />
-      <entry key="S2" value="2.936011814132413" />
-      <entry key="S5" value="3.5154558073989426" />
-      <entry key="S10" value="3.74652111308051" />
-      <entry key="S30" value="3.912871752418214" />
-      <entry key="S60" value="3.956096947131735" />
-      <entry key="M2" value="3.9779630092807383" />
-      <entry key="M5" value="3.991164597852678" />
-      <entry key="M10" value="3.995623355047087" />
-      <entry key="M15" value="4.00203347402626" />
-      <entry key="M30" value="4.699345825000774" />
-      <entry key="H1" value="14.427506339752664" />
-      <entry key="H2" value="49.16850177188118" />
-      <entry key="H4" value="111.03223816960006" />
-      <entry key="D1" value="365.2201604356805" />
-      <entry key="W1" value="497.77423467207115" />
+      <entry key="MS100" value="0.8836027063322645" />
+      <entry key="MS500" value="1.551606411444921" />
+      <entry key="S2" value="4.178860406310708" />
+      <entry key="S5" value="7.093571498038641" />
+      <entry key="S10" value="9.028195252039689" />
+      <entry key="S30" value="10.857433326894533" />
+      <entry key="S60" value="11.406763798365379" />
+      <entry key="M2" value="11.697640866670119" />
+      <entry key="M5" value="11.878878008315162" />
+      <entry key="M10" value="12.008822664771305" />
+      <entry key="M15" value="12.22956974757468" />
+      <entry key="M30" value="13.201370956886352" />
+      <entry key="H1" value="19.346543626704495" />
+      <entry key="H2" value="47.10529728259326" />
+      <entry key="H4" value="105.82353973193453" />
+      <entry key="D1" value="367.11306771571486" />
+      <entry key="W1" value="507.7825980528283" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -252,7 +247,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="fixed overlying bug on the menu" />
     <MESSAGE value="cleaned respawn system and textures bug" />
     <MESSAGE value="created all the 7 modes and edit the bots" />
     <MESSAGE value="audio and mesh fix" />
@@ -277,7 +271,8 @@
     <MESSAGE value="planing to move shooting range to the warehouse" />
     <MESSAGE value="debugging movemnt" />
     <MESSAGE value="fixed the maps" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed the maps" />
+    <MESSAGE value="update on team death match spawn" />
+    <option name="LAST_COMMIT_MESSAGE" value="update on team death match spawn" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
