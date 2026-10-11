@@ -33,12 +33,14 @@ public partial class MatchManager : Node
 
     public enum ArenaMap { Prison = 0, Ashfields = 1, Depot = 2, Lab = 3, Warehouse = 4, DefaultMap = 5 }
 
+    // The warehouse is the player's own home (the hub), not a place to play a match, so it is not on this list.
+    // The enum value stays: the hub's collision and spawn code and saved lobby configs still use it.
     public static readonly ArenaMap[] SelectableMaps =
     {
-        ArenaMap.Warehouse, ArenaMap.Prison, ArenaMap.Ashfields, ArenaMap.Depot, ArenaMap.Lab
+        ArenaMap.Prison, ArenaMap.Ashfields, ArenaMap.Depot, ArenaMap.Lab
     };
 
-    public ArenaMap SelectedMap = ArenaMap.Warehouse;
+    public ArenaMap SelectedMap = ArenaMap.Prison;
     public string MapScenePath => SelectedMap switch
     {
         ArenaMap.Prison => "res://scenes/maps/Prison.tscn",
