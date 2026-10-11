@@ -204,9 +204,7 @@ public partial class LanMenu : Control
 			32, MenuStyle.TextMain, MenuStyle.Bold));
 		weaponBox.AddChild(MenuStyle.Text(
 			weapon == null ? string.Empty
-				: weapon.FireMode == WeaponData.FireModeType.Melee
-					? $"{weapon.BodyDamage:0} dmg  |  melee"
-					: $"{weapon.BodyDamage:0} dmg  |  {weapon.FireRateRPM:0} rpm  |  {weapon.MagazineSize} rd",
+				: $"{weapon.BodyDamage:0} dmg  |  {weapon.FireRateRPM:0} rpm  |  {weapon.MagazineSize} rd",
 			16, MenuStyle.TextDim));
 		right.AddChild(weaponTile);
 

@@ -84,10 +84,9 @@ public static class PlayerProfile
         Save();
     }
 
-    /// <summary>A saved loadout can still hold a weapon that is now coming soon (Karambit, Bazooka).
-    /// Those read back as an empty slot, so existing players never carry them.</summary>
+    /// <summary>Normalizes an empty saved slot to the empty string.</summary>
     private static string Usable(string weaponName) =>
-        string.IsNullOrEmpty(weaponName) || WeaponRules.IsAvailable(weaponName) ? weaponName ?? string.Empty : string.Empty;
+        weaponName ?? string.Empty;
 
     public static string GetSetWeapon(int set, WeaponSlot slot)
     {

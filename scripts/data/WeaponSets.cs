@@ -2,15 +2,12 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-/// <summary>The five places a carried weapon can sit. The order is also the number-key order in a
-/// match: key 1 = Primary1 ... key 4 = Melee, key 5 = Heavy (Demolisher only).</summary>
+/// <summary>The three places a carried weapon can sit, in number-key order.</summary>
 public enum WeaponSlot
 {
     Primary1 = 0,
     Primary2 = 1,
     Pistol = 2,
-    Melee = 3,
-    Heavy = 4,
 }
 
 /// <summary>The weapon families the picker groups by. Shotgun is its own family so it can sit in a
@@ -22,8 +19,6 @@ public enum WeaponCategory
     Shotgun,
     Sniper,
     Pistol,
-    Melee,
-    Heavy,
 }
 
 /// <summary>
@@ -31,13 +26,12 @@ public enum WeaponCategory
 /// lobby (what you may pick), the profile (what is valid to save) and the match (what you spawn
 /// with) all ask the same place.
 ///
-/// The carry rule: two primary guns, one pistol, one knife, and - only for a Demolisher operator -
-/// one heavy weapon. A slot only ever accepts its own kind of weapon, so a set can be changed but
+/// The carry rule: two primary guns and one pistol. A slot only ever accepts its own kind of weapon, so a set can be changed but
 /// never grown or shrunk, and a weapon cannot sit in two slots of the same set.
 /// </summary>
 public static class WeaponRules
 {
-    public const int SlotCount = 5;
+    public const int SlotCount = 3;
     public const int SetCount = 3;
     public const int MaxSetNameLength = 16;
 
@@ -47,35 +41,23 @@ public static class WeaponRules
 
     public static readonly string[] DefaultSetNames = { "SHORT RANGE", "MID RANGE", "LONG RANGE" };
 
-    /// <summary>[set][slot] -> weapon name. Order of slots: Primary1, Primary2, Pistol, Melee, Heavy.</summary>
+    /// <summary>[set][slot] -> weapon name. Order of slots: Primary1, Primary2, Pistol.</summary>
     public static readonly string[][] DefaultWeapons =
     {
-        new[] { "Shotgun", "Kriss Vector", "Glock 19", "", "" },
-        new[] { "AK-47", "P90", "Glock 19", "", "" },
-        new[] { "M4", "AK-47", "Desert Eagle", "", "" },
+        new[] { "Shotgun", "Kriss Vector", "Glock 19" },
+        new[] { "AK-47", "P90", "Glock 19" },
+        new[] { "M4", "AK-47", "Desert Eagle" },
     };
 
     // ---- slots ------------------------------------------------------------------------------
 
     public static bool IsPrimary(WeaponSlot slot) => slot == WeaponSlot.Primary1 || slot == WeaponSlot.Primary2;
 
-    /// <summary>The Heavy slot exists only for a Demolisher; every other slot is always there.</summary>
-    public static bool SlotAvailable(WeaponSlot slot, bool demolisher) => slot != WeaponSlot.Heavy || demolisher;
-
-    /// <summary>Weapons greyed out until their animations are finished. They stay in the data (so nothing
-    /// else breaks) but cannot be picked up from the armory wall.</summary>
-    public static readonly System.Collections.Generic.HashSet<string> ComingSoon =
-        new(System.StringComparer.OrdinalIgnoreCase) { "Karambit", "Bazooka" };
-
-    public static bool IsAvailable(string weaponName) => !ComingSoon.Contains(weaponName);
-
     public static string SlotName(WeaponSlot slot) => slot switch
     {
         WeaponSlot.Primary1 => "PRIMARY 1",
         WeaponSlot.Primary2 => "PRIMARY 2",
         WeaponSlot.Pistol => "PISTOL",
-        WeaponSlot.Melee => "KNIFE",
-        WeaponSlot.Heavy => "HEAVY",
         _ => string.Empty,
     };
 
@@ -84,8 +66,7 @@ public static class WeaponRules
         WeaponSlot.Primary1 or WeaponSlot.Primary2 =>
             new[] { WeaponCategory.AssaultRifle, WeaponCategory.Smg, WeaponCategory.Shotgun, WeaponCategory.Sniper },
         WeaponSlot.Pistol => new[] { WeaponCategory.Pistol },
-        WeaponSlot.Melee => new[] { WeaponCategory.Melee },
-        _ => new[] { WeaponCategory.Heavy },
+        _ => Array.Empty<WeaponCategory>(),
     };
 
     // ---- categories -------------------------------------------------------------------------
@@ -97,8 +78,6 @@ public static class WeaponRules
         WeaponCategory.Shotgun => "SHOTGUNS",
         WeaponCategory.Sniper => "SNIPER RIFLES",
         WeaponCategory.Pistol => "PISTOLS",
-        WeaponCategory.Melee => "MELEE",
-        WeaponCategory.Heavy => "HEAVY",
         _ => string.Empty,
     };
 
@@ -109,8 +88,6 @@ public static class WeaponRules
         WeaponCategory.Shotgun => "wpn-shotgun",
         WeaponCategory.Sniper => "rifle",
         WeaponCategory.Pistol => "wpn-pistol",
-        WeaponCategory.Melee => "wpn-melee",
-        WeaponCategory.Heavy => "wpn-launcher",
         _ => "rifle",
     };
 
@@ -127,20 +104,11 @@ public static class WeaponRules
             case "marksmanrifle": return WeaponCategory.Sniper;
             case "pistol":
             case "sidearm": return WeaponCategory.Pistol;
-            case "melee": return WeaponCategory.Melee;
-            case "launcher":
-            case "heavy": return WeaponCategory.Heavy;
             default: return null;
         }
     }
 
     // ---- who may carry what -----------------------------------------------------------------
-
-    public static bool IsDemolisher(string operatorId)
-    {
-        CharacterData? op = OperatorInfo.Find(operatorId);
-        return op != null && op.Class == CharacterData.CharacterClass.Demolisher;
-    }
 
     public static bool Fits(WeaponData weapon, WeaponSlot slot)
     {
@@ -154,7 +122,7 @@ public static class WeaponRules
     {
         var result = new List<WeaponData>();
         foreach (WeaponData weapon in OperatorInfo.Weapons)
-            if (Fits(weapon, slot) && IsAvailable(weapon.WeaponName) && Array.IndexOf(WeaponSwitcher.Loadout, weapon.WeaponName) >= 0)
+            if (Fits(weapon, slot) && Array.IndexOf(WeaponSwitcher.Loadout, weapon.WeaponName) >= 0)
                 result.Add(weapon);
         return result;
     }

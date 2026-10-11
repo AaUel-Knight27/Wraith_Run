@@ -12,7 +12,7 @@ using Godot;
 /// frame, so one code path covers both cases.
 ///
 /// DEATH SOUNDS (the rules, in one place - see also Health.DetermineIfDeathStruggles):
-///  - Instant death (headshot, Bazooka hit): NO sound, for anyone.
+///  - Instant death (headshot or explosive hit): NO sound, for anyone.
 ///  - Every other death (a body shot, any melee kill): the victim makes a struggling sound that
 ///    whoever is close enough hears - it is a positional sound, so "close enough" is just distance.
 ///  - Downed (at or below 20% HP): a breathing loop plays for the victim. If no medic revives within

@@ -211,8 +211,6 @@ public static class OperatorInfo
             "smg" => "wpn-smg",
             "pistol" or "sidearm" => "wpn-pistol",
             "shotgun" => "wpn-shotgun",
-            "melee" => "wpn-melee",
-            "launcher" or "heavy" => "wpn-launcher",
             _ => "rifle",
         };
     }
@@ -221,7 +219,6 @@ public static class OperatorInfo
     {
         WeaponData.FireModeType.FullAuto => "FULL AUTO",
         WeaponData.FireModeType.SemiAuto => "SEMI AUTO",
-        WeaponData.FireModeType.Melee => "MELEE",
         _ => string.Empty,
     };
 }

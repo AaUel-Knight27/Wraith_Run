@@ -17,8 +17,8 @@ public partial class BotBrain
 
 	// Looked up by weapon name. This used to be a literal array "indexed like WeaponSwitcher.Loadout",
 	// but the Kriss Vector was later inserted at index 3 of Loadout, which shifted everything after
-	// it: bots then believed index 8 (Bazooka) was the Kriss and gave it real main-weapon weight, and
-	// the Shotgun/Glock/Desert Eagle entries all pointed one slot off.
+	// it: bots then assigned the Kriss the wrong main-weapon weight, and the
+	// Shotgun/Glock/Desert Eagle entries all pointed one slot off.
 	private static int LoadoutIndex(string weaponName)
 	{
 		int index = System.Array.IndexOf(WeaponSwitcher.Loadout, weaponName);
@@ -44,8 +44,7 @@ public partial class BotBrain
 	private static readonly int GlockIndex = LoadoutIndex("Glock 19");
 	private static readonly int DesertEagleIndex = LoadoutIndex("Desert Eagle");
 
-	/// <summary>Weights over Loadout by name. Karambit and Bazooka are never a bot's main weapon, so
-	/// bots never carry the heavy weapon (it is Demolisher-only).</summary>
+	/// <summary>Weights over Loadout by name. Bots do not carry the heavy weapon.</summary>
 	private static float[] BuildWeights(float ak, float m4, float p90, float kriss, float glock, float deagle, float shotgun)
 	{
 		var weights = new float[WeaponSwitcher.Loadout.Length];

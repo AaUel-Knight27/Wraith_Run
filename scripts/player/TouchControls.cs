@@ -88,7 +88,7 @@ public partial class TouchControls : CanvasLayer
             return;
         }
         // Right-handed (default): joystick bottom-left, fire cluster bottom-right. Mirrored for
-        // left-handed play. The utility stack (sprint/weapon-switch/melee) lives on the joystick
+        // left-handed play. The utility stack (sprint/weapon-switch) lives on the joystick
         // side, since the movement thumb has more idle moments mid-firefight than the fire thumb.
         bool joystickRight = settings.LeftHandedLayout;
         bool clusterRight = !joystickRight;
@@ -270,7 +270,7 @@ public partial class TouchControls : CanvasLayer
         reload.ButtonDown += () => Pulse("reload");
     }
 
-    /// <summary>Sprint (hidden if Auto Sprint is on), weapon-switch and quick-melee, stacked at
+    /// <summary>Sprint (hidden if Auto Sprint is on) and weapon-switch, stacked at
     /// the vertical middle of the joystick side.</summary>
     private void BuildUtilityStack(SettingsManager settings, bool right, float scale)
     {
@@ -288,10 +288,6 @@ public partial class TouchControls : CanvasLayer
         var swap = NewButton("SWAP", "rifle", size);
         swap.ButtonDown += () => Pulse("weapon_cycle_next");
         slots.Add(swap);
-
-        var melee = NewButton("MELEE", null, size);
-        melee.ButtonDown += () => Pulse(QuickMeleeAction);
-        slots.Add(melee);
 
         float totalHeight = slots.Count * size + (slots.Count - 1) * ClusterGap;
         float startOffset = -totalHeight * 0.5f;
@@ -325,11 +321,6 @@ public partial class TouchControls : CanvasLayer
         button.ButtonDown += () => { if (holdMode()) Input.ActionPress(action); else Pulse(action); };
         button.ButtonUp += () => { if (holdMode()) Input.ActionRelease(action); };
     }
-
-    /// <summary>The knife is always the fourth carried slot (Primary 1, Primary 2, Pistol, Knife), so
-    /// the quick-melee button is simply the number-4 key. SWAP uses weapon_cycle_next, which
-    /// WeaponSwitcher steps through the carried set.</summary>
-    private const string QuickMeleeAction = "weapon_4";
 
     /// <summary>One-frame press so Input.IsActionJustPressed picks it up exactly like a key tap,
     /// for actions read that way (reload, weapon switching, tap-fire, tap-ADS).</summary>

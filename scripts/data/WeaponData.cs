@@ -107,8 +107,7 @@ public partial class WeaponData : Resource
 	[Export] public float FireEmissionOffAxisAttenuationDb { get; set; } = -6.0f;
 
 	/// <summary>Whether this weapon's report ducks the Movement bus (footsteps/jump/land) through
-	/// the sidechain compressor on that bus. True for every firearm; false for the Karambit,
-	/// which is not loud enough in reality to mask anything.</summary>
+	/// the sidechain compressor on that bus. False for quiet melee weapons.</summary>
 	[Export] public bool FireCanDuckMovement { get; set; } = true;
 
 	/// <summary>Whether a listener more than ~15 m away hears this shot's report delayed by
@@ -116,7 +115,7 @@ public partial class WeaponData : Resource
 	/// for firearms, off for melee.</summary>
 	[Export] public bool FireReportDelayEnabled { get; set; } = true;
 
-	/// <summary>Whether impact sounds vary by surface (metal/wood/glass/wall). The Bazooka sets
-	/// this false so its explosion sound is never swapped out. Not read by any code yet.</summary>
+	/// <summary>Whether impact sounds vary by surface (metal/wood/glass/wall). Explosive weapons
+	/// can set this false so their explosion sound is never swapped out. Not read by any code yet.</summary>
 	[Export] public bool ImpactUsesSurfaceVariation { get; set; } = true;
 }

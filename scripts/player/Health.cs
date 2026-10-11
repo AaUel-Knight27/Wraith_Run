@@ -246,7 +246,7 @@ public partial class Health : Node
     ///  - Melee: ALWAYS a sound. A knife to the throat is an instant kill, but there is air in the
     ///    throat, so it is not a silent one - melee wins over everything below, headshot bit or not.
     ///  - Headshot: instant and silent (any gun, incl. a sniper once one exists).
-    ///  - Explosive (Bazooka hit): instant and silent.
+    ///  - Explosive hit: instant and silent.
     ///  - Anything else - a chest/body shot, even one that kills outright - the victim makes a
     ///    sound while dying, heard by whoever is close enough.
     ///

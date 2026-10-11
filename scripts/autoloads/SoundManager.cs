@@ -21,7 +21,7 @@ public partial class SoundManager : Node
 	// ---------------------------------------------------------------------------------------
 	// Range. A real rifle is audible for kilometres - unusable directly on a match-sized map.
 	// MaxDistanceMultiplier compresses every weapon's audible range by the same factor, which
-	// keeps their RELATIVE reach intact (a Bazooka still carries ~8x further than a Glock,
+	// keeps their RELATIVE reach intact (a launcher still carries much further than a Glock,
 	// because that is what the real dB gap between them implies - see the README's inverse-
 	// square derivation for where each weapon's FireAudioUnitSize actually comes from). Raise
 	// this one constant if your finished map is bigger than a few hundred metres across.
@@ -94,7 +94,7 @@ public partial class SoundManager : Node
 		player.AttenuationFilterDb = -24.0f;
 
 		// 360 is the sentinel for "no cone / omnidirectional" - see WeaponData's field doc for
-		// why the Bazooka deliberately leaves this off (backblast means it is not actually
+		// why launchers can leave this off (backblast means they are not actually
 		// quieter behind the tube, so a forward-only cone would be a *less* real approximation).
 		bool directional = weapon.FireEmissionAngleDegrees < 360.0f;
 		player.EmissionAngleEnabled = directional;

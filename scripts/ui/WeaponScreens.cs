@@ -7,8 +7,7 @@ using Godot;
 //
 //   WEAPON SETS    three cards (SHORT / MID / LONG RANGE by default). Picking one makes it the active
 //                  set and opens it.
-//   WEAPON SET     the set's name (editable) and its weapons, one row per slot: two primaries, a
-//                  pistol, a knife, and - for a Demolisher only - a heavy weapon. Pick a row, see the
+//   WEAPON SET     the set's name (editable) and its weapons: two primaries and a pistol. Pick a row, see the
 //                  weapon, change it.
 //   CHOOSE WEAPON  category tabs across the top, the weapons of that category in a list, the model
 //                  turning in the middle, the description on the right. A slot only offers its own
@@ -36,24 +35,20 @@ internal static class WeaponDescription
         var chips = new HBoxContainer();
         chips.AddThemeConstantOverride("separation", 6);
         chips.AddChild(MenuStyle.Chip(OperatorInfo.FireModeName(weapon), MenuStyle.TextDim, 12));
-        if (category == WeaponCategory.Heavy)
-            chips.AddChild(MenuStyle.Chip("DEMOLISHER ONLY", MenuStyle.Accent, 12));
         target.AddChild(chips);
 
         if (!string.IsNullOrEmpty(weapon.Description))
             target.AddChild(MenuStyle.Wrapped(weapon.Description, 16, MenuStyle.TextMuted));
         target.AddChild(MenuStyle.Divider());
 
-        bool melee = weapon.FireMode == WeaponData.FireModeType.Melee;
         int pellets = Math.Max(1, weapon.PelletsPerShot);
         string damage = pellets > 1 ? $"{weapon.BodyDamage:0} x{pellets}" : $"{weapon.BodyDamage:0}";
         target.AddChild(MenuStyle.StatBar("DAMAGE", damage, weapon.BodyDamage * pellets / 100.0f));
         target.AddChild(MenuStyle.StatBar("HEADSHOT",
             weapon.HeadshotDamage >= 100.0f ? "KILL" : $"{weapon.HeadshotDamage:0}",
             weapon.HeadshotDamage / 100.0f));
-        target.AddChild(MenuStyle.StatBar(melee ? "SWING RATE" : "FIRE RATE", $"{weapon.FireRateRPM:0}",
+        target.AddChild(MenuStyle.StatBar("FIRE RATE", $"{weapon.FireRateRPM:0}",
             weapon.FireRateRPM / 1100.0f));
-        if (melee) return;
 
         target.AddChild(MenuStyle.StatBar("MAGAZINE", $"{weapon.MagazineSize} + {weapon.MaxReserveAmmo}",
             weapon.MagazineSize / 50.0f));
@@ -79,7 +74,6 @@ public sealed class WeaponSetsScreen
     public void Build(Control host)
     {
         HBoxContainer layout = LoadoutLayout.Root(host);
-        bool demolisher = WeaponRules.IsDemolisher(PlayerProfile.OperatorId);
         int active = PlayerProfile.ActiveWeaponSet;
         Button? focus = null;
 
@@ -102,7 +96,7 @@ public sealed class WeaponSetsScreen
             body.AddChild(MenuStyle.Divider());
 
             for (int slot = 0; slot < WeaponRules.SlotCount; slot++)
-                body.AddChild(SlotLine(set, (WeaponSlot)slot, WeaponRules.SlotAvailable((WeaponSlot)slot, demolisher)));
+                body.AddChild(SlotLine(set, (WeaponSlot)slot));
 
             layout.AddChild(card);
             if (isActive) focus = card;
@@ -116,9 +110,8 @@ public sealed class WeaponSetsScreen
         _openSet(set);
     }
 
-    /// <summary>One weapon inside a card: icon, slot name, weapon name. The heavy line is dimmed and
-    /// tagged when the chosen operator is not a Demolisher.</summary>
-    private static Control SlotLine(int set, WeaponSlot slot, bool available)
+    /// <summary>One weapon inside a card: icon, slot name, weapon name.</summary>
+    private static Control SlotLine(int set, WeaponSlot slot)
     {
         WeaponData? weapon = OperatorInfo.FindWeapon(PlayerProfile.GetSetWeapon(set, slot));
 
@@ -130,8 +123,7 @@ public sealed class WeaponSetsScreen
         };
         row.AddThemeConstantOverride("separation", 10);
 
-        Color tint = available ? MenuStyle.Accent : MenuStyle.TextMuted;
-        var glyph = MenuStyle.Icon(weapon == null ? "rifle" : OperatorInfo.WeaponIcon(weapon), 46, 20, tint);
+        var glyph = MenuStyle.Icon(weapon == null ? "rifle" : OperatorInfo.WeaponIcon(weapon), 46, 20, MenuStyle.Accent);
         glyph.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
         row.AddChild(glyph);
 
@@ -144,12 +136,11 @@ public sealed class WeaponSetsScreen
         texts.AddThemeConstantOverride("separation", -3);
         texts.AddChild(MenuStyle.Text(WeaponRules.SlotName(slot), 13, MenuStyle.TextMuted, MenuStyle.SemiBold));
         var weaponName = MenuStyle.Text((weapon?.WeaponName ?? "NONE").ToUpperInvariant(), 21,
-            available ? MenuStyle.TextMain : MenuStyle.TextMuted, MenuStyle.Bold);
+            MenuStyle.TextMain, MenuStyle.Bold);
         weaponName.ClipText = true;
         texts.AddChild(weaponName);
         row.AddChild(texts);
 
-        if (!available) row.AddChild(MenuStyle.Chip("DEMOLISHER", MenuStyle.TextMuted, 11));
         return row;
     }
 }
@@ -167,7 +158,6 @@ public sealed class WeaponSetScreen
     private readonly int _set;
     private readonly Action<WeaponSlot> _openPicker;
     private readonly Action _finish;
-    private readonly bool _demolisher = WeaponRules.IsDemolisher(PlayerProfile.OperatorId);
 
     private LineEdit _name = null!;
     private VBoxContainer _list = null!;
@@ -189,7 +179,7 @@ public sealed class WeaponSetScreen
         _openPicker = openPicker;
         _finish = finish;
         WeaponSlot start = selected ?? WeaponSlot.Primary1;
-        SelectedSlot = WeaponRules.SlotAvailable(start, _demolisher) ? start : WeaponSlot.Primary1;
+        SelectedSlot = (int)start < WeaponRules.SlotCount ? start : WeaponSlot.Primary1;
     }
 
     public void Build(Control host)
@@ -272,22 +262,13 @@ public sealed class WeaponSetScreen
         for (int i = 0; i < WeaponRules.SlotCount; i++)
         {
             var slot = (WeaponSlot)i;
-            bool available = WeaponRules.SlotAvailable(slot, _demolisher);
             bool selected = slot == SelectedSlot;
             WeaponData? weapon = SlotWeapon(slot);
 
             Button row = MenuStyle.ListRow(
                 weapon == null ? "rifle" : OperatorInfo.WeaponIcon(weapon), 56, 22,
                 (weapon?.WeaponName ?? "NONE").ToUpperInvariant(), WeaponRules.SlotName(slot),
-                selected && available, () => Select(slot),
-                null, available ? null : "DEMOLISHER ONLY", MenuStyle.TextMuted);
-            if (!available)
-            {
-                // Greyed out: visible so the player knows it exists, but it cannot be opened.
-                row.Disabled = true;
-                row.FocusMode = Control.FocusModeEnum.None;
-                row.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.45f);
-            }
+                selected, () => Select(slot));
             _list.AddChild(row);
             if (selected) _selectedRow = row;
         }

@@ -11,15 +11,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/audio/Clips/Weapons/Impacts/Surfaces/BulletRicochet.wav.import" beforeDir="false" afterPath="$PROJECT_DIR$/audio/Clips/Weapons/Impacts/Surfaces/BulletRicochet.wav.import" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/maps/Lab.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Lab.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scenes/maps/Prison.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Prison.tscn" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment-backup.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs.uid" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment-backup.cs.uid" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/HubTablet.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/Scoreboard.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/Scoreboard.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/world/RespawnPointSelector.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/world/RespawnPointSelector.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/weapons/WeaponRegistry.tres" beforeDir="false" afterPath="$PROJECT_DIR$/data/weapons/WeaponRegistry.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/autoloads/SettingsManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/autoloads/SettingsManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/autoloads/SoundManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/autoloads/SoundManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/bots/BotBrain.Combat.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/bots/BotBrain.Combat.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/combat/IShootable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/combat/IShootable.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/combat/KillStyle.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/combat/KillStyle.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/OperatorInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/OperatorInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/PlayerProfile.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/PlayerProfile.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponData.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponSets.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponSets.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/network/LanMenu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/LanMenu.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/Health.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/Health.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerAudio.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerAudio.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerHud.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerHud.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/TouchControls.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/TouchControls.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/LoadoutScreens.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/LoadoutScreens.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/ui/WeaponScreens.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/WeaponScreens.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/world/HubWeaponWall.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/world/HubWeaponWall.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,23 +88,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0036957445165735" />
-      <entry key="MS500" value="1.536504282396939" />
-      <entry key="S2" value="2.885252182533467" />
-      <entry key="S5" value="3.4843018132169847" />
-      <entry key="S10" value="3.728732358551585" />
-      <entry key="S30" value="3.9064068610411598" />
-      <entry key="S60" value="3.9527957265343066" />
-      <entry key="M2" value="3.979853583939107" />
-      <entry key="M5" value="4.456171819599248" />
-      <entry key="M10" value="6.372937906030853" />
-      <entry key="M15" value="8.151295631566853" />
-      <entry key="M30" value="11.692764990691403" />
-      <entry key="H1" value="18.769243894419034" />
-      <entry key="H2" value="45.1581202758764" />
-      <entry key="H4" value="102.91824618877737" />
-      <entry key="D1" value="367.007476917924" />
-      <entry key="W1" value="510.96743008410823" />
+      <entry key="MS100" value="1.0000000016821946" />
+      <entry key="MS500" value="1.0252033324712841" />
+      <entry key="S2" value="1.6598365691102435" />
+      <entry key="S5" value="2.282375947246705" />
+      <entry key="S10" value="2.6565635953078677" />
+      <entry key="S30" value="4.116879202316602" />
+      <entry key="S60" value="5.676288429410666" />
+      <entry key="M2" value="7.026905927822614" />
+      <entry key="M5" value="8.516468139771199" />
+      <entry key="M10" value="10.74153291939422" />
+      <entry key="M15" value="12.63499690779942" />
+      <entry key="M30" value="16.340519860753204" />
+      <entry key="H1" value="23.500693070488207" />
+      <entry key="H2" value="49.85263260303773" />
+      <entry key="H4" value="107.5780504350444" />
+      <entry key="D1" value="371.8078526104698" />
+      <entry key="W1" value="515.9277789472613" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -114,23 +126,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.8735155303875629" />
-      <entry key="MS500" value="1.4896259106807446" />
-      <entry key="S2" value="2.862479771698447" />
-      <entry key="S5" value="3.4733002531745343" />
-      <entry key="S10" value="3.72284841066623" />
-      <entry key="S30" value="3.904352986100939" />
-      <entry key="S60" value="3.951756723649457" />
-      <entry key="M2" value="3.9793305277461526" />
-      <entry key="M5" value="4.455935871458167" />
-      <entry key="M10" value="6.372764909814625" />
-      <entry key="M15" value="8.151142654173961" />
-      <entry key="M30" value="11.692637812354173" />
-      <entry key="H1" value="18.769079919592784" />
-      <entry key="H2" value="45.15782543579581" />
-      <entry key="H4" value="102.91789585339865" />
-      <entry key="D1" value="367.0073200759976" />
-      <entry key="W1" value="510.96740164088834" />
+      <entry key="MS100" value="0.8705505647119506" />
+      <entry key="MS500" value="0.9970824165764637" />
+      <entry key="S2" value="1.6480513518643511" />
+      <entry key="S5" value="2.275830576253874" />
+      <entry key="S10" value="2.651758122367462" />
+      <entry key="S30" value="4.107629582023106" />
+      <entry key="S60" value="5.667063610963558" />
+      <entry key="M2" value="7.020282931570744" />
+      <entry key="M5" value="8.513142781611112" />
+      <entry key="M10" value="10.739691668059596" />
+      <entry key="M15" value="12.633702913611879" />
+      <entry key="M30" value="16.33980722743253" />
+      <entry key="H1" value="23.500233200109182" />
+      <entry key="H2" value="49.852189743365386" />
+      <entry key="H4" value="107.57762603963148" />
+      <entry key="D1" value="371.8076832885295" />
+      <entry key="W1" value="515.9277487104694" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -263,8 +275,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="created all the 7 modes and edit the bots" />
-    <MESSAGE value="audio and mesh fix" />
     <MESSAGE value="fix host and peer bugs" />
     <MESSAGE value="added lobby system inside warehouse and additional map" />
     <MESSAGE value="added animation player entering car" />
@@ -288,7 +298,9 @@
     <MESSAGE value="fixed the maps" />
     <MESSAGE value="update on team death match spawn" />
     <MESSAGE value="in game bugs fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="in game bugs fix" />
+    <MESSAGE value="added more bugs" />
+    <MESSAGE value="more buggs" />
+    <option name="LAST_COMMIT_MESSAGE" value="more buggs" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

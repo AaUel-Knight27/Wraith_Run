@@ -250,12 +250,6 @@ public sealed class OperatorScreen
         _details.AddChild(MenuStyle.Wrapped(
             op == null ? "Plain kit. Plays exactly like the game did before operators." : OperatorInfo.ClassBlurb(op.Class),
             16, MenuStyle.TextMuted));
-        if (op != null && op.Class == CharacterData.CharacterClass.Demolisher)
-        {
-            var heavy = new HBoxContainer();
-            heavy.AddChild(MenuStyle.Chip("HEAVY WEAPON SLOT", MenuStyle.Accent, 12));
-            _details.AddChild(heavy);
-        }
         _details.AddChild(MenuStyle.Divider());
 
         if (op != null)

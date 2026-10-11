@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WeaponRegistry" load_steps=14 format=3]
+[gd_resource type="Resource" script_class="WeaponRegistry" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/WeaponRegistry.cs" id="1_registry"]
 [ext_resource type="Script" path="res://scripts/data/WeaponData.cs" id="2_weapon"]
@@ -318,78 +318,8 @@ FireEmissionOffAxisAttenuationDb = -6.0
 FireCanDuckMovement = true
 FireReportDelayEnabled = true
 
-[sub_resource type="Resource" id="WeaponData_karambit"]
-script = ExtResource("2_weapon")
-WeaponName = "Karambit"
-WeaponClass = "Melee"
-Description = "Curved combat blade. A single hit is lethal, but only at arm's reach."
-FireMode = 2
-BodyDamage = 100.0
-HeadshotDamage = 100.0
-FireRateRPM = 120.0
-MagazineSize = 0
-MaxReserveAmmo = 0
-ReloadTime = 0.0
-RecoilVertical = 0.0
-RecoilHorizontal = 0.0
-RecoilRecoveryMs = 0.0
-ModelScenePath = "res://art/weapons/Melee/Karambit.glb"
-GripPosition = Vector3(0.05, 0.02, 0.02)
-GripRotationDegrees = Vector3(0, 0, 90)
-ModelScale = 1
-MuzzleDistance = 0.0
-PelletsPerShot = 1
-SpreadDegrees = 0.0
-ShellByShellReload = false
-FireSounds = PackedStringArray("res://audio/Clips/Weapons/Melee/knife_whoosh.wav")
-ReloadSounds = PackedStringArray()
-ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/Impacts/Surfaces/BulletWallHit.wav")
-EmptySound = ""
-FireAudioUnitSize = 6.0
-FireVolumeDb = -6.0
-FireMaxDistanceMeters = 25.0
-FireEmissionAngleDegrees = 360.0
-FireEmissionOffAxisAttenuationDb = 0.0
-FireCanDuckMovement = false
-FireReportDelayEnabled = false
-
-[sub_resource type="Resource" id="WeaponData_bazooka"]
-script = ExtResource("2_weapon")
-WeaponName = "Bazooka"
-WeaponClass = "Launcher"
-Description = "Rocket launcher built for vehicles. Low damage to people, slow reload, brutal kickback. Demolisher only."
-FireMode = 1
-BodyDamage = 20.0
-HeadshotDamage = 20.0
-FireRateRPM = 40.0
-MagazineSize = 1
-MaxReserveAmmo = 3
-ReloadTime = 3.0
-RecoilVertical = 8.0
-RecoilHorizontal = 0.0
-RecoilRecoveryMs = 1000.0
-ModelScenePath = "res://art/weapons/RPG/RPG.glb"
-GripPosition = Vector3(0.052, -0.104, 0)
-GripRotationDegrees = Vector3(0, 180, 90)
-ModelScale = 0.58
-MuzzleDistance = 0.55
-PelletsPerShot = 1
-SpreadDegrees = 0.3
-ShellByShellReload = false
-FireSounds = PackedStringArray("res://audio/Clips/Weapons/RPG/Shoot/rpg_shoot.wav")
-ReloadSounds = PackedStringArray("res://audio/Clips/Weapons/RPG/Reload/rpg_reload.mp3")
-ImpactSounds = PackedStringArray("res://audio/Clips/Weapons/RPG/Impact/rpg_explosion.wav")
-ImpactUsesSurfaceVariation = false
-EmptySound = "res://audio/Clips/Weapons/Common/empty_click.mp3"
-FireAudioUnitSize = 63.5
-FireVolumeDb = 4.0
-FireMaxDistanceMeters = 760.0
-FireEmissionAngleDegrees = 360.0
-FireEmissionOffAxisAttenuationDb = 0.0
-FireCanDuckMovement = true
-FireReportDelayEnabled = true
-
+; Reserved weapon definitions can be restored here later.
 [resource]
 script = ExtResource("1_registry")
-Weapons = Array[ExtResource("2_weapon")]([SubResource("WeaponData_ak47"), SubResource("WeaponData_m4"), SubResource("WeaponData_p90"), SubResource("WeaponData_krissvector"), SubResource("WeaponData_glock19"), SubResource("WeaponData_deserteagle"), SubResource("WeaponData_shotgun"), SubResource("WeaponData_karambit"), SubResource("WeaponData_bazooka"), SubResource("WeaponData_fn502"), SubResource("WeaponData_sniper")])
+Weapons = Array[ExtResource("2_weapon")]([SubResource("WeaponData_ak47"), SubResource("WeaponData_m4"), SubResource("WeaponData_p90"), SubResource("WeaponData_krissvector"), SubResource("WeaponData_glock19"), SubResource("WeaponData_fn502"), SubResource("WeaponData_deserteagle"), SubResource("WeaponData_shotgun"), SubResource("WeaponData_sniper")])
 ActiveWeaponName = "AK-47"

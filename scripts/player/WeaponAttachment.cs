@@ -19,7 +19,7 @@ public partial class WeaponAttachment : Node3D
 	private const float MuzzleFlashSeconds = 0.045f;
 
 	// Shared across every weapon rather than a per-weapon WeaponData field: only one recording was
-	// supplied, and "a body got hit" reads the same whether it was a bullet or the Karambit.
+	// supplied, and "a body got hit" reads the same whether it was a bullet or a melee strike.
 	private const string FleshImpactSound = "res://audio/Clips/Weapons/Impacts/Feedback/flesh_hit.wav";
 
 	// Bullet-on-surface sounds. Which one plays comes from SurfaceClassifier (scripts/combat/
@@ -227,7 +227,7 @@ public partial class WeaponAttachment : Node3D
 	{
 		if (_weapon == null || _weapon.ImpactSounds.Length == 0) return;
 		var stream = LoadStream(_weapon.ImpactSounds[_rng.RandiRange(0, _weapon.ImpactSounds.Length - 1)]);
-		// A weapon that opts out of surface variation (the Bazooka) is playing its explosion here,
+		// A weapon that opts out of surface variation is playing its explosion here,
 		// which carries as far as the launcher's own report; everything else is a short-range thud.
 		if (!_weapon.ImpactUsesSurfaceVariation)
 			SpawnOneShotAt(stream, worldPosition, _weapon.FireAudioUnitSize, _weapon.FireMaxDistanceMeters, 0.0f);
@@ -242,7 +242,7 @@ public partial class WeaponAttachment : Node3D
 	public void PlayGeometryImpact(Vector3 worldPosition, SurfaceType surface, bool ricochet)
 	{
 		if (_weapon == null) return;
-		// The Bazooka's hit is its explosion, whatever it hit.
+		// An explosive weapon's hit is its explosion, whatever it hit.
 		if (!_weapon.ImpactUsesSurfaceVariation) { PlayImpact(worldPosition); return; }
 
 		(string path, float trimDb) = SurfaceSound(surface);
@@ -436,7 +436,7 @@ public partial class WeaponAttachment : Node3D
 		_emptyAudio = AddAudioPlayer(grip, "WeaponEmptyAudio", weapon.EmptySound, 5.0f);
 
 		// "WeaponsQuiet" skips the sidechain that ducks footsteps under gunfire (see
-		// default_bus_layout.tres) - it exists for the Karambit, which is not loud enough to mask
+		// default_bus_layout.tres) - it exists for quiet weapons that are not loud enough to mask
 		// anything. Every firearm's fire/reload/click goes to "Weapons".
 		string bus = weapon.FireCanDuckMovement ? "Weapons" : "WeaponsQuiet";
 		if (_fireAudio != null)
@@ -464,7 +464,7 @@ public partial class WeaponAttachment : Node3D
 			_fireVariants = null;
 		}
 
-		if (weapon.FireSounds.Length == 0 && weapon.FireMode != WeaponData.FireModeType.Melee)
+		if (weapon.FireSounds.Length == 0)
 			GD.PushWarning($"{weapon.WeaponName} has no fire sounds assigned.");
 	}
 

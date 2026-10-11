@@ -20,7 +20,7 @@ public enum KillStyle
     /// the note on Health.DetermineIfDeathStruggles.</summary>
     Melee = 1 << 4,
 
-    /// <summary>Not a scoring bonus either. Set for a Bazooka (Launcher-class) hit: an explosion
+    /// <summary>Not a scoring bonus either. Set for a launcher hit: an explosion
     /// kills instantly and silently, same as a headshot. See Health.DetermineIfDeathStruggles.</summary>
     Explosive = 1 << 5,
 }

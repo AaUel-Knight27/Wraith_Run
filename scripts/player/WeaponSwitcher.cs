@@ -49,11 +49,11 @@ public partial class WeaponSwitcher : Node
 	private const float FlyByMinShooterDistance = 2.5f;
 	private const float FlyByMinImpactDistance = 1.5f;
 
-	// Internal rather than private: TouchControls' weapon-switch/quick-melee buttons read this
-	// directly (length + Karambit's index) instead of hardcoding numbers that would silently go
-	// stale if this list is ever reordered or extended.
+	// Internal rather than private: controls read the list length instead of hardcoding indices.
 	internal static readonly string[] Loadout =
-		{ "AK-47", "M4", "P90", "Kriss Vector", "Glock 19", "Desert Eagle", "FN 502", "Shotgun", "Karambit", "Bazooka", "Sniper" };
+		{ "AK-47", "M4", "P90", "Kriss Vector", "Glock 19", "Desert Eagle", "FN 502", "Shotgun",
+		  "", "", "Sniper" };
+	// Empty entries preserve replicated indices while those weapons are out of the game.
 
 	private static readonly string[] HitMarkerSounds =
 	{
@@ -110,8 +110,14 @@ public partial class WeaponSwitcher : Node
 		get => _replicatedWeaponIndex;
 		set
 		{
-			_replicatedWeaponIndex = value;
-			ApplyWeaponIndex(value);
+			// A peer can still send an index from an older weapon list. Always fall back to
+			// the first supported weapon instead of leaving the player with no current weapon.
+			int fallbackIndex = _appliedWeaponIndex >= 0 && _appliedWeaponIndex < Loadout.Length &&
+				!string.IsNullOrEmpty(Loadout[_appliedWeaponIndex]) ? _appliedWeaponIndex : 0;
+			int safeIndex = value >= 0 && value < Loadout.Length && !string.IsNullOrEmpty(Loadout[value])
+				? value : fallbackIndex;
+			_replicatedWeaponIndex = safeIndex;
+			ApplyWeaponIndex(safeIndex);
 		}
 	}
 	private int _replicatedWeaponIndex;
@@ -202,6 +208,7 @@ public partial class WeaponSwitcher : Node
 	{
 		if (!PlayerIdentity.HasAuthority(_player)) return false;
 		if (index < 0 || index >= Loadout.Length) return false;
+		if (string.IsNullOrEmpty(Loadout[index])) return false;
 		if (!CanCarryIndex(index)) return false;
 		if (_health != null && _health.IsDead) return false;
 		ReplicatedWeaponIndex = index;
@@ -213,16 +220,10 @@ public partial class WeaponSwitcher : Node
 
 	// ---- what this person may carry --------------------------------------------------------------
 
-	/// <summary>Demolisher is the only class that carries the heavy weapon (the Bazooka).</summary>
-	private bool IsDemolisher => _loadout?.Data != null
-		? _loadout.Data.Class == CharacterData.CharacterClass.Demolisher
-		: WeaponRules.IsDemolisher(PlayerProfile.OperatorId);
-
-	/// <summary>Loadout index of the weapon in one carry slot of the active weapon set, or -1 when the
-	/// slot does not exist for this operator (Heavy, unless Demolisher) or holds nothing equippable.</summary>
+	/// <summary>Loadout index of the weapon in a carry slot, or -1 when it is empty.</summary>
 	public int CarriedIndexFor(WeaponSlot slot)
 	{
-		if (!WeaponRules.SlotAvailable(slot, IsDemolisher)) return -1;
+		if ((int)slot < 0 || (int)slot >= WeaponRules.SlotCount) return -1;
 		string name = PlayerProfile.GetSetWeapon(PlayerProfile.ActiveWeaponSet, slot);
 		return string.IsNullOrEmpty(name) ? -1 : System.Array.IndexOf(Loadout, name);
 	}
@@ -286,7 +287,22 @@ public partial class WeaponSwitcher : Node
 	{
 		if (!IsInstanceValid(this) || !PlayerIdentity.IsLocalHuman(_player)) return;
 		int chosen = System.Array.IndexOf(Loadout, PlayerProfile.StartingWeaponName);
-		if (chosen > 0) ReplicatedWeaponIndex = chosen;
+		// Always apply the lobby choice, including slot 0, so stale replicated values cannot
+		// override the selected primary weapon.
+		if (chosen >= 0 && CanCarryIndex(chosen))
+		{
+			ReplicatedWeaponIndex = chosen;
+			return;
+		}
+		for (int slot = 0; slot < WeaponRules.SlotCount; slot++)
+		{
+			int carried = CarriedIndexFor((WeaponSlot)slot);
+			if (carried >= 0)
+			{
+				ReplicatedWeaponIndex = carried;
+				return;
+			}
+		}
 	}
 
 	public override void _ExitTree()
@@ -303,9 +319,8 @@ public partial class WeaponSwitcher : Node
 		bool inputBlocked = GameUiState.BlocksGameplayInput;
 		BotControls? bot = _movement.Bot;
 
-		// A person carries two primaries, one pistol, one knife and - Demolisher only - one heavy, so
-		// the keys are the five carry slots (1 Primary 1, 2 Primary 2, 3 Pistol, 4 Knife, 5 Heavy),
-		// not the nine weapons in Loadout. Bots are not limited by this (they pick their own).
+		// A person carries two primaries and one pistol, so the first three keys select carry slots.
+		// Bots are not limited by this (they pick their own).
 		if (bot == null && !inputBlocked && !_movement.IsVehicleDriver)
 		{
 			for (int slot = 0; slot < WeaponRules.SlotCount; slot++)
@@ -352,7 +367,7 @@ public partial class WeaponSwitcher : Node
 			GD.PushError($"Weapon index {index} is outside the {Loadout.Length}-slot test loadout.");
 			return;
 		}
-
+		if (string.IsNullOrEmpty(Loadout[index])) return;
 		foreach (var weapon in _registry.Weapons)
 		{
 			if (weapon.WeaponName != Loadout[index]) continue;
@@ -633,7 +648,7 @@ public partial class WeaponSwitcher : Node
 
 	/// <summary>Hard surfaces skip bullets, soft ones swallow them: metal and plain wall can ricochet
 	/// (far more often on a glancing hit), wood and glass never do. A shotgun's pellets and the
-	/// Bazooka never do either.</summary>
+	/// Launchers never do either.</summary>
 	private bool RollRicochet(SurfaceType surface, Vector3 direction, Vector3 normal)
 	{
 		if (_currentWeapon == null || _currentWeapon.PelletsPerShot > 1 ||

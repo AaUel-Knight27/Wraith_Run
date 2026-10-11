@@ -281,11 +281,12 @@ public partial class PlayerHud : CanvasLayer
 
         if (_weapon != null)
         {
-            _ammoLabel.Text = _weapon.MagazineSize <= 0
-                ? $"{_weapon.WeaponName}\nMELEE"
+            string weaponName = _weapon.WeaponName;
+            _ammoLabel.Text = string.IsNullOrEmpty(weaponName)
+                ? "NO WEAPON"
                 : _weapon.IsReloading
-                    ? $"{_weapon.WeaponName}\nRELOADING…"
-                    : $"{_weapon.WeaponName}\n{_weapon.CurrentAmmo} / {_weapon.MagazineSize}";
+                    ? $"{weaponName}\nRELOADING…"
+                    : $"{weaponName}\n{_weapon.CurrentAmmo} / {_weapon.MagazineSize}";
         }
     }
 

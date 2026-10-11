@@ -5,8 +5,7 @@ using Godot;
 /// The weapon wall: every weapon the match can equip, mounted on the north wall of the hub
 /// warehouse. Look at one and press E to take it. The wall is the only loadout screen.
 ///
-/// What you can take follows the carry rules in WeaponRules: two primaries, one pistol, one knife,
-/// and the heavy weapon (Bazooka) only for a Demolisher. Taking a weapon writes it into the active
+/// What you can take follows the carry rules in WeaponRules: two primaries and one pistol. Taking a weapon writes it into the active
 /// weapon set (PlayerProfile), so the match starts with exactly what you took.
 /// </summary>
 public partial class HubWeaponWall : Node3D
@@ -46,7 +45,8 @@ public partial class HubWeaponWall : Node3D
     /// <summary>Every weapon lives on one wide, two-row armory wall at the back of the warehouse.</summary>
     private static readonly (string[] Names, Vector3 Origin, float YawDegrees, float Spacing)[] Racks =
     {
-        (new[] { "AK-47", "M4", "P90", "Kriss Vector", "Glock 19", "Desert Eagle", "FN 502", "Shotgun", "Karambit", "Bazooka", "Sniper" }, new Vector3(0.0f, 0.0f, WallZ), 0.0f, SlotSpacing),
+        (new[] { "AK-47", "M4", "P90", "Kriss Vector", "Glock 19", "Desert Eagle", "FN 502", "Shotgun", "Sniper" }, new Vector3(0.0f, 0.0f, WallZ), 0.0f, SlotSpacing),
+        // Reserved weapon slots can be restored here when they are ready.
     };
 
     private void BuildBoard()
@@ -111,12 +111,11 @@ public partial class HubWeaponWall : Node3D
 
                 AddModel(marker, name);
 
-                bool available = WeaponRules.IsAvailable(name);
                 var label = new Label3D
                 {
-                    Text = available ? name.ToUpperInvariant() : name.ToUpperInvariant() + " - SOON",
+                    Text = name.ToUpperInvariant(),
                     FontSize = 48, PixelSize = 0.0042f, OutlineSize = 8,
-                    Modulate = available ? new Color(0.95f, 0.93f, 0.93f) : new Color(0.42f, 0.42f, 0.42f),
+                    Modulate = new Color(0.95f, 0.93f, 0.93f),
                     Position = new Vector3(0.0f, -0.62f, 0.02f),
                 };
                 marker.AddChild(label);
@@ -167,8 +166,7 @@ public partial class HubWeaponWall : Node3D
         if (box.Size == Vector3.Zero) return;
         Vector3 size = box.Size;
         float longest = Mathf.Max(size.X, Mathf.Max(size.Y, size.Z));
-        bool melee = data.FireMode == WeaponData.FireModeType.Melee;
-        float target = melee ? 0.34f : (data.WeaponClass.ToLowerInvariant().Contains("pistol") ? 0.30f : 0.95f);
+        float target = data.WeaponClass.ToLowerInvariant().Contains("pistol") ? 0.30f : 0.95f;
         holder.Scale = Vector3.One * (target / longest);
         if (longest == size.Y) holder.RotationDegrees = new Vector3(0, 0, 90);
         else if (longest == size.Z) holder.RotationDegrees = new Vector3(0, 90, 0);
@@ -235,7 +233,6 @@ public partial class HubWeaponWall : Node3D
     {
         WeaponData? data = OperatorInfo.FindWeapon(weaponName);
         if (data == null || _ui == null) return;
-        if (!WeaponRules.IsAvailable(weaponName)) return; // greyed out until its animations are finished
         GameUiState.SetMenuOpen(true);
         if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
 
@@ -256,25 +253,16 @@ public partial class HubWeaponWall : Node3D
     {
         foreach (Node child in body.GetChildren()) { body.RemoveChild(child); child.QueueFree(); }
 
-        string stats = data.FireMode == WeaponData.FireModeType.Melee
-            ? $"{data.BodyDamage:0} dmg  |  melee"
-            : $"{data.BodyDamage:0} dmg  |  {data.FireRateRPM:0} rpm  |  {data.MagazineSize} rd";
+        string stats = $"{data.BodyDamage:0} dmg  |  {data.FireRateRPM:0} rpm  |  {data.MagazineSize} rd";
         body.AddChild(MenuStyle.Text(stats, 18, MenuStyle.TextDim, MenuStyle.Medium));
 
-        WeaponCategory? category = WeaponRules.CategoryOf(data);
-        bool demolisher = WeaponRules.IsDemolisher(PlayerProfile.OperatorId);
         int set = PlayerProfile.ActiveWeaponSet;
         bool offered = false;
 
-        foreach (WeaponSlot slot in System.Enum.GetValues<WeaponSlot>())
+        for (int slotIndex = 0; slotIndex < WeaponRules.SlotCount; slotIndex++)
         {
+            WeaponSlot slot = (WeaponSlot)slotIndex;
             if (!WeaponRules.Fits(data, slot)) continue;
-            if (!WeaponRules.SlotAvailable(slot, demolisher))
-            {
-                body.AddChild(MenuStyle.Text("Only a DEMOLISHER can carry this.", 18, MenuStyle.Accent, MenuStyle.SemiBold));
-                offered = true;
-                continue;
-            }
             offered = true;
             string holding = PlayerProfile.GetSetWeapon(set, slot);
             bool already = holding == data.WeaponName;
@@ -285,13 +273,11 @@ public partial class HubWeaponWall : Node3D
             body.AddChild(take);
         }
         if (!offered) body.AddChild(MenuStyle.Text("This weapon cannot be carried yet.", 18, MenuStyle.TextMuted, MenuStyle.Medium));
-        _ = category;
-
         body.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
         body.AddChild(MenuStyle.Text("YOUR LOADOUT", 14, MenuStyle.TextMuted, MenuStyle.Bold));
-        foreach (WeaponSlot slot in System.Enum.GetValues<WeaponSlot>())
+        for (int slotIndex = 0; slotIndex < WeaponRules.SlotCount; slotIndex++)
         {
-            if (!WeaponRules.SlotAvailable(slot, demolisher)) continue;
+            WeaponSlot slot = (WeaponSlot)slotIndex;
             body.AddChild(MenuStyle.Text($"{WeaponRules.SlotName(slot)}:  {PlayerProfile.GetSetWeapon(set, slot)}", 17, MenuStyle.TextMain, MenuStyle.Medium));
         }
         body.AddChild(MenuStyle.Outline("CLOSE", ClosePicker, null, 46));

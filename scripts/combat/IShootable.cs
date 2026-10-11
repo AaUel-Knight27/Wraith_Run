@@ -18,8 +18,8 @@ public struct ShotInfo
     public string WeaponClass;
 
     public bool IsMelee => WeaponClass == "Melee";
-    /// <summary>Bazooka-class weapon - the "heavy" vehicle-killer of FR-WP-06 / FR-CA-07.</summary>
-    public bool IsHeavy => WeaponName == "Bazooka";
+    /// <summary>Launcher-class weapon - the heavy vehicle-killer.</summary>
+    public bool IsHeavy => WeaponClass == "Launcher";
 }
 
 /// <summary>
@@ -42,7 +42,7 @@ public interface IShootable
     void ReceiveShot(ShotInfo shot);
 }
 
-/// <summary>Anything an explosion (Demolisher charge, Bazooka splash, future grenade) can hurt.</summary>
+/// <summary>Anything an explosion can hurt.</summary>
 public interface IExplosionReceiver
 {
     Vector3 BlastPosition { get; }
