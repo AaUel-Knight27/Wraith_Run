@@ -137,19 +137,26 @@
 [ext_resource type="Shape3D" uid="uid://cue2wo710mop3" path="res://scenes/maps/Lab.gen/shape_Room_col_0_3.res" id="144_fmdjm"]
 [ext_resource type="Shape3D" uid="uid://b0utfsc1ec483" path="res://scenes/maps/Lab.gen/shape_Room_col_0_4.res" id="145_x64q8"]
 [ext_resource type="Shape3D" uid="uid://b7chwfcr2uo25" path="res://scenes/maps/Lab.gen/shape_Room_col_1_0.res" id="146_j1mw3"]
+[ext_resource type="Shape3D" uid="uid://xbl17p2str8" path="res://scenes/maps/Lab.gen/shape_Room_col_1_1.res" id="147_jx533"]
 [ext_resource type="Shape3D" uid="uid://jqisvtqavhk7" path="res://scenes/maps/Lab.gen/shape_Room_col_1_2.res" id="148_v63s8"]
 [ext_resource type="Shape3D" uid="uid://bbg4m86fl6qkc" path="res://scenes/maps/Lab.gen/shape_Room_col_1_3.res" id="149_qj50s"]
 [ext_resource type="Shape3D" uid="uid://da5na5luuohcn" path="res://scenes/maps/Lab.gen/shape_Room_col_1_4.res" id="150_eux7y"]
 [ext_resource type="Shape3D" uid="uid://csyiifk3xpovp" path="res://scenes/maps/Lab.gen/shape_Room_col_2_0.res" id="151_otht1"]
+[ext_resource type="Shape3D" uid="uid://b7frkem28b356" path="res://scenes/maps/Lab.gen/shape_Room_col_2_1.res" id="152_oc4ex"]
 [ext_resource type="Shape3D" uid="uid://btlhuusva218t" path="res://scenes/maps/Lab.gen/shape_Room_col_2_2.res" id="153_lwlwk"]
 [ext_resource type="Shape3D" uid="uid://b7002fgxv4fx0" path="res://scenes/maps/Lab.gen/shape_Room_col_2_3.res" id="154_wm0fk"]
 [ext_resource type="Shape3D" uid="uid://cccwwe8ach2er" path="res://scenes/maps/Lab.gen/shape_Room_col_2_4.res" id="155_wiwen"]
+[ext_resource type="Shape3D" uid="uid://b7gspdbvl5rya" path="res://scenes/maps/Lab.gen/shape_Room_col_3_0.res" id="156_a2me4"]
+[ext_resource type="Shape3D" uid="uid://bhcxabvfn7yg8" path="res://scenes/maps/Lab.gen/shape_Room_col_3_1.res" id="157_fe8rn"]
 [ext_resource type="Shape3D" uid="uid://c53rrs7srhbd2" path="res://scenes/maps/Lab.gen/shape_Room_col_3_2.res" id="158_8i7eq"]
 [ext_resource type="Shape3D" uid="uid://8odi7rbf6f2a" path="res://scenes/maps/Lab.gen/shape_Room_col_3_3.res" id="159_xypyd"]
 [ext_resource type="Shape3D" uid="uid://cwom1j8hwfde" path="res://scenes/maps/Lab.gen/shape_Room_col_3_4.res" id="160_wnbg1"]
+[ext_resource type="Shape3D" uid="uid://b6uhmwbxx26c7" path="res://scenes/maps/Lab.gen/shape_Room_col_4_0.res" id="161_8qyo3"]
+[ext_resource type="Shape3D" uid="uid://dxn3m0yfhjs7s" path="res://scenes/maps/Lab.gen/shape_Room_col_4_1.res" id="162_o2hti"]
 [ext_resource type="Shape3D" uid="uid://df4xsiuvfxr72" path="res://scenes/maps/Lab.gen/shape_Room_col_4_2.res" id="163_lgiks"]
 [ext_resource type="Shape3D" uid="uid://b2jkxuxegyimr" path="res://scenes/maps/Lab.gen/shape_Room_col_4_3.res" id="164_kh7i5"]
 [ext_resource type="Shape3D" uid="uid://ciofyd1hiuvf2" path="res://scenes/maps/Lab.gen/shape_Room_col_4_4.res" id="165_rh0tp"]
+[ext_resource type="Shape3D" uid="uid://dt4nabibyov2o" path="res://scenes/maps/Lab.gen/shape_Room_col_5_0.res" id="166_qst8d"]
 [ext_resource type="Shape3D" uid="uid://jjinnx0ospxd" path="res://scenes/maps/Lab.gen/shape_Room_col_5_1.res" id="167_dstix"]
 [ext_resource type="Shape3D" uid="uid://bkc725yp2rxo7" path="res://scenes/maps/Lab.gen/shape_Room_col_5_2.res" id="168_hydnj"]
 [ext_resource type="Shape3D" uid="uid://cyjocjcewddod" path="res://scenes/maps/Lab.gen/shape_Room_col_5_3.res" id="169_vgort"]
@@ -1891,497 +1898,586 @@ outline_size = 8
 
 [node name="Visuals" type="Node3D" parent="Builder/Generated" unique_id=1345748726]
 
-[node name="Room_0_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=613469791]
+[node name="Collision" type="Node3D" parent="Builder/Generated" unique_id=612503929]
+
+[node name="Room_Collision" type="Node3D" parent="Builder/Generated/Collision" unique_id=1800835350]
+
+[node name="Room_0_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010988]
+
+[node name="Room_0_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_0_Body" unique_id=613469791]
 material_override = SubResource("ORMMaterial3D_lx04l")
 mesh = ExtResource("21_r6ord")
 
-[node name="Room_0_0__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1011364654]
+[node name="Room_0_0__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_0_Body" unique_id=1011364654]
 material_override = SubResource("ORMMaterial3D_wxdhr")
 mesh = ExtResource("22_qvq7f")
 
-[node name="Room_0_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1783626328]
+[node name="Room_0_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_0_Body" unique_id=1783626328]
 material_override = SubResource("ORMMaterial3D_kj0t3")
 mesh = ExtResource("26_t4h0c")
 
-[node name="Room_0_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1007510282]
+[node name="Room_0_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_0_Body" unique_id=1007510282]
 material_override = SubResource("ORMMaterial3D_ffdky")
 mesh = ExtResource("30_q2inf")
 
-[node name="Room_0_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1879565139]
+[node name="Room_col_0_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_0_Body" unique_id=1068624950]
+shape = ExtResource("141_n85qe")
+
+[node name="Room_0_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010989]
+
+[node name="Room_0_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_1_Body" unique_id=1879565139]
 material_override = SubResource("ORMMaterial3D_7gbdn")
 mesh = ExtResource("31_nyxgc")
 
-[node name="Room_0_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1040968712]
+[node name="Room_0_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_1_Body" unique_id=1040968712]
 material_override = SubResource("ORMMaterial3D_g6m6t")
 mesh = ExtResource("32_1b0gq")
 
-[node name="Room_0_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1077118608]
+[node name="Room_0_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_1_Body" unique_id=1077118608]
 material_override = SubResource("ORMMaterial3D_bebiw")
 mesh = ExtResource("33_ff5s0")
 
-[node name="Room_0_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=264007137]
+[node name="Room_col_0_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_1_Body" unique_id=834847207]
+shape = ExtResource("142_f6fuw")
+
+[node name="Room_0_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010990]
+
+[node name="Room_0_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_2_Body" unique_id=264007137]
 material_override = SubResource("ORMMaterial3D_pmjvr")
 mesh = ExtResource("34_loa1y")
 
-[node name="Room_0_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=892214567]
+[node name="Room_0_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_2_Body" unique_id=892214567]
 material_override = SubResource("ORMMaterial3D_ic358")
 mesh = ExtResource("35_j36r1")
 
-[node name="Room_0_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=283705351]
+[node name="Room_0_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_2_Body" unique_id=283705351]
 material_override = SubResource("ORMMaterial3D_kaihn")
 mesh = ExtResource("36_41bpj")
 
-[node name="Room_0_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=84704816]
+[node name="Room_col_0_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_2_Body" unique_id=1052121807]
+shape = ExtResource("143_a23e2")
+
+[node name="Room_0_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010991]
+
+[node name="Room_0_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_3_Body" unique_id=84704816]
 material_override = SubResource("ORMMaterial3D_00haa")
 mesh = ExtResource("37_stwf7")
 
-[node name="Room_0_3__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=570267540]
+[node name="Room_0_3__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_3_Body" unique_id=570267540]
 material_override = SubResource("ORMMaterial3D_s346n")
 mesh = ExtResource("38_bby0j")
 
-[node name="Room_0_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1967247012]
+[node name="Room_0_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_3_Body" unique_id=1967247012]
 material_override = SubResource("ORMMaterial3D_q3h3o")
 mesh = ExtResource("39_ujipi")
 
-[node name="Room_0_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2097405001]
+[node name="Room_0_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_3_Body" unique_id=2097405001]
 material_override = SubResource("ORMMaterial3D_ihuqc")
 mesh = ExtResource("40_yi05a")
 
-[node name="Room_0_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2117362724]
+[node name="Room_col_0_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_3_Body" unique_id=1249930797]
+shape = ExtResource("144_fmdjm")
+
+[node name="Room_0_4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010992]
+
+[node name="Room_0_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_4_Body" unique_id=2117362724]
 material_override = SubResource("ORMMaterial3D_137va")
 mesh = ExtResource("41_84pjq")
 
-[node name="Room_1_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1775938597]
+[node name="Room_col_0_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_0_4_Body" unique_id=2053136177]
+shape = ExtResource("145_x64q8")
+
+[node name="Room_1_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010993]
+
+[node name="Room_1_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_0_Body" unique_id=1775938597]
 material_override = SubResource("ORMMaterial3D_xqcsj")
 mesh = ExtResource("42_xnw2l")
 
-[node name="Room_1_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=628219328]
+[node name="Room_1_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_0_Body" unique_id=628219328]
 material_override = SubResource("ORMMaterial3D_3v0m5")
 mesh = ExtResource("43_xnwbf")
 
-[node name="Room_1_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=178173065]
+[node name="Room_1_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_0_Body" unique_id=178173065]
 material_override = SubResource("ORMMaterial3D_fbtl7")
 mesh = ExtResource("44_o4sx2")
 
-[node name="Room_1_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=246926948]
+[node name="Room_col_1_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_0_Body" unique_id=1976397012]
+shape = ExtResource("146_j1mw3")
+
+[node name="Room_1_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010994]
+
+[node name="Room_1_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_1_Body" unique_id=246926948]
 material_override = SubResource("ORMMaterial3D_bef8x")
 mesh = ExtResource("45_1v6jw")
 
-[node name="Room_1_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1041568307]
+[node name="Room_1_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_1_Body" unique_id=1041568307]
 material_override = SubResource("ORMMaterial3D_obd2c")
 mesh = ExtResource("50_vidnc")
 
-[node name="Room_1_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1532116042]
+[node name="Room_1_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_1_Body" unique_id=1532116042]
 material_override = SubResource("ORMMaterial3D_dgegj")
 mesh = ExtResource("51_evm81")
 
-[node name="Room_1_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1503929898]
+[node name="Room_col_1_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_1_Body" unique_id=1780635992]
+shape = ExtResource("147_jx533")
+
+[node name="Room_1_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010995]
+
+[node name="Room_1_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_2_Body" unique_id=1503929898]
 material_override = SubResource("ORMMaterial3D_t4lri")
 mesh = ExtResource("52_iiokl")
 
-[node name="Room_1_2__Resource__9223364097154662670_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=724241003]
+[node name="Room_1_2__Resource__9223364097154662670_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_2_Body" unique_id=724241003]
 material_override = SubResource("ORMMaterial3D_vtow0")
 mesh = ExtResource("53_c0meg")
 
-[node name="Room_1_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=301228795]
+[node name="Room_1_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_2_Body" unique_id=301228795]
 material_override = SubResource("ORMMaterial3D_7nmg7")
 mesh = ExtResource("54_x03cf")
 
-[node name="Room_1_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1514352661]
+[node name="Room_1_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_2_Body" unique_id=1514352661]
 material_override = SubResource("ORMMaterial3D_u5b88")
 mesh = ExtResource("55_3faks")
 
-[node name="Room_1_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1890143095]
+[node name="Room_col_1_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_2_Body" unique_id=1107816144]
+shape = ExtResource("148_v63s8")
+
+[node name="Room_1_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010996]
+
+[node name="Room_1_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_3_Body" unique_id=1890143095]
 material_override = SubResource("ORMMaterial3D_ob57h")
 mesh = ExtResource("56_5aelt")
 
-[node name="Room_1_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1460354875]
+[node name="Room_1_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_3_Body" unique_id=1460354875]
 material_override = SubResource("ORMMaterial3D_4kabs")
 mesh = ExtResource("57_ypsl6")
 
-[node name="Room_1_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1303172923]
+[node name="Room_1_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_3_Body" unique_id=1303172923]
 material_override = SubResource("ORMMaterial3D_6xwf5")
 mesh = ExtResource("58_5rokq")
 
-[node name="Room_1_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=583867741]
+[node name="Room_col_1_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_3_Body" unique_id=127722193]
+shape = ExtResource("149_qj50s")
+
+[node name="Room_1_4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010997]
+
+[node name="Room_1_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_4_Body" unique_id=583867741]
 material_override = SubResource("ORMMaterial3D_c8k2b")
 mesh = ExtResource("59_pj3ol")
 
-[node name="Room_2_0__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=554683483]
+[node name="Room_col_1_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_1_4_Body" unique_id=2044197865]
+shape = ExtResource("150_eux7y")
+
+[node name="Room_2_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010998]
+
+[node name="Room_2_0__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_0_Body" unique_id=554683483]
 material_override = SubResource("StandardMaterial3D_2x55d")
 mesh = ExtResource("60_ttnc2")
 
-[node name="Room_2_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2034658721]
+[node name="Room_2_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_0_Body" unique_id=2034658721]
 material_override = SubResource("ORMMaterial3D_0e133")
 mesh = ExtResource("61_5xvf3")
 
-[node name="Room_2_0__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1208186670]
+[node name="Room_2_0__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_0_Body" unique_id=1208186670]
 material_override = SubResource("ORMMaterial3D_fi3y0")
 mesh = ExtResource("62_gojrl")
 
-[node name="Room_2_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1100682439]
+[node name="Room_2_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_0_Body" unique_id=1100682439]
 material_override = SubResource("ORMMaterial3D_hcd6d")
 mesh = ExtResource("63_mfgku")
 
-[node name="Room_2_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=639208094]
+[node name="Room_2_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_0_Body" unique_id=639208094]
 material_override = SubResource("ORMMaterial3D_jerm6")
 mesh = ExtResource("64_1ea7r")
 
-[node name="Room_2_1__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=108565031]
+[node name="Room_col_2_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_0_Body" unique_id=827849381]
+shape = ExtResource("151_otht1")
+
+[node name="Room_2_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147010999]
+
+[node name="Room_2_1__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_1_Body" unique_id=108565031]
 material_override = SubResource("StandardMaterial3D_hvp1n")
 mesh = ExtResource("65_j5ul1")
 
-[node name="Room_2_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=408860562]
+[node name="Room_2_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_1_Body" unique_id=408860562]
 material_override = SubResource("ORMMaterial3D_siqc6")
 mesh = ExtResource("66_5q02e")
 
-[node name="Room_2_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1975388696]
+[node name="Room_2_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_1_Body" unique_id=1975388696]
 material_override = SubResource("ORMMaterial3D_rr5t8")
 mesh = ExtResource("68_nm8vv")
 
-[node name="Room_2_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=131864788]
+[node name="Room_2_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_1_Body" unique_id=131864788]
 material_override = SubResource("ORMMaterial3D_vpn7x")
 mesh = ExtResource("69_f8ode")
 
-[node name="Room_2_2__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1619027568]
+[node name="Room_col_2_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_1_Body" unique_id=295538329]
+shape = ExtResource("152_oc4ex")
+
+[node name="Room_2_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011000]
+
+[node name="Room_2_2__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_2_Body" unique_id=1619027568]
 material_override = SubResource("StandardMaterial3D_7n121")
 mesh = ExtResource("70_exlk4")
 
-[node name="Room_2_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=18630857]
+[node name="Room_2_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_2_Body" unique_id=18630857]
 material_override = SubResource("ORMMaterial3D_i7w3h")
 mesh = ExtResource("71_u6g3l")
 
-[node name="Room_2_2__Resource__9223364097943191828_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1132397925]
+[node name="Room_2_2__Resource__9223364097943191828_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_2_Body" unique_id=1132397925]
 material_override = SubResource("ORMMaterial3D_io0ok")
 mesh = ExtResource("72_yt0t5")
 
-[node name="Room_2_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=973045776]
+[node name="Room_2_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_2_Body" unique_id=973045776]
 material_override = SubResource("ORMMaterial3D_f4at3")
 mesh = ExtResource("73_f2n54")
 
-[node name="Room_2_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=663626424]
+[node name="Room_2_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_2_Body" unique_id=663626424]
 material_override = SubResource("ORMMaterial3D_04rqe")
 mesh = ExtResource("74_c1jay")
 
-[node name="Room_2_3__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1426681899]
+[node name="Room_col_2_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_2_Body" unique_id=180932876]
+shape = ExtResource("153_lwlwk")
+
+[node name="Room_2_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011001]
+
+[node name="Room_2_3__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_3_Body" unique_id=1426681899]
 material_override = SubResource("StandardMaterial3D_yko3q")
 mesh = ExtResource("75_i7rho")
 
-[node name="Room_2_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2039827850]
+[node name="Room_2_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_3_Body" unique_id=2039827850]
 material_override = SubResource("ORMMaterial3D_r7xpg")
 mesh = ExtResource("76_1sx0r")
 
-[node name="Room_2_3__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=871896072]
+[node name="Room_2_3__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_3_Body" unique_id=871896072]
 material_override = SubResource("ORMMaterial3D_r1aiy")
 mesh = ExtResource("77_uuaqo")
 
-[node name="Room_2_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1783811932]
+[node name="Room_2_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_3_Body" unique_id=1783811932]
 material_override = SubResource("ORMMaterial3D_048ae")
 mesh = ExtResource("78_rxpqm")
 
-[node name="Room_2_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1564595990]
+[node name="Room_2_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_3_Body" unique_id=1564595990]
 material_override = SubResource("ORMMaterial3D_iy8ja")
 mesh = ExtResource("79_2cm37")
 
-[node name="Room_2_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1142649853]
+[node name="Room_col_2_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_3_Body" unique_id=1850954434]
+shape = ExtResource("154_wm0fk")
+
+[node name="Room_2_4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011002]
+
+[node name="Room_2_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_4_Body" unique_id=1142649853]
 material_override = SubResource("ORMMaterial3D_l5g43")
 mesh = ExtResource("80_602j1")
 
-[node name="Room_3_0__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=999591431]
+[node name="Room_col_2_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_2_4_Body" unique_id=1265252744]
+shape = ExtResource("155_wiwen")
+
+[node name="Room_3_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011003]
+
+[node name="Room_3_0__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_0_Body" unique_id=999591431]
 material_override = SubResource("StandardMaterial3D_6qmmt")
 mesh = ExtResource("82_iqdlr")
 
-[node name="Room_3_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=740406635]
+[node name="Room_3_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_0_Body" unique_id=740406635]
 material_override = SubResource("ORMMaterial3D_kc7iq")
 mesh = ExtResource("83_p45u3")
 
-[node name="Room_3_0__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=565045053]
+[node name="Room_3_0__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_0_Body" unique_id=565045053]
 material_override = SubResource("ORMMaterial3D_4ky1j")
 mesh = ExtResource("84_4g1af")
 
-[node name="Room_3_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=354884608]
+[node name="Room_3_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_0_Body" unique_id=354884608]
 material_override = SubResource("ORMMaterial3D_yficd")
 mesh = ExtResource("85_asb5l")
 
-[node name="Room_3_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1880050935]
+[node name="Room_3_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_0_Body" unique_id=1880050935]
 material_override = SubResource("ORMMaterial3D_fmc66")
 mesh = ExtResource("86_jk6a2")
 
-[node name="Room_3_1__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=533367142]
+[node name="Room_col_3_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_0_Body" unique_id=2056572959]
+shape = ExtResource("156_a2me4")
+
+[node name="Room_3_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011004]
+
+[node name="Room_3_1__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_1_Body" unique_id=533367142]
 material_override = SubResource("StandardMaterial3D_n6agj")
 mesh = ExtResource("88_gqops")
 
-[node name="Room_3_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1575820381]
+[node name="Room_3_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_1_Body" unique_id=1575820381]
 material_override = SubResource("ORMMaterial3D_5mdiq")
 mesh = ExtResource("89_o23gc")
 
-[node name="Room_3_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1207380246]
+[node name="Room_3_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_1_Body" unique_id=1207380246]
 material_override = SubResource("ORMMaterial3D_j1ily")
 mesh = ExtResource("91_1x7wr")
 
-[node name="Room_3_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1141525130]
+[node name="Room_3_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_1_Body" unique_id=1141525130]
 material_override = SubResource("ORMMaterial3D_4t8ia")
 mesh = ExtResource("92_xhhxn")
 
-[node name="Room_3_2__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=620315410]
+[node name="Room_col_3_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_1_Body" unique_id=451862496]
+shape = ExtResource("157_fe8rn")
+
+[node name="Room_3_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011005]
+
+[node name="Room_3_2__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_2_Body" unique_id=620315410]
 material_override = SubResource("StandardMaterial3D_vvequ")
 mesh = ExtResource("93_b7vtm")
 
-[node name="Room_3_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1513794202]
+[node name="Room_3_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_2_Body" unique_id=1513794202]
 material_override = SubResource("ORMMaterial3D_mncuq")
 mesh = ExtResource("94_7c7os")
 
-[node name="Room_3_2__Resource__9223364097943191828_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1539667161]
+[node name="Room_3_2__Resource__9223364097943191828_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_2_Body" unique_id=1539667161]
 material_override = SubResource("ORMMaterial3D_xs87e")
 mesh = ExtResource("95_n1ys8")
 
-[node name="Room_3_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=919811597]
+[node name="Room_3_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_2_Body" unique_id=919811597]
 material_override = SubResource("ORMMaterial3D_uih1j")
 mesh = ExtResource("96_268km")
 
-[node name="Room_3_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1722921400]
+[node name="Room_3_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_2_Body" unique_id=1722921400]
 material_override = SubResource("ORMMaterial3D_a53ll")
 mesh = ExtResource("97_kwdvj")
 
-[node name="Room_3_3__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1256547024]
+[node name="Room_col_3_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_2_Body" unique_id=1248859344]
+shape = ExtResource("158_8i7eq")
+
+[node name="Room_3_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011006]
+
+[node name="Room_3_3__Resource__9223364095242060057_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_3_Body" unique_id=1256547024]
 material_override = SubResource("StandardMaterial3D_jfyjo")
 mesh = ExtResource("98_rdbce")
 
-[node name="Room_3_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1248603294]
+[node name="Room_3_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_3_Body" unique_id=1248603294]
 material_override = SubResource("ORMMaterial3D_lunao")
 mesh = ExtResource("99_gvmi6")
 
-[node name="Room_3_3__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1330561007]
+[node name="Room_3_3__Resource__9223364096181584152_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_3_Body" unique_id=1330561007]
 material_override = SubResource("ORMMaterial3D_40lsn")
 mesh = ExtResource("100_nlx41")
 
-[node name="Room_3_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1902440946]
+[node name="Room_3_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_3_Body" unique_id=1902440946]
 material_override = SubResource("ORMMaterial3D_e4ndw")
 mesh = ExtResource("101_4p300")
 
-[node name="Room_3_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1706603125]
+[node name="Room_3_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_3_Body" unique_id=1706603125]
 material_override = SubResource("ORMMaterial3D_675s2")
 mesh = ExtResource("102_0vdcm")
 
-[node name="Room_3_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=486277076]
+[node name="Room_col_3_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_3_Body" unique_id=355487483]
+shape = ExtResource("159_xypyd")
+
+[node name="Room_3_4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011007]
+
+[node name="Room_3_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_4_Body" unique_id=486277076]
 material_override = SubResource("ORMMaterial3D_gafig")
 mesh = ExtResource("103_87m01")
 
-[node name="Room_4_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1168861077]
+[node name="Room_col_3_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_3_4_Body" unique_id=1175560251]
+shape = ExtResource("160_wnbg1")
+
+[node name="Room_4_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011008]
+
+[node name="Room_4_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_0_Body" unique_id=1168861077]
 material_override = SubResource("ORMMaterial3D_g0bvl")
 mesh = ExtResource("105_t76qh")
 
-[node name="Room_4_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2100136755]
+[node name="Room_4_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_0_Body" unique_id=2100136755]
 material_override = SubResource("ORMMaterial3D_5tphl")
 mesh = ExtResource("106_ulsvv")
 
-[node name="Room_4_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=716558862]
+[node name="Room_4_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_0_Body" unique_id=716558862]
 material_override = SubResource("ORMMaterial3D_0xx0h")
 mesh = ExtResource("107_e8l1a")
 
-[node name="Room_4_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1467494986]
+[node name="Room_col_4_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_0_Body" unique_id=1567741193]
+shape = ExtResource("161_8qyo3")
+
+[node name="Room_4_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011009]
+
+[node name="Room_4_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_1_Body" unique_id=1467494986]
 material_override = SubResource("ORMMaterial3D_onyrp")
 mesh = ExtResource("109_70rn6")
 
-[node name="Room_4_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=511970773]
+[node name="Room_4_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_1_Body" unique_id=511970773]
 material_override = SubResource("ORMMaterial3D_8opr4")
 mesh = ExtResource("110_gyqal")
 
-[node name="Room_4_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=984936712]
+[node name="Room_4_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_1_Body" unique_id=984936712]
 material_override = SubResource("ORMMaterial3D_6nv1q")
 mesh = ExtResource("111_126oj")
 
-[node name="Room_4_2__Resource__9223364095208505643_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1744447990]
+[node name="Room_col_4_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_1_Body" unique_id=959770931]
+shape = ExtResource("162_o2hti")
+
+[node name="Room_4_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011010]
+
+[node name="Room_4_2__Resource__9223364095208505643_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_2_Body" unique_id=1744447990]
 material_override = SubResource("ORMMaterial3D_4nort")
 mesh = ExtResource("112_sqjgj")
 
-[node name="Room_4_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2070754190]
+[node name="Room_4_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_2_Body" unique_id=2070754190]
 material_override = SubResource("ORMMaterial3D_saep2")
 mesh = ExtResource("113_mb7ek")
 
-[node name="Room_4_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1601426744]
+[node name="Room_4_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_2_Body" unique_id=1601426744]
 material_override = SubResource("ORMMaterial3D_76txp")
 mesh = ExtResource("114_my1l4")
 
-[node name="Room_4_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=374825803]
+[node name="Room_4_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_2_Body" unique_id=374825803]
 material_override = SubResource("ORMMaterial3D_pk8g6")
 mesh = ExtResource("115_sce8d")
 
-[node name="Room_4_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2041995086]
+[node name="Room_col_4_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_2_Body" unique_id=452016828]
+shape = ExtResource("163_lgiks")
+
+[node name="Room_4_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011011]
+
+[node name="Room_4_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_3_Body" unique_id=2041995086]
 material_override = SubResource("ORMMaterial3D_dmwjg")
 mesh = ExtResource("116_y3xrr")
 
-[node name="Room_4_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=800080813]
+[node name="Room_4_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_3_Body" unique_id=800080813]
 material_override = SubResource("ORMMaterial3D_5e440")
 mesh = ExtResource("117_ersnt")
 
-[node name="Room_4_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=231356990]
+[node name="Room_4_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_3_Body" unique_id=231356990]
 material_override = SubResource("ORMMaterial3D_cjaxh")
 mesh = ExtResource("118_qce7e")
 
-[node name="Room_4_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1095061964]
+[node name="Room_col_4_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_3_Body" unique_id=1974905324]
+shape = ExtResource("164_kh7i5")
+
+[node name="Room_4_4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011012]
+
+[node name="Room_4_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_4_Body" unique_id=1095061964]
 material_override = SubResource("ORMMaterial3D_j5824")
 mesh = ExtResource("119_hp5qh")
 
-[node name="Room_5_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=213779673]
+[node name="Room_col_4_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_4_4_Body" unique_id=1185275102]
+shape = ExtResource("165_rh0tp")
+
+[node name="Room_5_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011013]
+
+[node name="Room_5_0__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_0_Body" unique_id=213779673]
 material_override = SubResource("ORMMaterial3D_c074g")
 mesh = ExtResource("121_d72m5")
 
-[node name="Room_5_0__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=758665072]
+[node name="Room_5_0__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_0_Body" unique_id=758665072]
 material_override = SubResource("ORMMaterial3D_nj1xr")
 mesh = ExtResource("122_apdyy")
 
-[node name="Room_5_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1093505426]
+[node name="Room_5_0__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_0_Body" unique_id=1093505426]
 material_override = SubResource("ORMMaterial3D_1wiw0")
 mesh = ExtResource("123_njuva")
 
-[node name="Room_5_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=618146195]
+[node name="Room_5_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_0_Body" unique_id=618146195]
 material_override = SubResource("ORMMaterial3D_j04q3")
 mesh = ExtResource("124_p1nso")
 
-[node name="Room_5_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1344238473]
+[node name="Room_col_5_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_0_Body" unique_id=1608196025]
+shape = ExtResource("166_qst8d")
+
+[node name="Room_5_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011014]
+
+[node name="Room_5_1__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_1_Body" unique_id=1344238473]
 material_override = SubResource("ORMMaterial3D_6j26g")
 mesh = ExtResource("126_7otlk")
 
-[node name="Room_5_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1751536356]
+[node name="Room_5_1__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_1_Body" unique_id=1751536356]
 material_override = SubResource("ORMMaterial3D_ro4hm")
 mesh = ExtResource("127_mkga2")
 
-[node name="Room_5_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1427514141]
+[node name="Room_5_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_1_Body" unique_id=1427514141]
 material_override = SubResource("ORMMaterial3D_8e4bg")
 mesh = ExtResource("128_1c23x")
 
-[node name="Room_5_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=546289441]
+[node name="Room_col_5_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_1_Body" unique_id=1928767924]
+shape = ExtResource("167_dstix")
+
+[node name="Room_5_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011015]
+
+[node name="Room_5_2__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_2_Body" unique_id=546289441]
 material_override = SubResource("ORMMaterial3D_vqrr1")
 mesh = ExtResource("129_5uskb")
 
-[node name="Room_5_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=23695497]
+[node name="Room_5_2__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_2_Body" unique_id=23695497]
 material_override = SubResource("ORMMaterial3D_6shx3")
 mesh = ExtResource("130_7wce8")
 
-[node name="Room_5_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1676539419]
+[node name="Room_5_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_2_Body" unique_id=1676539419]
 material_override = SubResource("ORMMaterial3D_ae8cn")
 mesh = ExtResource("131_wc31j")
 
-[node name="Room_5_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=784984241]
+[node name="Room_col_5_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_2_Body" unique_id=615205144]
+shape = ExtResource("168_hydnj")
+
+[node name="Room_5_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011016]
+
+[node name="Room_5_3__Resource__9223364095258837284_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_3_Body" unique_id=784984241]
 material_override = SubResource("ORMMaterial3D_4goyp")
 mesh = ExtResource("132_jre3a")
 
-[node name="Room_5_3__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1237028581]
+[node name="Room_5_3__Resource__9223364096315801865_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_3_Body" unique_id=1237028581]
 material_override = SubResource("ORMMaterial3D_rudcq")
 mesh = ExtResource("133_odw1y")
 
-[node name="Room_5_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2043162396]
+[node name="Room_5_3__Resource__9223364099402809654_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_3_Body" unique_id=2043162396]
 material_override = SubResource("ORMMaterial3D_g7c1q")
 mesh = ExtResource("134_pb23n")
 
-[node name="Room_5_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1404744881]
+[node name="Room_5_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_3_Body" unique_id=1404744881]
 material_override = SubResource("ORMMaterial3D_kfcdk")
 mesh = ExtResource("135_jam8b")
 
-[node name="Room_5_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1512203711]
+[node name="Room_col_5_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_3_Body" unique_id=1243677019]
+shape = ExtResource("169_vgort")
+
+[node name="Room_5_4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011017]
+
+[node name="Room_5_4__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_4_Body" unique_id=1512203711]
 material_override = SubResource("ORMMaterial3D_21l3b")
 mesh = ExtResource("136_p4lqa")
 
-[node name="Room_6_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1470804666]
+[node name="Room_col_5_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_5_4_Body" unique_id=559329989]
+shape = ExtResource("170_qaxqm")
+
+[node name="Room_6_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011018]
+
+[node name="Room_6_0__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_6_0_Body" unique_id=1470804666]
 material_override = SubResource("ORMMaterial3D_707xb")
 mesh = ExtResource("137_q2406")
 
-[node name="Room_6_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=663966063]
+[node name="Room_col_6_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_6_0_Body" unique_id=831420846]
+shape = ExtResource("171_22wsq")
+
+[node name="Room_6_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011019]
+
+[node name="Room_6_1__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_6_1_Body" unique_id=663966063]
 material_override = SubResource("ORMMaterial3D_nhs62")
 mesh = ExtResource("138_onjmk")
 
-[node name="Room_6_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1424726458]
+[node name="Room_col_6_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_6_1_Body" unique_id=258191849]
+shape = ExtResource("172_4wqdd")
+
+[node name="Room_6_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011020]
+
+[node name="Room_6_2__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_6_2_Body" unique_id=1424726458]
 material_override = SubResource("ORMMaterial3D_c12aj")
 mesh = ExtResource("139_jgwje")
 
-[node name="Room_6_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=570557302]
+[node name="Room_col_6_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_6_2_Body" unique_id=280776259]
+shape = ExtResource("173_smfv2")
+
+[node name="Room_6_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2147011021]
+
+[node name="Room_6_3__Resource__9223364100208116010_" type="MeshInstance3D" parent="Builder/Generated/Collision/Room_Collision/Room_6_3_Body" unique_id=570557302]
 material_override = SubResource("ORMMaterial3D_1olfy")
 mesh = ExtResource("140_f2gxx")
 
-[node name="Collision" type="Node3D" parent="Builder/Generated" unique_id=612503929]
-
-[node name="Room_Collision" type="StaticBody3D" parent="Builder/Generated/Collision" unique_id=1800835350]
-
-[node name="Room_col_0_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1068624950]
-shape = ExtResource("141_n85qe")
-
-[node name="Room_col_0_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=834847207]
-shape = ExtResource("142_f6fuw")
-
-[node name="Room_col_0_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1052121807]
-shape = ExtResource("143_a23e2")
-
-[node name="Room_col_0_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1249930797]
-shape = ExtResource("144_fmdjm")
-
-[node name="Room_col_0_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2053136177]
-shape = ExtResource("145_x64q8")
-
-[node name="Room_col_1_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1976397012]
-shape = ExtResource("146_j1mw3")
-
-[node name="Room_col_1_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1107816144]
-shape = ExtResource("148_v63s8")
-
-[node name="Room_col_1_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=127722193]
-shape = ExtResource("149_qj50s")
-
-[node name="Room_col_1_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=2044197865]
-shape = ExtResource("150_eux7y")
-
-[node name="Room_col_2_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=827849381]
-shape = ExtResource("151_otht1")
-
-[node name="Room_col_2_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=180932876]
-shape = ExtResource("153_lwlwk")
-
-[node name="Room_col_2_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1850954434]
-shape = ExtResource("154_wm0fk")
-
-[node name="Room_col_2_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1265252744]
-shape = ExtResource("155_wiwen")
-
-[node name="Room_col_3_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1248859344]
-shape = ExtResource("158_8i7eq")
-
-[node name="Room_col_3_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=355487483]
-shape = ExtResource("159_xypyd")
-
-[node name="Room_col_3_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1175560251]
-shape = ExtResource("160_wnbg1")
-
-[node name="Room_col_4_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=452016828]
-shape = ExtResource("163_lgiks")
-
-[node name="Room_col_4_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1974905324]
-shape = ExtResource("164_kh7i5")
-
-[node name="Room_col_4_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1185275102]
-shape = ExtResource("165_rh0tp")
-
-[node name="Room_col_5_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1928767924]
-shape = ExtResource("167_dstix")
-
-[node name="Room_col_5_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=615205144]
-shape = ExtResource("168_hydnj")
-
-[node name="Room_col_5_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=1243677019]
-shape = ExtResource("169_vgort")
-
-[node name="Room_col_5_4" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=559329989]
-shape = ExtResource("170_qaxqm")
-
-[node name="Room_col_6_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=831420846]
-shape = ExtResource("171_22wsq")
-
-[node name="Room_col_6_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=258191849]
-shape = ExtResource("172_4wqdd")
-
-[node name="Room_col_6_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=280776259]
-shape = ExtResource("173_smfv2")
-
-[node name="Room_col_6_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision" unique_id=210614622]
+[node name="Room_col_6_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Room_Collision/Room_6_3_Body" unique_id=210614622]
 shape = ExtResource("174_hchj7")
 
 [node name="Doors" type="Node3D" parent="Builder/Generated" unique_id=466254254]
@@ -2489,3 +2585,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28.5, 0.1, 4.5)
 
 [node name="Spawn_20_18" type="Marker3D" parent="Builder/Generated/Spawns" unique_id=2066010735 groups=["spawn_point"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 61.5, 0.1, 55.5)
+
+[node name="TeamSpawnAreas" type="Node3D" parent="." unique_id=206682892]
+
+[node name="TeamAlphaSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=1967941850 groups=["team_spawn_area_0"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.415844, 0.15, -16.400518)
+metadata/half_extent = Vector2(35, 4)
+
+[node name="TeamBravoSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=1592904636 groups=["team_spawn_area_1"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.27744, 0.18875328, 16)
+metadata/half_extent = Vector2(35, 4)

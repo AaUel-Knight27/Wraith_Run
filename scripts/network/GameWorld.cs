@@ -73,8 +73,7 @@ public partial class GameWorld : Node3D
         BuildMapCollisions(map, collisionMap);
     }
 
-    /// <summary>Imported GLBs are visual meshes without physics. Add inexpensive box proxies to
-    /// their mesh bounds and a broad walkable floor so the high-detail art stays usable on mobile.</summary>
+    /// <summary>Maps without authored physics receive inexpensive box proxies and a walkable floor.</summary>
     private static void BuildMapCollisions(Node3D map, MatchManager.ArenaMap mapKind)
     {
         // Maps built by the map kit (Ashfields, Lab) arrive with exact collision for everything they generate: one
@@ -95,16 +94,25 @@ public partial class GameWorld : Node3D
             return;
         }
 
-        // The warehouse GLB is several million triangles and its four imported mesh bounds span
-        // whole wall sections. A box around each complete mesh blocks the centre of the room, so
-        // the free-roam home uses a clear deck and perimeter walls instead of those art bounds.
+        bool hasAuthoredCollisionShapes = map.FindChildren("*", "CollisionShape3D", true, false).Count > 0;
+
+        // Preserve scene-authored mesh/collision pairs instead of creating duplicate proxies.
         if (mapKind != MatchManager.ArenaMap.Warehouse)
         {
             foreach (Node node in map.FindChildren("*", "MeshInstance3D", true, false))
             {
                 var mesh = node as MeshInstance3D;
                 if (mesh?.Mesh == null || mesh.IsInGroup("map_no_collision") || mesh.Mesh.GetSurfaceCount() == 0) continue;
-                var body = new StaticBody3D { Name = "MapCollision" };
+                if (mesh.GetParent() is StaticBody3D) continue;
+                var parent = mesh.GetParent();
+                if (parent == null) continue;
+                int siblingIndex = mesh.GetIndex();
+                Transform3D meshTransform = mesh.Transform;
+                var body = new StaticBody3D
+                {
+                    Name = $"{mesh.Name}_Body",
+                    Transform = meshTransform,
+                };
                 var bounds = mesh.Mesh.GetAabb();
                 Vector3 size = bounds.Size;
                 size = new Vector3(Mathf.Max(size.X, 0.025f), Mathf.Max(size.Y, 0.025f), Mathf.Max(size.Z, 0.025f));
@@ -113,8 +121,12 @@ public partial class GameWorld : Node3D
                     Shape = new BoxShape3D { Size = size },
                     Position = bounds.Position + bounds.Size * 0.5f,
                 };
+                parent.RemoveChild(mesh);
+                parent.AddChild(body);
+                parent.MoveChild(body, siblingIndex);
+                mesh.Transform = Transform3D.Identity;
+                body.AddChild(mesh);
                 body.AddChild(shape);
-                mesh.AddChild(body);
             }
         }
 
@@ -124,9 +136,14 @@ public partial class GameWorld : Node3D
         const float roomX0 = -16.25f, roomX1 = 16.25f, roomZ0 = -14.05f, roomZ1 = 14.05f;
         const float wallT = 0.4f, wallH = 8.8f;
         Vector3 deckCentre = warehouse ? new Vector3((roomX0 + roomX1) * 0.5f, -0.3f, (roomZ0 + roomZ1) * 0.5f) : new Vector3(0.0f, -0.3f, 0.0f);
-        float arenaExtent = mapKind == MatchManager.ArenaMap.Depot ? 160.0f : 80.0f;
-        // Depot now fills a broad village block; its walkable floor must match the exterior terrain.
-        Vector3 deckSize = warehouse ? new Vector3(roomX1 - roomX0, 0.5f, roomZ1 - roomZ0) : new Vector3(arenaExtent, 0.5f, arenaExtent);
+        Vector2 arenaSize = mapKind switch
+        {
+            MatchManager.ArenaMap.Depot => new Vector2(192.0f, 160.0f),
+            MatchManager.ArenaMap.Prison => new Vector2(82.0f, 62.0f),
+            _ => new Vector2(80.0f, 80.0f),
+        };
+        // Keep each imported map's supplemental walkable floor aligned to its playable footprint.
+        Vector3 deckSize = warehouse ? new Vector3(roomX1 - roomX0, 0.5f, roomZ1 - roomZ0) : new Vector3(arenaSize.X, 0.5f, arenaSize.Y);
         var floor = new StaticBody3D { Name = "WalkableDeck" };
         var floorShape = new CollisionShape3D
         {
@@ -136,7 +153,7 @@ public partial class GameWorld : Node3D
         floor.AddChild(floorShape);
         map.AddChild(floor);
 
-        if (warehouse)
+        if (warehouse && !hasAuthoredCollisionShapes)
         {
             // The four boundaries sit just outside the shell's inner faces, so players cannot walk through it.
             float midX = (roomX0 + roomX1) * 0.5f, midZ = (roomZ0 + roomZ1) * 0.5f;

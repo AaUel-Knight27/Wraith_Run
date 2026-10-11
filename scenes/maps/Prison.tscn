@@ -22,26 +22,26 @@ fog_light_color = Color(0.12, 0.15, 0.15, 1)
 fog_density = 0.004
 
 [sub_resource type="BoxMesh" id="Box_1"]
-size = Vector3(62, 0.6, 62)
+size = Vector3(82, 0.6, 62)
 
 [sub_resource type="BoxShape3D" id="Shape_0"]
-size = Vector3(62, 0.6, 62)
+size = Vector3(82, 0.6, 62)
 
 [sub_resource type="StandardMaterial3D" id="Mat_ceiling"]
 albedo_color = Color(0.18, 0.2, 0.21, 1)
 roughness = 0.9
 
 [sub_resource type="BoxMesh" id="Box_2"]
-size = Vector3(62, 0.5, 62)
+size = Vector3(82, 0.5, 62)
 
 [sub_resource type="BoxMesh" id="Box_3"]
-size = Vector3(62, 8, 1)
+size = Vector3(82, 8, 1)
 
 [sub_resource type="BoxShape3D" id="Shape_2"]
-size = Vector3(62, 8, 1)
+size = Vector3(82, 8, 1)
 
 [sub_resource type="BoxShape3D" id="Shape_3"]
-size = Vector3(62, 8, 1)
+size = Vector3(82, 8, 1)
 
 [sub_resource type="BoxMesh" id="Box_4"]
 size = Vector3(1, 8, 62)
@@ -1381,7 +1381,7 @@ mesh = SubResource("Box_3")
 shape = SubResource("Shape_3")
 
 [node name="WestWall" type="StaticBody3D" parent="Geometry" unique_id=553132895]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.5, 4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40.5, 4, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Geometry/WestWall" unique_id=274318449]
 material_override = ExtResource("mat_concrete")
@@ -1391,7 +1391,7 @@ mesh = SubResource("Box_4")
 shape = SubResource("Shape_4")
 
 [node name="EastWall" type="StaticBody3D" parent="Geometry" unique_id=1678532449]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.5, 4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.5, 4, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Geometry/EastWall" unique_id=464557709]
 material_override = ExtResource("mat_concrete")
@@ -5762,12 +5762,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0.15, 25)
 [node name="TeamSpawnAreas" type="Node3D" parent="." unique_id=741706908]
 
 [node name="TeamAlphaSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=808448528 groups=["team_spawn_area_0"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, -22)
-metadata/half_extent = Vector2(10.4, 5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.922344, 0.15, -19.283596)
+metadata/half_extent = Vector2(14, 5)
 
 [node name="TeamBravoSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=1048012411 groups=["team_spawn_area_1"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 22)
-metadata/half_extent = Vector2(10.4, 5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.8208, 0.15, 13.733204)
+metadata/half_extent = Vector2(14, 5)
 
 [node name="RuinPass" type="Node3D" parent="." unique_id=724014964]
 script = ExtResource("ruin_pass_script")

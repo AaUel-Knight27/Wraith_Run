@@ -4527,14 +4527,25 @@ texture_filter = 5
 environment = SubResource("Ash_Env")
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=1307096067]
-transform = Transform3D(0.77396, -0.44438, 0.45113, 0, 0.71242, 0.70176, -0.63324, -0.54313, 0.55138, 0, 20, 0)
+transform = Transform3D(0.08324054, -0.32696328, -0.941364, -0.8626949, -0.496498, 0.096164145, -0.49882743, 0.8041049, -0.32339823, -9.51964, 20, -5.681017)
 light_color = Color(1, 0.92, 0.8, 1)
 light_energy = 0.9
 shadow_enabled = true
 directional_shadow_mode = 0
 directional_shadow_max_distance = 50.0
 
+[node name="TeamSpawnAreas" type="Node3D" parent="." unique_id=1988272416]
+
+[node name="TeamAlphaSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=1216100725 groups=["team_spawn_area_0"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.2204895, -1.0407796, -32.461838)
+metadata/half_extent = Vector2(38, 8)
+
+[node name="TeamBravoSpawnArea" type="Node3D" parent="TeamSpawnAreas" unique_id=2007048125 groups=["team_spawn_area_1"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.836185, -1.5956389, 33.430824)
+metadata/half_extent = Vector2(38, 8)
+
 [node name="Builder" type="Node3D" parent="." unique_id=825067584]
+transform = Transform3D(1.25, 0, 0, 0, 1, 0, 0, 0, 0.8333333, 0, 0, 0)
 script = ExtResource("49_73446")
 CellSize = 1.5
 Ground = ExtResource("1_68604")
@@ -4574,1604 +4585,1732 @@ curve = SubResource("Curve_Trench2")
 
 [node name="Visuals" type="Node3D" parent="Builder/Generated" unique_id=1659221513]
 
-[node name="Terrain_-4_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1534294918]
+[node name="Collision" type="Node3D" parent="Builder/Generated" unique_id=1548307101]
+
+[node name="Terrain_Collision" type="Node3D" parent="Builder/Generated/Collision" unique_id=1464527768]
+
+[node name="Terrain_-4_-4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589324]
+
+[node name="Terrain_-4_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-4_Body" unique_id=1534294918]
 material_override = SubResource("ORMMaterial3D_661be")
 mesh = ExtResource("50_ukrf8")
 
-[node name="Terrain_-4_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=278198797]
+[node name="Terrain_col_-4_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-4_Body" unique_id=1560723640]
+shape = ExtResource("425_3tsrr")
+
+[node name="Terrain_-4_-3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589325]
+
+[node name="Terrain_-4_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-3_Body" unique_id=278198797]
 material_override = SubResource("ORMMaterial3D_48von")
 mesh = ExtResource("51_y6l0m")
 
-[node name="Terrain_-4_-3__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1924239971]
+[node name="Terrain_-4_-3__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-3_Body" unique_id=1924239971]
 material_override = SubResource("ORMMaterial3D_15nno")
 mesh = ExtResource("52_jb6ge")
 
-[node name="Terrain_-4_-3__Resource__9223370187686726216_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1492821380]
+[node name="Terrain_-4_-3__Resource__9223370187686726216_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-3_Body" unique_id=1492821380]
 material_override = SubResource("ORMMaterial3D_t7aro")
 mesh = ExtResource("53_bxqvp")
 
-[node name="Terrain_-4_-3__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2118478169]
+[node name="Terrain_-4_-3__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-3_Body" unique_id=2118478169]
 material_override = SubResource("ORMMaterial3D_orjnj")
 mesh = ExtResource("57_ttn6x")
 
-[node name="Terrain_-4_-2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1653440864]
+[node name="Terrain_col_-4_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-3_Body" unique_id=196229431]
+shape = ExtResource("426_uong8")
+
+[node name="Terrain_-4_-2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589326]
+
+[node name="Terrain_-4_-2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-2_Body" unique_id=1653440864]
 material_override = SubResource("ORMMaterial3D_qe55j")
 mesh = ExtResource("58_nrxod")
 
-[node name="Terrain_-4_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=745699208]
+[node name="Terrain_-4_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-2_Body" unique_id=745699208]
 material_override = SubResource("ORMMaterial3D_cq800")
 mesh = ExtResource("62_5rs3t")
 
-[node name="Terrain_-4_-1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2002332152]
+[node name="Terrain_col_-4_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-2_Body" unique_id=1431612667]
+shape = ExtResource("427_ffnh6")
+
+[node name="Terrain_-4_-1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589327]
+
+[node name="Terrain_-4_-1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-1_Body" unique_id=2002332152]
 material_override = SubResource("ORMMaterial3D_hc504")
 mesh = ExtResource("63_ifdee")
 
-[node name="Terrain_-4_0__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1256802264]
+[node name="Terrain_col_-4_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_-1_Body" unique_id=687249969]
+shape = ExtResource("428_nkc4x")
+
+[node name="Terrain_-4_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589328]
+
+[node name="Terrain_-4_0__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_0_Body" unique_id=1256802264]
 material_override = SubResource("ORMMaterial3D_co7co")
 mesh = ExtResource("64_01u2y")
 
-[node name="Terrain_-4_1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1768913981]
+[node name="Terrain_col_-4_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_0_Body" unique_id=1490938806]
+shape = ExtResource("429_q1d15")
+
+[node name="Terrain_-4_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589329]
+
+[node name="Terrain_-4_1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_1_Body" unique_id=1768913981]
 material_override = SubResource("ORMMaterial3D_a7u0g")
 mesh = ExtResource("65_8humq")
 
-[node name="Terrain_-4_2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1015997602]
+[node name="Terrain_col_-4_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_1_Body" unique_id=114194325]
+shape = ExtResource("430_tlfw1")
+
+[node name="Terrain_-4_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589330]
+
+[node name="Terrain_-4_2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_2_Body" unique_id=1015997602]
 material_override = SubResource("ORMMaterial3D_laktw")
 mesh = ExtResource("66_48uxq")
 
-[node name="Terrain_-4_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1811245609]
+[node name="Terrain_col_-4_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_2_Body" unique_id=1783450668]
+shape = ExtResource("431_klqlk")
+
+[node name="Terrain_-4_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589331]
+
+[node name="Terrain_-4_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_3_Body" unique_id=1811245609]
 material_override = SubResource("ORMMaterial3D_3lixw")
 mesh = ExtResource("67_8b8bx")
 
-[node name="Terrain_-3_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=370076092]
+[node name="Terrain_col_-4_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-4_3_Body" unique_id=1556103021]
+shape = ExtResource("432_2wg4r")
+
+[node name="Terrain_-3_-4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589332]
+
+[node name="Terrain_-3_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-4_Body" unique_id=370076092]
 material_override = SubResource("ORMMaterial3D_8lyx5")
 mesh = ExtResource("68_djkcc")
 
-[node name="Terrain_-3_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1387287853]
+[node name="Terrain_col_-3_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-4_Body" unique_id=1071713114]
+shape = ExtResource("433_g1xeq")
+
+[node name="Terrain_-3_-3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589333]
+
+[node name="Terrain_-3_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=1387287853]
 material_override = SubResource("ORMMaterial3D_4kjnh")
 mesh = ExtResource("69_tybgf")
 
-[node name="Terrain_-3_-3__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1773050081]
+[node name="Terrain_-3_-3__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=1773050081]
 material_override = SubResource("ORMMaterial3D_68e5a")
 mesh = ExtResource("70_n0sr1")
 
-[node name="Terrain_-3_-3__Resource__9223370187686726216_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1811444564]
+[node name="Terrain_-3_-3__Resource__9223370187686726216_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=1811444564]
 material_override = SubResource("ORMMaterial3D_j11d0")
 mesh = ExtResource("71_jhmxt")
 
-[node name="Terrain_-3_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1090228184]
+[node name="Terrain_-3_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=1090228184]
 material_override = SubResource("ORMMaterial3D_ydcuy")
 mesh = ExtResource("72_2uqmo")
 
-[node name="Terrain_-3_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1562730012]
+[node name="Terrain_-3_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=1562730012]
 material_override = SubResource("ORMMaterial3D_w8abq")
 mesh = ExtResource("73_ocu56")
 
-[node name="Terrain_-3_-3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=239038936]
+[node name="Terrain_-3_-3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=239038936]
 material_override = SubResource("ORMMaterial3D_j8g46")
 mesh = ExtResource("77_wiovf")
 
-[node name="Terrain_-3_-3__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1522583875]
+[node name="Terrain_-3_-3__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=1522583875]
 material_override = SubResource("ORMMaterial3D_cpmrt")
 mesh = ExtResource("78_g6jx0")
 
-[node name="Terrain_-3_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=587715485]
+[node name="Terrain_-3_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=587715485]
 material_override = SubResource("ORMMaterial3D_sq1xt")
 mesh = ExtResource("82_lxe0i")
 
-[node name="Terrain_-3_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=268581682]
+[node name="Terrain_-3_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=268581682]
 material_override = SubResource("ORMMaterial3D_r1n3o")
 mesh = ExtResource("86_cx5o6")
 
-[node name="Terrain_-3_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1080880901]
+[node name="Terrain_-3_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=1080880901]
 material_override = SubResource("ORMMaterial3D_pma2c")
 mesh = ExtResource("87_qqm3f")
 
-[node name="Terrain_-3_-2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1547275038]
+[node name="Terrain_col_-3_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-3_Body" unique_id=1938544979]
+shape = ExtResource("434_7cocu")
+
+[node name="Terrain_-3_-2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589334]
+
+[node name="Terrain_-3_-2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-2_Body" unique_id=1547275038]
 material_override = SubResource("ORMMaterial3D_k5kcm")
 mesh = ExtResource("88_rny4r")
 
-[node name="Terrain_-3_-2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=744134156]
+[node name="Terrain_-3_-2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-2_Body" unique_id=744134156]
 material_override = SubResource("ORMMaterial3D_3tsrr")
 mesh = ExtResource("89_qwji1")
 
-[node name="Terrain_-3_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1386286562]
+[node name="Terrain_-3_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-2_Body" unique_id=1386286562]
 material_override = SubResource("ORMMaterial3D_uong8")
 mesh = ExtResource("90_d3ajk")
 
-[node name="Terrain_-3_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=464553776]
+[node name="Terrain_-3_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-2_Body" unique_id=464553776]
 material_override = SubResource("ORMMaterial3D_ffnh6")
 mesh = ExtResource("91_2ltcv")
 
-[node name="Terrain_-3_-2__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=868712945]
+[node name="Terrain_-3_-2__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-2_Body" unique_id=868712945]
 material_override = SubResource("ORMMaterial3D_nkc4x")
 mesh = ExtResource("95_nxixo")
 
-[node name="Terrain_-3_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1440165254]
+[node name="Terrain_-3_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-2_Body" unique_id=1440165254]
 material_override = SubResource("ORMMaterial3D_q1d15")
 mesh = ExtResource("96_srr67")
 
-[node name="Terrain_-3_-2__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1484168457]
+[node name="Terrain_-3_-2__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-2_Body" unique_id=1484168457]
 material_override = SubResource("ORMMaterial3D_tlfw1")
 mesh = ExtResource("100_l7fa7")
 
-[node name="Terrain_-3_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1058286532]
+[node name="Terrain_-3_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-2_Body" unique_id=1058286532]
 material_override = SubResource("ORMMaterial3D_klqlk")
 mesh = ExtResource("101_s06c0")
 
-[node name="Terrain_-3_-1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1016331856]
+[node name="Terrain_col_-3_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-2_Body" unique_id=1557343958]
+shape = ExtResource("435_p1qqm")
+
+[node name="Terrain_-3_-1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589335]
+
+[node name="Terrain_-3_-1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=1016331856]
 material_override = SubResource("ORMMaterial3D_2wg4r")
 mesh = ExtResource("102_c7dd7")
 
-[node name="Terrain_-3_-1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1638012798]
+[node name="Terrain_-3_-1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=1638012798]
 material_override = SubResource("ORMMaterial3D_g1xeq")
 mesh = ExtResource("103_ajwrj")
 
-[node name="Terrain_-3_-1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=639953075]
+[node name="Terrain_-3_-1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=639953075]
 material_override = SubResource("ORMMaterial3D_7cocu")
 mesh = ExtResource("104_g15ss")
 
-[node name="Terrain_-3_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1860446598]
+[node name="Terrain_-3_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=1860446598]
 material_override = SubResource("ORMMaterial3D_p1qqm")
 mesh = ExtResource("105_bjdvg")
 
-[node name="Terrain_-3_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=672376063]
+[node name="Terrain_-3_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=672376063]
 material_override = SubResource("ORMMaterial3D_cwxr8")
 mesh = ExtResource("106_h6ioo")
 
-[node name="Terrain_-3_-1__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1334700897]
+[node name="Terrain_-3_-1__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=1334700897]
 material_override = SubResource("ORMMaterial3D_vj2wl")
 mesh = ExtResource("107_o8gar")
 
-[node name="Terrain_-3_-1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=732969393]
+[node name="Terrain_-3_-1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=732969393]
 material_override = SubResource("ORMMaterial3D_7nyt2")
 mesh = ExtResource("108_g5csn")
 
-[node name="Terrain_-3_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=440711119]
+[node name="Terrain_-3_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=440711119]
 material_override = SubResource("ORMMaterial3D_js1sy")
 mesh = ExtResource("109_ox7en")
 
-[node name="Terrain_-3_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=502487091]
+[node name="Terrain_-3_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=502487091]
 material_override = SubResource("ORMMaterial3D_ts6uc")
 mesh = ExtResource("110_ohhoa")
 
-[node name="Terrain_-3_0__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1884664203]
+[node name="Terrain_col_-3_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_-1_Body" unique_id=599991531]
+shape = ExtResource("436_cwxr8")
+
+[node name="Terrain_-3_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589336]
+
+[node name="Terrain_-3_0__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=1884664203]
 material_override = SubResource("ORMMaterial3D_f1grc")
 mesh = ExtResource("111_1wdmq")
 
-[node name="Terrain_-3_0__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=144031953]
+[node name="Terrain_-3_0__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=144031953]
 material_override = SubResource("ORMMaterial3D_vhmxq")
 mesh = ExtResource("112_ueljl")
 
-[node name="Terrain_-3_0__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=227701523]
+[node name="Terrain_-3_0__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=227701523]
 material_override = SubResource("ORMMaterial3D_h4khv")
 mesh = ExtResource("113_xauj0")
 
-[node name="Terrain_-3_0__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=103635244]
+[node name="Terrain_-3_0__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=103635244]
 material_override = SubResource("ORMMaterial3D_m326c")
 mesh = ExtResource("114_emcag")
 
-[node name="Terrain_-3_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=192167966]
+[node name="Terrain_-3_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=192167966]
 material_override = SubResource("ORMMaterial3D_e7u0v")
 mesh = ExtResource("115_cflm4")
 
-[node name="Terrain_-3_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1420532914]
+[node name="Terrain_-3_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=1420532914]
 material_override = SubResource("ORMMaterial3D_4wktd")
 mesh = ExtResource("116_r56pd")
 
-[node name="Terrain_-3_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=198070987]
+[node name="Terrain_-3_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=198070987]
 material_override = SubResource("ORMMaterial3D_j385d")
 mesh = ExtResource("117_6kym2")
 
-[node name="Terrain_-3_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1749062232]
+[node name="Terrain_-3_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=1749062232]
 material_override = SubResource("ORMMaterial3D_ukpok")
 mesh = ExtResource("118_dm3uc")
 
-[node name="Terrain_-3_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=686168207]
+[node name="Terrain_-3_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=686168207]
 material_override = SubResource("ORMMaterial3D_npmcn")
 mesh = ExtResource("119_xpst4")
 
-[node name="Terrain_-3_1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1967367678]
+[node name="Terrain_col_-3_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_0_Body" unique_id=406173278]
+shape = ExtResource("437_vj2wl")
+
+[node name="Terrain_-3_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589337]
+
+[node name="Terrain_-3_1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=1967367678]
 material_override = SubResource("ORMMaterial3D_jybbk")
 mesh = ExtResource("120_h47nv")
 
-[node name="Terrain_-3_1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1395036923]
+[node name="Terrain_-3_1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=1395036923]
 material_override = SubResource("ORMMaterial3D_hocam")
 mesh = ExtResource("121_o7mrf")
 
-[node name="Terrain_-3_1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1672680410]
+[node name="Terrain_-3_1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=1672680410]
 material_override = SubResource("ORMMaterial3D_b2k43")
 mesh = ExtResource("122_qt3hh")
 
-[node name="Terrain_-3_1__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=447182594]
+[node name="Terrain_-3_1__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=447182594]
 material_override = SubResource("ORMMaterial3D_tvwbh")
 mesh = ExtResource("123_473kv")
 
-[node name="Terrain_-3_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1972382548]
+[node name="Terrain_-3_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=1972382548]
 material_override = SubResource("ORMMaterial3D_oky8m")
 mesh = ExtResource("124_w6qhp")
 
-[node name="Terrain_-3_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=302781084]
+[node name="Terrain_-3_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=302781084]
 material_override = SubResource("ORMMaterial3D_8gq14")
 mesh = ExtResource("125_qekm8")
 
-[node name="Terrain_-3_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=439121048]
+[node name="Terrain_-3_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=439121048]
 material_override = SubResource("ORMMaterial3D_hismw")
 mesh = ExtResource("126_p66ad")
 
-[node name="Terrain_-3_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=968089607]
+[node name="Terrain_-3_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=968089607]
 material_override = SubResource("ORMMaterial3D_ougqx")
 mesh = ExtResource("127_aoqf2")
 
-[node name="Terrain_-3_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=274812673]
+[node name="Terrain_-3_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=274812673]
 material_override = SubResource("ORMMaterial3D_qbsn0")
 mesh = ExtResource("128_jiwep")
 
-[node name="Terrain_-3_2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1553245511]
+[node name="Terrain_col_-3_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_1_Body" unique_id=917691807]
+shape = ExtResource("438_7nyt2")
+
+[node name="Terrain_-3_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589338]
+
+[node name="Terrain_-3_2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_2_Body" unique_id=1553245511]
 material_override = SubResource("ORMMaterial3D_qyl1p")
 mesh = ExtResource("129_82exl")
 
-[node name="Terrain_-3_2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1790759869]
+[node name="Terrain_-3_2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_2_Body" unique_id=1790759869]
 material_override = SubResource("ORMMaterial3D_30qi6")
 mesh = ExtResource("130_b8enx")
 
-[node name="Terrain_-3_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1770972154]
+[node name="Terrain_-3_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_2_Body" unique_id=1770972154]
 material_override = SubResource("ORMMaterial3D_tj5v5")
 mesh = ExtResource("131_01d5q")
 
-[node name="Terrain_-3_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=149883058]
+[node name="Terrain_-3_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_2_Body" unique_id=149883058]
 material_override = SubResource("ORMMaterial3D_mkfkv")
 mesh = ExtResource("132_v2txu")
 
-[node name="Terrain_-3_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=730368784]
+[node name="Terrain_-3_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_2_Body" unique_id=730368784]
 material_override = SubResource("ORMMaterial3D_6aa6d")
 mesh = ExtResource("133_klp63")
 
-[node name="Terrain_-3_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=660348566]
+[node name="Terrain_-3_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_2_Body" unique_id=660348566]
 material_override = SubResource("ORMMaterial3D_4utxp")
 mesh = ExtResource("134_cydsc")
 
-[node name="Terrain_-3_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1753411725]
+[node name="Terrain_-3_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_2_Body" unique_id=1753411725]
 material_override = SubResource("ORMMaterial3D_ol3dy")
 mesh = ExtResource("135_285tb")
 
-[node name="Terrain_-3_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1392262659]
+[node name="Terrain_col_-3_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_2_Body" unique_id=330587321]
+shape = ExtResource("439_js1sy")
+
+[node name="Terrain_-3_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589339]
+
+[node name="Terrain_-3_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_3_Body" unique_id=1392262659]
 material_override = SubResource("ORMMaterial3D_4rpkn")
 mesh = ExtResource("136_c8bvc")
 
-[node name="Terrain_-2_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=676154674]
+[node name="Terrain_col_-3_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-3_3_Body" unique_id=673500096]
+shape = ExtResource("440_ts6uc")
+
+[node name="Terrain_-2_-4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589340]
+
+[node name="Terrain_-2_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-4_Body" unique_id=676154674]
 material_override = SubResource("ORMMaterial3D_sm318")
 mesh = ExtResource("137_2xrvk")
 
-[node name="Terrain_-2_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1871897380]
+[node name="Terrain_col_-2_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-4_Body" unique_id=1201363715]
+shape = ExtResource("441_f1grc")
+
+[node name="Terrain_-2_-3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589341]
+
+[node name="Terrain_-2_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-3_Body" unique_id=1871897380]
 material_override = SubResource("ORMMaterial3D_0jqe5")
 mesh = ExtResource("138_f4qmc")
 
-[node name="Terrain_-2_-3__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1257411372]
+[node name="Terrain_-2_-3__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-3_Body" unique_id=1257411372]
 material_override = SubResource("ORMMaterial3D_4yili")
 mesh = ExtResource("139_6oh1a")
 
-[node name="Terrain_-2_-3__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=617317108]
+[node name="Terrain_-2_-3__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-3_Body" unique_id=617317108]
 material_override = SubResource("ORMMaterial3D_phlhq")
 mesh = ExtResource("140_ttveo")
 
-[node name="Terrain_-2_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1476410676]
+[node name="Terrain_-2_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-3_Body" unique_id=1476410676]
 material_override = SubResource("ORMMaterial3D_v5cgv")
 mesh = ExtResource("141_hxohk")
 
-[node name="Terrain_-2_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2130107227]
+[node name="Terrain_-2_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-3_Body" unique_id=2130107227]
 material_override = SubResource("ORMMaterial3D_7oss7")
 mesh = ExtResource("142_4w6t7")
 
-[node name="Terrain_-2_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=613333768]
+[node name="Terrain_-2_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-3_Body" unique_id=613333768]
 material_override = SubResource("ORMMaterial3D_62wqg")
 mesh = ExtResource("143_mx82f")
 
-[node name="Terrain_-2_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1060431347]
+[node name="Terrain_-2_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-3_Body" unique_id=1060431347]
 material_override = SubResource("ORMMaterial3D_2rtb0")
 mesh = ExtResource("144_vjsge")
 
-[node name="Terrain_-2_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=330177427]
+[node name="Terrain_-2_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-3_Body" unique_id=330177427]
 material_override = SubResource("ORMMaterial3D_vb3mg")
 mesh = ExtResource("145_vgc8e")
 
-[node name="Terrain_-2_-2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1308732236]
+[node name="Terrain_col_-2_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-3_Body" unique_id=922735338]
+shape = ExtResource("442_vhmxq")
+
+[node name="Terrain_-2_-2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589342]
+
+[node name="Terrain_-2_-2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=1308732236]
 material_override = SubResource("ORMMaterial3D_1dsjx")
 mesh = ExtResource("146_wco3h")
 
-[node name="Terrain_-2_-2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1664976464]
+[node name="Terrain_-2_-2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=1664976464]
 material_override = SubResource("ORMMaterial3D_8cux7")
 mesh = ExtResource("147_v5xit")
 
-[node name="Terrain_-2_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1718720088]
+[node name="Terrain_-2_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=1718720088]
 material_override = SubResource("ORMMaterial3D_wjkfg")
 mesh = ExtResource("148_i3hg3")
 
-[node name="Terrain_-2_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=710463589]
+[node name="Terrain_-2_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=710463589]
 material_override = SubResource("ORMMaterial3D_jfb7w")
 mesh = ExtResource("149_uow2c")
 
-[node name="Terrain_-2_-2__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=131729494]
+[node name="Terrain_-2_-2__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=131729494]
 material_override = SubResource("ORMMaterial3D_rw5ir")
 mesh = ExtResource("150_bi3do")
 
-[node name="Terrain_-2_-2__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=8488964]
+[node name="Terrain_-2_-2__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=8488964]
 material_override = SubResource("ORMMaterial3D_7kvyx")
 mesh = ExtResource("151_m2f3g")
 
-[node name="Terrain_-2_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=251154925]
+[node name="Terrain_-2_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=251154925]
 material_override = SubResource("ORMMaterial3D_vfrr5")
 mesh = ExtResource("152_72vsh")
 
-[node name="Terrain_-2_-2__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1374071500]
+[node name="Terrain_-2_-2__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=1374071500]
 material_override = SubResource("ORMMaterial3D_q4cv7")
 mesh = ExtResource("153_35s5v")
 
-[node name="Terrain_-2_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1048913348]
+[node name="Terrain_-2_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=1048913348]
 material_override = SubResource("ORMMaterial3D_k1hkb")
 mesh = ExtResource("154_j4ad0")
 
-[node name="Terrain_-2_-1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1565230528]
+[node name="Terrain_col_-2_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-2_Body" unique_id=1732251458]
+shape = ExtResource("443_h4khv")
+
+[node name="Terrain_-2_-1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589343]
+
+[node name="Terrain_-2_-1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=1565230528]
 material_override = SubResource("ORMMaterial3D_xfpsk")
 mesh = ExtResource("155_3nodn")
 
-[node name="Terrain_-2_-1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2053204991]
+[node name="Terrain_-2_-1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=2053204991]
 material_override = SubResource("ORMMaterial3D_r2mcb")
 mesh = ExtResource("156_q5jga")
 
-[node name="Terrain_-2_-1__Resource__9223370187955161688_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=297428821]
+[node name="Terrain_-2_-1__Resource__9223370187955161688_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=297428821]
 material_override = SubResource("ORMMaterial3D_erc73")
 mesh = ExtResource("157_yjgm0")
 
-[node name="Terrain_-2_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=705068985]
+[node name="Terrain_-2_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=705068985]
 material_override = SubResource("ORMMaterial3D_1x3i4")
 mesh = ExtResource("158_8tbik")
 
-[node name="Terrain_-2_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=661991834]
+[node name="Terrain_-2_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=661991834]
 material_override = SubResource("ORMMaterial3D_gsnwq")
 mesh = ExtResource("159_327x7")
 
-[node name="Terrain_-2_-1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=857730125]
+[node name="Terrain_-2_-1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=857730125]
 material_override = SubResource("ORMMaterial3D_6c7e2")
 mesh = ExtResource("160_y4ncc")
 
-[node name="Terrain_-2_-1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1064536273]
+[node name="Terrain_-2_-1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=1064536273]
 material_override = SubResource("ORMMaterial3D_wcmkx")
 mesh = ExtResource("161_yy8j5")
 
-[node name="Terrain_-2_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=310103359]
+[node name="Terrain_-2_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=310103359]
 material_override = SubResource("ORMMaterial3D_5qmje")
 mesh = ExtResource("162_alb10")
 
-[node name="Terrain_-2_-1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1744615101]
+[node name="Terrain_-2_-1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=1744615101]
 material_override = SubResource("ORMMaterial3D_umdg4")
 mesh = ExtResource("163_xxjoc")
 
-[node name="Terrain_-2_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=184258888]
+[node name="Terrain_-2_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=184258888]
 material_override = SubResource("ORMMaterial3D_a70ok")
 mesh = ExtResource("164_8paar")
 
-[node name="Terrain_-2_0__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=905584180]
+[node name="Terrain_col_-2_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_-1_Body" unique_id=1046593653]
+shape = ExtResource("444_m326c")
+
+[node name="Terrain_-2_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589344]
+
+[node name="Terrain_-2_0__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=905584180]
 material_override = SubResource("ORMMaterial3D_rcslj")
 mesh = ExtResource("165_erw03")
 
-[node name="Terrain_-2_0__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=502512136]
+[node name="Terrain_-2_0__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=502512136]
 material_override = SubResource("ORMMaterial3D_asfey")
 mesh = ExtResource("166_06jj6")
 
-[node name="Terrain_-2_0__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=810189513]
+[node name="Terrain_-2_0__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=810189513]
 material_override = SubResource("ORMMaterial3D_b3j3t")
 mesh = ExtResource("167_xje3l")
 
-[node name="Terrain_-2_0__Resource__9223370187955161688_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=319413732]
+[node name="Terrain_-2_0__Resource__9223370187955161688_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=319413732]
 material_override = SubResource("ORMMaterial3D_lgkhx")
 mesh = ExtResource("168_g4klx")
 
-[node name="Terrain_-2_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1935001359]
+[node name="Terrain_-2_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=1935001359]
 material_override = SubResource("ORMMaterial3D_xm071")
 mesh = ExtResource("169_auen0")
 
-[node name="Terrain_-2_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1173518143]
+[node name="Terrain_-2_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=1173518143]
 material_override = SubResource("ORMMaterial3D_tiux8")
 mesh = ExtResource("170_kxqwt")
 
-[node name="Terrain_-2_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1456565840]
+[node name="Terrain_-2_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=1456565840]
 material_override = SubResource("ORMMaterial3D_fl03m")
 mesh = ExtResource("171_772cd")
 
-[node name="Terrain_-2_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=488444985]
+[node name="Terrain_-2_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=488444985]
 material_override = SubResource("ORMMaterial3D_7jq3y")
 mesh = ExtResource("172_gklbm")
 
-[node name="Terrain_-2_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1785597764]
+[node name="Terrain_-2_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=1785597764]
 material_override = SubResource("ORMMaterial3D_4goxw")
 mesh = ExtResource("173_0ksqd")
 
-[node name="Terrain_-2_1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=11549884]
+[node name="Terrain_col_-2_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_0_Body" unique_id=669053975]
+shape = ExtResource("445_e7u0v")
+
+[node name="Terrain_-2_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589345]
+
+[node name="Terrain_-2_1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_1_Body" unique_id=11549884]
 material_override = SubResource("ORMMaterial3D_32ak8")
 mesh = ExtResource("174_nxg36")
 
-[node name="Terrain_-2_1__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=284362706]
+[node name="Terrain_-2_1__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_1_Body" unique_id=284362706]
 material_override = SubResource("ORMMaterial3D_u7n60")
 mesh = ExtResource("175_emaf4")
 
-[node name="Terrain_-2_1__Resource__9223370187955161688_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1671172012]
+[node name="Terrain_-2_1__Resource__9223370187955161688_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_1_Body" unique_id=1671172012]
 material_override = SubResource("ORMMaterial3D_70oc5")
 mesh = ExtResource("176_4jjcd")
 
-[node name="Terrain_-2_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1895668011]
+[node name="Terrain_-2_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_1_Body" unique_id=1895668011]
 material_override = SubResource("ORMMaterial3D_qnd3k")
 mesh = ExtResource("177_v8rqj")
 
-[node name="Terrain_-2_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1047486105]
+[node name="Terrain_-2_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_1_Body" unique_id=1047486105]
 material_override = SubResource("ORMMaterial3D_s63uh")
 mesh = ExtResource("178_dhhua")
 
-[node name="Terrain_-2_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1190616302]
+[node name="Terrain_-2_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_1_Body" unique_id=1190616302]
 material_override = SubResource("ORMMaterial3D_c6cjr")
 mesh = ExtResource("179_4pkud")
 
-[node name="Terrain_-2_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=87743]
+[node name="Terrain_-2_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_1_Body" unique_id=87743]
 material_override = SubResource("ORMMaterial3D_17itx")
 mesh = ExtResource("180_v2kod")
 
-[node name="Terrain_-2_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2100678704]
+[node name="Terrain_-2_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_1_Body" unique_id=2100678704]
 material_override = SubResource("ORMMaterial3D_iwctc")
 mesh = ExtResource("181_h1p1i")
 
-[node name="Terrain_-2_2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=493634244]
+[node name="Terrain_col_-2_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_1_Body" unique_id=1984921997]
+shape = ExtResource("446_4wktd")
+
+[node name="Terrain_-2_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589346]
+
+[node name="Terrain_-2_2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=493634244]
 material_override = SubResource("ORMMaterial3D_y4t4o")
 mesh = ExtResource("182_a4etl")
 
-[node name="Terrain_-2_2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1897810603]
+[node name="Terrain_-2_2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=1897810603]
 material_override = SubResource("ORMMaterial3D_hgl6y")
 mesh = ExtResource("183_nhud6")
 
-[node name="Terrain_-2_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1572781420]
+[node name="Terrain_-2_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=1572781420]
 material_override = SubResource("ORMMaterial3D_a0rki")
 mesh = ExtResource("184_2h12t")
 
-[node name="Terrain_-2_2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1599586925]
+[node name="Terrain_-2_2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=1599586925]
 material_override = SubResource("ORMMaterial3D_gfxel")
 mesh = ExtResource("185_8kne7")
 
-[node name="Terrain_-2_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1499819048]
+[node name="Terrain_-2_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=1499819048]
 material_override = SubResource("ORMMaterial3D_e6w44")
 mesh = ExtResource("186_kovq4")
 
-[node name="Terrain_-2_2__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=994600690]
+[node name="Terrain_-2_2__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=994600690]
 material_override = SubResource("ORMMaterial3D_fr6fv")
 mesh = ExtResource("187_b6xki")
 
-[node name="Terrain_-2_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=171408631]
+[node name="Terrain_-2_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=171408631]
 material_override = SubResource("ORMMaterial3D_3v238")
 mesh = ExtResource("188_1uih5")
 
-[node name="Terrain_-2_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=763361861]
+[node name="Terrain_-2_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=763361861]
 material_override = SubResource("ORMMaterial3D_ficou")
 mesh = ExtResource("189_e0k8a")
 
-[node name="Terrain_-2_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1934194352]
+[node name="Terrain_-2_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=1934194352]
 material_override = SubResource("ORMMaterial3D_apavw")
 mesh = ExtResource("190_olyt7")
 
-[node name="Terrain_-2_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2098240688]
+[node name="Terrain_col_-2_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_2_Body" unique_id=1178519515]
+shape = ExtResource("447_j385d")
+
+[node name="Terrain_-2_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589347]
+
+[node name="Terrain_-2_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_3_Body" unique_id=2098240688]
 material_override = SubResource("ORMMaterial3D_nrpqe")
 mesh = ExtResource("191_xeo5r")
 
-[node name="Terrain_-1_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=995443027]
+[node name="Terrain_col_-2_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-2_3_Body" unique_id=1252335470]
+shape = ExtResource("448_ukpok")
+
+[node name="Terrain_-1_-4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589348]
+
+[node name="Terrain_-1_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-4_Body" unique_id=995443027]
 material_override = SubResource("ORMMaterial3D_y6jcc")
 mesh = ExtResource("192_pbava")
 
-[node name="Terrain_-1_-4__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1864657052]
+[node name="Terrain_-1_-4__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-4_Body" unique_id=1864657052]
 material_override = SubResource("ORMMaterial3D_ocyt7")
 mesh = ExtResource("193_qo73j")
 
-[node name="Terrain_-1_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1233802432]
+[node name="Terrain_col_-1_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-4_Body" unique_id=1477882933]
+shape = ExtResource("449_npmcn")
+
+[node name="Terrain_-1_-3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589349]
+
+[node name="Terrain_-1_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=1233802432]
 material_override = SubResource("ORMMaterial3D_taygq")
 mesh = ExtResource("194_uxeyh")
 
-[node name="Terrain_-1_-3__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1313120975]
+[node name="Terrain_-1_-3__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=1313120975]
 material_override = SubResource("ORMMaterial3D_fx11y")
 mesh = ExtResource("195_dhwnq")
 
-[node name="Terrain_-1_-3__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=478029907]
+[node name="Terrain_-1_-3__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=478029907]
 material_override = SubResource("ORMMaterial3D_1tu6m")
 mesh = ExtResource("196_7l3el")
 
-[node name="Terrain_-1_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=819433447]
+[node name="Terrain_-1_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=819433447]
 material_override = SubResource("ORMMaterial3D_6aaxp")
 mesh = ExtResource("197_gu1p8")
 
-[node name="Terrain_-1_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1899915054]
+[node name="Terrain_-1_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=1899915054]
 material_override = SubResource("ORMMaterial3D_avqiw")
 mesh = ExtResource("198_q3o6c")
 
-[node name="Terrain_-1_-3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=493512779]
+[node name="Terrain_-1_-3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=493512779]
 material_override = SubResource("ORMMaterial3D_waiut")
 mesh = ExtResource("199_84m6v")
 
-[node name="Terrain_-1_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1996291947]
+[node name="Terrain_-1_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=1996291947]
 material_override = SubResource("ORMMaterial3D_dkoxe")
 mesh = ExtResource("200_hj1u1")
 
-[node name="Terrain_-1_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=628930581]
+[node name="Terrain_-1_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=628930581]
 material_override = SubResource("ORMMaterial3D_p4dlv")
 mesh = ExtResource("201_ns70d")
 
-[node name="Terrain_-1_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1350314479]
+[node name="Terrain_-1_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=1350314479]
 material_override = SubResource("ORMMaterial3D_iry0c")
 mesh = ExtResource("202_br7g3")
 
-[node name="Terrain_-1_-2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1073901044]
+[node name="Terrain_col_-1_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-3_Body" unique_id=1331258799]
+shape = ExtResource("450_jybbk")
+
+[node name="Terrain_-1_-2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589350]
+
+[node name="Terrain_-1_-2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=1073901044]
 material_override = SubResource("ORMMaterial3D_wkm6s")
 mesh = ExtResource("203_eeonk")
 
-[node name="Terrain_-1_-2__Resource__9223370187602840131_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1344572739]
+[node name="Terrain_-1_-2__Resource__9223370187602840131_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=1344572739]
 material_override = SubResource("ORMMaterial3D_ggkmi")
 mesh = ExtResource("204_c6uhw")
 
-[node name="Terrain_-1_-2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1902509032]
+[node name="Terrain_-1_-2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=1902509032]
 material_override = SubResource("ORMMaterial3D_1ykli")
 mesh = ExtResource("205_xmumg")
 
-[node name="Terrain_-1_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=391915005]
+[node name="Terrain_-1_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=391915005]
 material_override = SubResource("ORMMaterial3D_0yq04")
 mesh = ExtResource("206_7m1tx")
 
-[node name="Terrain_-1_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=638839078]
+[node name="Terrain_-1_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=638839078]
 material_override = SubResource("ORMMaterial3D_7mbm6")
 mesh = ExtResource("207_8bu6y")
 
-[node name="Terrain_-1_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1525622166]
+[node name="Terrain_-1_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=1525622166]
 material_override = SubResource("ORMMaterial3D_foxln")
 mesh = ExtResource("208_acx84")
 
-[node name="Terrain_-1_-2__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1803570053]
+[node name="Terrain_-1_-2__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=1803570053]
 material_override = SubResource("ORMMaterial3D_nsguq")
 mesh = ExtResource("209_vcwgu")
 
-[node name="Terrain_-1_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1576511735]
+[node name="Terrain_-1_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=1576511735]
 material_override = SubResource("ORMMaterial3D_7ggjn")
 mesh = ExtResource("210_15e5g")
 
-[node name="Terrain_-1_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1317789283]
+[node name="Terrain_-1_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=1317789283]
 material_override = SubResource("ORMMaterial3D_r1qlo")
 mesh = ExtResource("211_whx7p")
 
-[node name="Terrain_-1_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=205671989]
+[node name="Terrain_col_-1_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-2_Body" unique_id=1397366321]
+shape = ExtResource("451_hocam")
+
+[node name="Terrain_-1_-1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589351]
+
+[node name="Terrain_-1_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-1_Body" unique_id=205671989]
 material_override = SubResource("ORMMaterial3D_brbh2")
 mesh = ExtResource("212_1ijsm")
 
-[node name="Terrain_-1_-1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=751812115]
+[node name="Terrain_-1_-1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-1_Body" unique_id=751812115]
 material_override = SubResource("ORMMaterial3D_np6ob")
 mesh = ExtResource("213_75kjp")
 
-[node name="Terrain_-1_-1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=327833635]
+[node name="Terrain_-1_-1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-1_Body" unique_id=327833635]
 material_override = SubResource("ORMMaterial3D_e8680")
 mesh = ExtResource("214_2us04")
 
-[node name="Terrain_-1_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=430847404]
+[node name="Terrain_-1_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-1_Body" unique_id=430847404]
 material_override = SubResource("ORMMaterial3D_76fes")
 mesh = ExtResource("215_twh8i")
 
-[node name="Terrain_-1_-1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=337903103]
+[node name="Terrain_-1_-1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-1_Body" unique_id=337903103]
 material_override = SubResource("ORMMaterial3D_igfml")
 mesh = ExtResource("216_oma0x")
 
-[node name="Terrain_-1_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=72466084]
+[node name="Terrain_-1_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-1_Body" unique_id=72466084]
 material_override = SubResource("ORMMaterial3D_alt7u")
 mesh = ExtResource("217_50sni")
 
-[node name="Terrain_-1_0__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=38055439]
+[node name="Terrain_col_-1_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_-1_Body" unique_id=2115071041]
+shape = ExtResource("452_b2k43")
+
+[node name="Terrain_-1_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589352]
+
+[node name="Terrain_-1_0__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=38055439]
 material_override = SubResource("ORMMaterial3D_ueg8h")
 mesh = ExtResource("218_6jugu")
 
-[node name="Terrain_-1_0__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1859095312]
+[node name="Terrain_-1_0__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=1859095312]
 material_override = SubResource("ORMMaterial3D_m4yy4")
 mesh = ExtResource("219_oy68g")
 
-[node name="Terrain_-1_0__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=809158964]
+[node name="Terrain_-1_0__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=809158964]
 material_override = SubResource("ORMMaterial3D_66871")
 mesh = ExtResource("220_0xtvv")
 
-[node name="Terrain_-1_0__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1864374730]
+[node name="Terrain_-1_0__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=1864374730]
 material_override = SubResource("ORMMaterial3D_il34e")
 mesh = ExtResource("221_qwc1n")
 
-[node name="Terrain_-1_0__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2052397397]
+[node name="Terrain_-1_0__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=2052397397]
 material_override = SubResource("ORMMaterial3D_b3gg3")
 mesh = ExtResource("222_366th")
 
-[node name="Terrain_-1_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=349097546]
+[node name="Terrain_-1_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=349097546]
 material_override = SubResource("ORMMaterial3D_fdgl3")
 mesh = ExtResource("223_wlgp7")
 
-[node name="Terrain_-1_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=280821443]
+[node name="Terrain_-1_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=280821443]
 material_override = SubResource("ORMMaterial3D_gmmyh")
 mesh = ExtResource("224_fh8ck")
 
-[node name="Terrain_-1_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=394090916]
+[node name="Terrain_-1_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=394090916]
 material_override = SubResource("ORMMaterial3D_pv0yj")
 mesh = ExtResource("225_s41hj")
 
-[node name="Terrain_-1_0__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1668347636]
+[node name="Terrain_-1_0__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=1668347636]
 material_override = SubResource("ORMMaterial3D_yynsg")
 mesh = ExtResource("226_2mn3a")
 
-[node name="Terrain_-1_0__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=616827834]
+[node name="Terrain_-1_0__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=616827834]
 material_override = SubResource("ORMMaterial3D_yfuoy")
 mesh = ExtResource("227_m8omi")
 
-[node name="Terrain_-1_0__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2021446773]
+[node name="Terrain_-1_0__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=2021446773]
 material_override = SubResource("ORMMaterial3D_4sri6")
 mesh = ExtResource("228_j50h7")
 
-[node name="Terrain_-1_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=318968949]
+[node name="Terrain_-1_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=318968949]
 material_override = SubResource("ORMMaterial3D_08gwp")
 mesh = ExtResource("229_1e8h0")
 
-[node name="Terrain_-1_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=336482013]
+[node name="Terrain_-1_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=336482013]
 material_override = SubResource("ORMMaterial3D_mkd0f")
 mesh = ExtResource("230_mvmmh")
 
-[node name="Terrain_-1_1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1221040534]
+[node name="Terrain_col_-1_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_0_Body" unique_id=1260017209]
+shape = ExtResource("453_tvwbh")
+
+[node name="Terrain_-1_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589353]
+
+[node name="Terrain_-1_1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_1_Body" unique_id=1221040534]
 material_override = SubResource("ORMMaterial3D_nnvcy")
 mesh = ExtResource("231_pdhls")
 
-[node name="Terrain_-1_1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1159280454]
+[node name="Terrain_-1_1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_1_Body" unique_id=1159280454]
 material_override = SubResource("ORMMaterial3D_ns4ga")
 mesh = ExtResource("232_7qn4d")
 
-[node name="Terrain_-1_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=6394442]
+[node name="Terrain_-1_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_1_Body" unique_id=6394442]
 material_override = SubResource("ORMMaterial3D_vp1v6")
 mesh = ExtResource("233_re7iu")
 
-[node name="Terrain_-1_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=225320466]
+[node name="Terrain_-1_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_1_Body" unique_id=225320466]
 material_override = SubResource("ORMMaterial3D_2cqlq")
 mesh = ExtResource("234_oec1q")
 
-[node name="Terrain_-1_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1392366843]
+[node name="Terrain_-1_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_1_Body" unique_id=1392366843]
 material_override = SubResource("ORMMaterial3D_hgig6")
 mesh = ExtResource("235_q7pwq")
 
-[node name="Terrain_-1_1__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=836103271]
+[node name="Terrain_-1_1__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_1_Body" unique_id=836103271]
 material_override = SubResource("ORMMaterial3D_g4aif")
 mesh = ExtResource("236_vwt3v")
 
-[node name="Terrain_-1_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=373652839]
+[node name="Terrain_-1_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_1_Body" unique_id=373652839]
 material_override = SubResource("ORMMaterial3D_qusdn")
 mesh = ExtResource("237_gwdu8")
 
-[node name="Terrain_-1_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1457972765]
+[node name="Terrain_-1_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_1_Body" unique_id=1457972765]
 material_override = SubResource("ORMMaterial3D_iux7m")
 mesh = ExtResource("238_6wg72")
 
-[node name="Terrain_-1_2__Resource__9223370187602840131_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=184527378]
+[node name="Terrain_col_-1_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_1_Body" unique_id=873547665]
+shape = ExtResource("454_oky8m")
+
+[node name="Terrain_-1_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589354]
+
+[node name="Terrain_-1_2__Resource__9223370187602840131_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=184527378]
 material_override = SubResource("ORMMaterial3D_meusg")
 mesh = ExtResource("239_sw0ek")
 
-[node name="Terrain_-1_2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=924383306]
+[node name="Terrain_-1_2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=924383306]
 material_override = SubResource("ORMMaterial3D_ysri8")
 mesh = ExtResource("240_p1042")
 
-[node name="Terrain_-1_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1180497816]
+[node name="Terrain_-1_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=1180497816]
 material_override = SubResource("ORMMaterial3D_ign6r")
 mesh = ExtResource("241_t7anp")
 
-[node name="Terrain_-1_2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1900926922]
+[node name="Terrain_-1_2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=1900926922]
 material_override = SubResource("ORMMaterial3D_a75rt")
 mesh = ExtResource("242_tdljq")
 
-[node name="Terrain_-1_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1905173834]
+[node name="Terrain_-1_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=1905173834]
 material_override = SubResource("ORMMaterial3D_qj12p")
 mesh = ExtResource("243_2251x")
 
-[node name="Terrain_-1_2__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1901070084]
+[node name="Terrain_-1_2__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=1901070084]
 material_override = SubResource("ORMMaterial3D_vgbhs")
 mesh = ExtResource("244_gdmdb")
 
-[node name="Terrain_-1_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1297501732]
+[node name="Terrain_-1_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=1297501732]
 material_override = SubResource("ORMMaterial3D_h1xka")
 mesh = ExtResource("245_dr5my")
 
-[node name="Terrain_-1_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1164368154]
+[node name="Terrain_-1_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=1164368154]
 material_override = SubResource("ORMMaterial3D_n8bnl")
 mesh = ExtResource("246_mqn8m")
 
-[node name="Terrain_-1_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=170431452]
+[node name="Terrain_-1_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=170431452]
 material_override = SubResource("ORMMaterial3D_of35d")
 mesh = ExtResource("247_76mns")
 
-[node name="Terrain_-1_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1602335225]
+[node name="Terrain_col_-1_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_2_Body" unique_id=660496315]
+shape = ExtResource("455_8gq14")
+
+[node name="Terrain_-1_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589355]
+
+[node name="Terrain_-1_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_3_Body" unique_id=1602335225]
 material_override = SubResource("ORMMaterial3D_1rawn")
 mesh = ExtResource("248_wsmcf")
 
-[node name="Terrain_-1_3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1572765879]
+[node name="Terrain_-1_3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_3_Body" unique_id=1572765879]
 material_override = SubResource("ORMMaterial3D_d8d3a")
 mesh = ExtResource("249_jtgdk")
 
-[node name="Terrain_-1_3__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=433819165]
+[node name="Terrain_-1_3__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_3_Body" unique_id=433819165]
 material_override = SubResource("ORMMaterial3D_3cwdv")
 mesh = ExtResource("250_6qmya")
 
-[node name="Terrain_0_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=945948805]
+[node name="Terrain_col_-1_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_-1_3_Body" unique_id=1051574638]
+shape = ExtResource("456_hismw")
+
+[node name="Terrain_0_-4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589356]
+
+[node name="Terrain_0_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-4_Body" unique_id=945948805]
 material_override = SubResource("ORMMaterial3D_fhny2")
 mesh = ExtResource("251_s0x0x")
 
-[node name="Terrain_0_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=495151560]
+[node name="Terrain_col_0_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-4_Body" unique_id=672247807]
+shape = ExtResource("457_ougqx")
+
+[node name="Terrain_0_-3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589357]
+
+[node name="Terrain_0_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=495151560]
 material_override = SubResource("ORMMaterial3D_ad8eo")
 mesh = ExtResource("252_aw4k4")
 
-[node name="Terrain_0_-3__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=42912672]
+[node name="Terrain_0_-3__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=42912672]
 material_override = SubResource("ORMMaterial3D_rwnwb")
 mesh = ExtResource("253_s84dy")
 
-[node name="Terrain_0_-3__Resource__9223370187602840131_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1964244355]
+[node name="Terrain_0_-3__Resource__9223370187602840131_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=1964244355]
 material_override = SubResource("ORMMaterial3D_crsot")
 mesh = ExtResource("254_wck81")
 
-[node name="Terrain_0_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1301043423]
+[node name="Terrain_0_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=1301043423]
 material_override = SubResource("ORMMaterial3D_r53o8")
 mesh = ExtResource("255_qa8eu")
 
-[node name="Terrain_0_-3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1732952060]
+[node name="Terrain_0_-3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=1732952060]
 material_override = SubResource("ORMMaterial3D_7cagc")
 mesh = ExtResource("256_yhfwx")
 
-[node name="Terrain_0_-3__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1064158629]
+[node name="Terrain_0_-3__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=1064158629]
 material_override = SubResource("ORMMaterial3D_0tqfm")
 mesh = ExtResource("257_48awl")
 
-[node name="Terrain_0_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1950379363]
+[node name="Terrain_0_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=1950379363]
 material_override = SubResource("ORMMaterial3D_raqbg")
 mesh = ExtResource("258_mdur2")
 
-[node name="Terrain_0_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=377770470]
+[node name="Terrain_0_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=377770470]
 material_override = SubResource("ORMMaterial3D_aluf3")
 mesh = ExtResource("259_25ch3")
 
-[node name="Terrain_0_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2023890280]
+[node name="Terrain_0_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=2023890280]
 material_override = SubResource("ORMMaterial3D_c1q42")
 mesh = ExtResource("260_wxeej")
 
-[node name="Terrain_0_-2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1979196298]
+[node name="Terrain_col_0_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-3_Body" unique_id=1396402690]
+shape = ExtResource("458_qbsn0")
+
+[node name="Terrain_0_-2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589358]
+
+[node name="Terrain_0_-2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=1979196298]
 material_override = SubResource("ORMMaterial3D_f46wm")
 mesh = ExtResource("261_rhcbi")
 
-[node name="Terrain_0_-2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1022788820]
+[node name="Terrain_0_-2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=1022788820]
 material_override = SubResource("ORMMaterial3D_vx7la")
 mesh = ExtResource("262_e0ufm")
 
-[node name="Terrain_0_-2__Resource__9223370187602840131_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1066665814]
+[node name="Terrain_0_-2__Resource__9223370187602840131_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=1066665814]
 material_override = SubResource("ORMMaterial3D_mfuxu")
 mesh = ExtResource("263_cx3xv")
 
-[node name="Terrain_0_-2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1681975522]
+[node name="Terrain_0_-2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=1681975522]
 material_override = SubResource("ORMMaterial3D_tuway")
 mesh = ExtResource("264_23pno")
 
-[node name="Terrain_0_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1651962245]
+[node name="Terrain_0_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=1651962245]
 material_override = SubResource("ORMMaterial3D_f1j7a")
 mesh = ExtResource("265_yfw2u")
 
-[node name="Terrain_0_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=466946873]
+[node name="Terrain_0_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=466946873]
 material_override = SubResource("ORMMaterial3D_d2nxi")
 mesh = ExtResource("266_6iq0l")
 
-[node name="Terrain_0_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1882482321]
+[node name="Terrain_0_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=1882482321]
 material_override = SubResource("ORMMaterial3D_cocx5")
 mesh = ExtResource("267_aqcfk")
 
-[node name="Terrain_0_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=94152309]
+[node name="Terrain_0_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=94152309]
 material_override = SubResource("ORMMaterial3D_hfr07")
 mesh = ExtResource("268_8qsly")
 
-[node name="Terrain_0_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1526254532]
+[node name="Terrain_0_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=1526254532]
 material_override = SubResource("ORMMaterial3D_w0p1m")
 mesh = ExtResource("269_vx8kh")
 
-[node name="Terrain_0_-1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=213327041]
+[node name="Terrain_col_0_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-2_Body" unique_id=1075217408]
+shape = ExtResource("459_qyl1p")
+
+[node name="Terrain_0_-1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589359]
+
+[node name="Terrain_0_-1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=213327041]
 material_override = SubResource("ORMMaterial3D_x21lq")
 mesh = ExtResource("270_78n5k")
 
-[node name="Terrain_0_-1__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1387369643]
+[node name="Terrain_0_-1__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=1387369643]
 material_override = SubResource("ORMMaterial3D_rif36")
 mesh = ExtResource("271_xuq07")
 
-[node name="Terrain_0_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2055914702]
+[node name="Terrain_0_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=2055914702]
 material_override = SubResource("ORMMaterial3D_6i4ys")
 mesh = ExtResource("272_7ac1a")
 
-[node name="Terrain_0_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2071605239]
+[node name="Terrain_0_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=2071605239]
 material_override = SubResource("ORMMaterial3D_d1vxf")
 mesh = ExtResource("273_bo08f")
 
-[node name="Terrain_0_-1__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1945838939]
+[node name="Terrain_0_-1__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=1945838939]
 material_override = SubResource("ORMMaterial3D_ed0sx")
 mesh = ExtResource("274_qcyne")
 
-[node name="Terrain_0_-1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1458499033]
+[node name="Terrain_0_-1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=1458499033]
 material_override = SubResource("ORMMaterial3D_l7mbj")
 mesh = ExtResource("275_6wl5b")
 
-[node name="Terrain_0_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=287859561]
+[node name="Terrain_0_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=287859561]
 material_override = SubResource("ORMMaterial3D_ut6o3")
 mesh = ExtResource("276_aoxlr")
 
-[node name="Terrain_0_-1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=113325650]
+[node name="Terrain_0_-1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=113325650]
 material_override = SubResource("ORMMaterial3D_rtkt3")
 mesh = ExtResource("277_4nliv")
 
-[node name="Terrain_0_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=893649879]
+[node name="Terrain_0_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=893649879]
 material_override = SubResource("ORMMaterial3D_3rnkj")
 mesh = ExtResource("278_g4x17")
 
-[node name="Terrain_0_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=392574396]
+[node name="Terrain_col_0_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_-1_Body" unique_id=936093969]
+shape = ExtResource("460_30qi6")
+
+[node name="Terrain_0_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589360]
+
+[node name="Terrain_0_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_0_Body" unique_id=392574396]
 material_override = SubResource("ORMMaterial3D_0pdg0")
 mesh = ExtResource("279_lyhmg")
 
-[node name="Terrain_0_0__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=16762258]
+[node name="Terrain_0_0__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_0_Body" unique_id=16762258]
 material_override = SubResource("ORMMaterial3D_7clpi")
 mesh = ExtResource("283_1t8ju")
 
-[node name="Terrain_0_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1188064832]
+[node name="Terrain_0_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_0_Body" unique_id=1188064832]
 material_override = SubResource("ORMMaterial3D_hnlno")
 mesh = ExtResource("284_tpygx")
 
-[node name="Terrain_0_0__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=822829222]
+[node name="Terrain_0_0__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_0_Body" unique_id=822829222]
 material_override = SubResource("ORMMaterial3D_ix2ml")
 mesh = ExtResource("285_yd6pe")
 
-[node name="Terrain_0_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1993616800]
+[node name="Terrain_0_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_0_Body" unique_id=1993616800]
 material_override = SubResource("ORMMaterial3D_qvd32")
 mesh = ExtResource("286_7xgvg")
 
-[node name="Terrain_0_0__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1722086483]
+[node name="Terrain_0_0__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_0_Body" unique_id=1722086483]
 material_override = SubResource("ORMMaterial3D_ph1y4")
 mesh = ExtResource("287_odjmq")
 
-[node name="Terrain_0_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1584832205]
+[node name="Terrain_0_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_0_Body" unique_id=1584832205]
 material_override = SubResource("ORMMaterial3D_vitju")
 mesh = ExtResource("288_i04we")
 
-[node name="Terrain_0_1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=338353502]
+[node name="Terrain_col_0_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_0_Body" unique_id=1315865449]
+shape = ExtResource("461_tj5v5")
+
+[node name="Terrain_0_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589361]
+
+[node name="Terrain_0_1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=338353502]
 material_override = SubResource("ORMMaterial3D_r7x4f")
 mesh = ExtResource("289_dcooi")
 
-[node name="Terrain_0_1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=892525702]
+[node name="Terrain_0_1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=892525702]
 material_override = SubResource("ORMMaterial3D_hjbny")
 mesh = ExtResource("290_xv0ak")
 
-[node name="Terrain_0_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2130120430]
+[node name="Terrain_0_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=2130120430]
 material_override = SubResource("ORMMaterial3D_ryf14")
 mesh = ExtResource("291_kdp6h")
 
-[node name="Terrain_0_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1361802313]
+[node name="Terrain_0_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=1361802313]
 material_override = SubResource("ORMMaterial3D_ow7sm")
 mesh = ExtResource("292_84ndk")
 
-[node name="Terrain_0_1__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=929388254]
+[node name="Terrain_0_1__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=929388254]
 material_override = SubResource("ORMMaterial3D_c8ojk")
 mesh = ExtResource("293_o17wx")
 
-[node name="Terrain_0_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1674555032]
+[node name="Terrain_0_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=1674555032]
 material_override = SubResource("ORMMaterial3D_wdvnx")
 mesh = ExtResource("294_vjia1")
 
-[node name="Terrain_0_1__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=265740378]
+[node name="Terrain_0_1__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=265740378]
 material_override = SubResource("ORMMaterial3D_2l4cu")
 mesh = ExtResource("295_8k7l1")
 
-[node name="Terrain_0_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=865124876]
+[node name="Terrain_0_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=865124876]
 material_override = SubResource("ORMMaterial3D_3evfw")
 mesh = ExtResource("296_3ya4r")
 
-[node name="Terrain_0_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=667213183]
+[node name="Terrain_0_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=667213183]
 material_override = SubResource("ORMMaterial3D_xarde")
 mesh = ExtResource("297_rotr0")
 
-[node name="Terrain_0_2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=375849467]
+[node name="Terrain_col_0_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_1_Body" unique_id=1743675265]
+shape = ExtResource("462_mkfkv")
+
+[node name="Terrain_0_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589362]
+
+[node name="Terrain_0_2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_2_Body" unique_id=375849467]
 material_override = SubResource("ORMMaterial3D_p2duc")
 mesh = ExtResource("298_dovj6")
 
-[node name="Terrain_0_2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1560979678]
+[node name="Terrain_0_2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_2_Body" unique_id=1560979678]
 material_override = SubResource("ORMMaterial3D_egrhs")
 mesh = ExtResource("299_oabcj")
 
-[node name="Terrain_0_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=33709938]
+[node name="Terrain_0_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_2_Body" unique_id=33709938]
 material_override = SubResource("ORMMaterial3D_kmsht")
 mesh = ExtResource("300_fk2ls")
 
-[node name="Terrain_0_2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1914290016]
+[node name="Terrain_0_2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_2_Body" unique_id=1914290016]
 material_override = SubResource("ORMMaterial3D_i331a")
 mesh = ExtResource("301_24gp1")
 
-[node name="Terrain_0_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1212216694]
+[node name="Terrain_0_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_2_Body" unique_id=1212216694]
 material_override = SubResource("ORMMaterial3D_a5wbh")
 mesh = ExtResource("302_h3504")
 
-[node name="Terrain_0_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=335520848]
+[node name="Terrain_0_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_2_Body" unique_id=335520848]
 material_override = SubResource("ORMMaterial3D_yhjur")
 mesh = ExtResource("303_7g3cx")
 
-[node name="Terrain_0_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=250965221]
+[node name="Terrain_0_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_2_Body" unique_id=250965221]
 material_override = SubResource("ORMMaterial3D_dxlli")
 mesh = ExtResource("304_5nggt")
 
-[node name="Terrain_0_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=417621287]
+[node name="Terrain_0_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_2_Body" unique_id=417621287]
 material_override = SubResource("ORMMaterial3D_qauba")
 mesh = ExtResource("305_1jij6")
 
-[node name="Terrain_0_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=801004878]
+[node name="Terrain_col_0_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_2_Body" unique_id=844947802]
+shape = ExtResource("463_6aa6d")
+
+[node name="Terrain_0_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589363]
+
+[node name="Terrain_0_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_3_Body" unique_id=801004878]
 material_override = SubResource("ORMMaterial3D_4brif")
 mesh = ExtResource("306_6feus")
 
-[node name="Terrain_0_3__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1037327572]
+[node name="Terrain_0_3__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_3_Body" unique_id=1037327572]
 material_override = SubResource("ORMMaterial3D_nhk04")
 mesh = ExtResource("307_qo3v8")
 
-[node name="Terrain_1_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2109214897]
+[node name="Terrain_col_0_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_0_3_Body" unique_id=710686118]
+shape = ExtResource("464_4utxp")
+
+[node name="Terrain_1_-4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589364]
+
+[node name="Terrain_1_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-4_Body" unique_id=2109214897]
 material_override = SubResource("ORMMaterial3D_6a20h")
 mesh = ExtResource("308_5kxcg")
 
-[node name="Terrain_1_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1698909559]
+[node name="Terrain_col_1_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-4_Body" unique_id=1729621063]
+shape = ExtResource("465_ol3dy")
+
+[node name="Terrain_1_-3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589365]
+
+[node name="Terrain_1_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-3_Body" unique_id=1698909559]
 material_override = SubResource("ORMMaterial3D_4u42v")
 mesh = ExtResource("309_3o7x8")
 
-[node name="Terrain_1_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1010073093]
+[node name="Terrain_1_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-3_Body" unique_id=1010073093]
 material_override = SubResource("ORMMaterial3D_35rvq")
 mesh = ExtResource("310_ciye8")
 
-[node name="Terrain_1_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=250537597]
+[node name="Terrain_1_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-3_Body" unique_id=250537597]
 material_override = SubResource("ORMMaterial3D_eswpr")
 mesh = ExtResource("311_dfy20")
 
-[node name="Terrain_1_-3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=206344131]
+[node name="Terrain_1_-3__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-3_Body" unique_id=206344131]
 material_override = SubResource("ORMMaterial3D_3py2t")
 mesh = ExtResource("312_apmll")
 
-[node name="Terrain_1_-3__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=606135768]
+[node name="Terrain_1_-3__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-3_Body" unique_id=606135768]
 material_override = SubResource("ORMMaterial3D_hpib2")
 mesh = ExtResource("313_73quc")
 
-[node name="Terrain_1_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=951207211]
+[node name="Terrain_1_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-3_Body" unique_id=951207211]
 material_override = SubResource("ORMMaterial3D_yo8ga")
 mesh = ExtResource("314_caehy")
 
-[node name="Terrain_1_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=666006213]
+[node name="Terrain_1_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-3_Body" unique_id=666006213]
 material_override = SubResource("ORMMaterial3D_vgp4w")
 mesh = ExtResource("315_kspd4")
 
-[node name="Terrain_1_-2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=806433128]
+[node name="Terrain_col_1_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-3_Body" unique_id=1758092914]
+shape = ExtResource("466_4rpkn")
+
+[node name="Terrain_1_-2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589366]
+
+[node name="Terrain_1_-2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=806433128]
 material_override = SubResource("ORMMaterial3D_vtmqy")
 mesh = ExtResource("316_stipo")
 
-[node name="Terrain_1_-2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1611472581]
+[node name="Terrain_1_-2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=1611472581]
 material_override = SubResource("ORMMaterial3D_m1hf7")
 mesh = ExtResource("317_s3p0a")
 
-[node name="Terrain_1_-2__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1690924416]
+[node name="Terrain_1_-2__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=1690924416]
 material_override = SubResource("ORMMaterial3D_jyi53")
 mesh = ExtResource("318_5oagb")
 
-[node name="Terrain_1_-2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=443293103]
+[node name="Terrain_1_-2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=443293103]
 material_override = SubResource("ORMMaterial3D_fedkp")
 mesh = ExtResource("319_v4aqh")
 
-[node name="Terrain_1_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=821008952]
+[node name="Terrain_1_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=821008952]
 material_override = SubResource("ORMMaterial3D_itoex")
 mesh = ExtResource("320_jk7pw")
 
-[node name="Terrain_1_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2035519279]
+[node name="Terrain_1_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=2035519279]
 material_override = SubResource("ORMMaterial3D_shbtd")
 mesh = ExtResource("321_bmurx")
 
-[node name="Terrain_1_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=826472954]
+[node name="Terrain_1_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=826472954]
 material_override = SubResource("ORMMaterial3D_uvker")
 mesh = ExtResource("322_00mqd")
 
-[node name="Terrain_1_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=826106884]
+[node name="Terrain_1_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=826106884]
 material_override = SubResource("ORMMaterial3D_64t0u")
 mesh = ExtResource("323_4pvl1")
 
-[node name="Terrain_1_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1431871658]
+[node name="Terrain_1_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=1431871658]
 material_override = SubResource("ORMMaterial3D_605ty")
 mesh = ExtResource("324_0qtly")
 
-[node name="Terrain_1_-1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2107954194]
+[node name="Terrain_col_1_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-2_Body" unique_id=700288059]
+shape = ExtResource("467_sm318")
+
+[node name="Terrain_1_-1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589367]
+
+[node name="Terrain_1_-1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=2107954194]
 material_override = SubResource("ORMMaterial3D_klf6o")
 mesh = ExtResource("325_ry04w")
 
-[node name="Terrain_1_-1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1173776598]
+[node name="Terrain_1_-1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=1173776598]
 material_override = SubResource("ORMMaterial3D_vmqgf")
 mesh = ExtResource("326_m1dd0")
 
-[node name="Terrain_1_-1__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=144376930]
+[node name="Terrain_1_-1__Resource__9223370187770612301_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=144376930]
 material_override = SubResource("ORMMaterial3D_7m14h")
 mesh = ExtResource("327_estav")
 
-[node name="Terrain_1_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=847459670]
+[node name="Terrain_1_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=847459670]
 material_override = SubResource("ORMMaterial3D_e4se1")
 mesh = ExtResource("328_vtsgl")
 
-[node name="Terrain_1_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=689629646]
+[node name="Terrain_1_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=689629646]
 material_override = SubResource("ORMMaterial3D_osx7a")
 mesh = ExtResource("329_6rmgu")
 
-[node name="Terrain_1_-1__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1407581336]
+[node name="Terrain_1_-1__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=1407581336]
 material_override = SubResource("ORMMaterial3D_fmqq7")
 mesh = ExtResource("330_q6xs1")
 
-[node name="Terrain_1_-1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1524528794]
+[node name="Terrain_1_-1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=1524528794]
 material_override = SubResource("ORMMaterial3D_mudln")
 mesh = ExtResource("331_81y5g")
 
-[node name="Terrain_1_-1__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2103836344]
+[node name="Terrain_1_-1__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=2103836344]
 material_override = SubResource("ORMMaterial3D_ewoa4")
 mesh = ExtResource("332_ninb1")
 
-[node name="Terrain_1_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=561874444]
+[node name="Terrain_1_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=561874444]
 material_override = SubResource("ORMMaterial3D_el2vv")
 mesh = ExtResource("333_3450y")
 
-[node name="Terrain_1_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1274104345]
+[node name="Terrain_1_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=1274104345]
 material_override = SubResource("ORMMaterial3D_1uavv")
 mesh = ExtResource("334_wwxy2")
 
-[node name="Terrain_1_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=385792613]
+[node name="Terrain_col_1_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_-1_Body" unique_id=1381185333]
+shape = ExtResource("468_0jqe5")
+
+[node name="Terrain_1_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589368]
+
+[node name="Terrain_1_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_0_Body" unique_id=385792613]
 material_override = SubResource("ORMMaterial3D_ddtac")
 mesh = ExtResource("335_0qvn7")
 
-[node name="Terrain_1_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1526972839]
+[node name="Terrain_1_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_0_Body" unique_id=1526972839]
 material_override = SubResource("ORMMaterial3D_abe2h")
 mesh = ExtResource("336_3wdoe")
 
-[node name="Terrain_1_0__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=74208013]
+[node name="Terrain_1_0__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_0_Body" unique_id=74208013]
 material_override = SubResource("ORMMaterial3D_q5fr7")
 mesh = ExtResource("337_df6gk")
 
-[node name="Terrain_1_0__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1737938972]
+[node name="Terrain_1_0__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_0_Body" unique_id=1737938972]
 material_override = SubResource("ORMMaterial3D_d6rne")
 mesh = ExtResource("338_j4hue")
 
-[node name="Terrain_1_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=662748894]
+[node name="Terrain_1_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_0_Body" unique_id=662748894]
 material_override = SubResource("ORMMaterial3D_maa05")
 mesh = ExtResource("339_tl0ny")
 
-[node name="Terrain_1_0__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=187860215]
+[node name="Terrain_1_0__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_0_Body" unique_id=187860215]
 material_override = SubResource("ORMMaterial3D_1ie5q")
 mesh = ExtResource("340_84lnq")
 
-[node name="Terrain_1_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=980271202]
+[node name="Terrain_1_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_0_Body" unique_id=980271202]
 material_override = SubResource("ORMMaterial3D_wdito")
 mesh = ExtResource("341_oybup")
 
-[node name="Terrain_1_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=812738539]
+[node name="Terrain_col_1_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_0_Body" unique_id=1949000039]
+shape = ExtResource("469_4yili")
+
+[node name="Terrain_1_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589369]
+
+[node name="Terrain_1_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_1_Body" unique_id=812738539]
 material_override = SubResource("ORMMaterial3D_ckgks")
 mesh = ExtResource("342_w8eny")
 
-[node name="Terrain_1_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=663283568]
+[node name="Terrain_1_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_1_Body" unique_id=663283568]
 material_override = SubResource("ORMMaterial3D_tflbc")
 mesh = ExtResource("343_j1535")
 
-[node name="Terrain_1_1__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2130589323]
+[node name="Terrain_1_1__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_1_Body" unique_id=2130589323]
 material_override = SubResource("ORMMaterial3D_kfi6r")
 mesh = ExtResource("344_y48cp")
 
-[node name="Terrain_1_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1428005093]
+[node name="Terrain_1_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_1_Body" unique_id=1428005093]
 material_override = SubResource("ORMMaterial3D_4yl0i")
 mesh = ExtResource("345_lwinr")
 
-[node name="Terrain_1_1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=560861650]
+[node name="Terrain_1_1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_1_Body" unique_id=560861650]
 material_override = SubResource("ORMMaterial3D_c2mdm")
 mesh = ExtResource("346_yiuio")
 
-[node name="Terrain_1_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2064754406]
+[node name="Terrain_1_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_1_Body" unique_id=2064754406]
 material_override = SubResource("ORMMaterial3D_b3ee4")
 mesh = ExtResource("347_hkcxa")
 
-[node name="Terrain_1_1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1444616596]
+[node name="Terrain_1_1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_1_Body" unique_id=1444616596]
 material_override = SubResource("ORMMaterial3D_ogptv")
 mesh = ExtResource("348_yv85m")
 
-[node name="Terrain_1_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1683383735]
+[node name="Terrain_1_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_1_Body" unique_id=1683383735]
 material_override = SubResource("ORMMaterial3D_ttgm5")
 mesh = ExtResource("349_go67s")
 
-[node name="Terrain_1_2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1890904715]
+[node name="Terrain_col_1_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_1_Body" unique_id=1456069421]
+shape = ExtResource("470_phlhq")
+
+[node name="Terrain_1_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589370]
+
+[node name="Terrain_1_2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=1890904715]
 material_override = SubResource("ORMMaterial3D_1i7a7")
 mesh = ExtResource("350_qm1yv")
 
-[node name="Terrain_1_2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=993155696]
+[node name="Terrain_1_2__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=993155696]
 material_override = SubResource("ORMMaterial3D_64o0s")
 mesh = ExtResource("351_c1wbx")
 
-[node name="Terrain_1_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=57990171]
+[node name="Terrain_1_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=57990171]
 material_override = SubResource("ORMMaterial3D_5ubxf")
 mesh = ExtResource("352_rpyvd")
 
-[node name="Terrain_1_2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1303639309]
+[node name="Terrain_1_2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=1303639309]
 material_override = SubResource("ORMMaterial3D_skvyt")
 mesh = ExtResource("353_fr4ws")
 
-[node name="Terrain_1_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=404919269]
+[node name="Terrain_1_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=404919269]
 material_override = SubResource("ORMMaterial3D_m45bs")
 mesh = ExtResource("354_563il")
 
-[node name="Terrain_1_2__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1844799329]
+[node name="Terrain_1_2__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=1844799329]
 material_override = SubResource("ORMMaterial3D_5x2cb")
 mesh = ExtResource("355_ha5l3")
 
-[node name="Terrain_1_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=771706948]
+[node name="Terrain_1_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=771706948]
 material_override = SubResource("ORMMaterial3D_4hxka")
 mesh = ExtResource("356_fv7k6")
 
-[node name="Terrain_1_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=757045991]
+[node name="Terrain_1_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=757045991]
 material_override = SubResource("ORMMaterial3D_6fxxs")
 mesh = ExtResource("357_16xcp")
 
-[node name="Terrain_1_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1537823776]
+[node name="Terrain_1_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=1537823776]
 material_override = SubResource("ORMMaterial3D_wwd5n")
 mesh = ExtResource("358_kon2h")
 
-[node name="Terrain_1_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=385460202]
+[node name="Terrain_col_1_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_2_Body" unique_id=1660000616]
+shape = ExtResource("471_v5cgv")
+
+[node name="Terrain_1_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589371]
+
+[node name="Terrain_1_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_3_Body" unique_id=385460202]
 material_override = SubResource("ORMMaterial3D_hxfgf")
 mesh = ExtResource("359_2v663")
 
-[node name="Terrain_2_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1498538865]
+[node name="Terrain_col_1_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_1_3_Body" unique_id=692484962]
+shape = ExtResource("472_7oss7")
+
+[node name="Terrain_2_-4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589372]
+
+[node name="Terrain_2_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-4_Body" unique_id=1498538865]
 material_override = SubResource("ORMMaterial3D_k40hs")
 mesh = ExtResource("360_e0xbo")
 
-[node name="Terrain_2_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1735751142]
+[node name="Terrain_col_2_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-4_Body" unique_id=1034320548]
+shape = ExtResource("473_62wqg")
+
+[node name="Terrain_2_-3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589373]
+
+[node name="Terrain_2_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=1735751142]
 material_override = SubResource("ORMMaterial3D_3jui0")
 mesh = ExtResource("361_lk6qw")
 
-[node name="Terrain_2_-3__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=489991844]
+[node name="Terrain_2_-3__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=489991844]
 material_override = SubResource("ORMMaterial3D_xsuuj")
 mesh = ExtResource("362_5u4no")
 
-[node name="Terrain_2_-3__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1528550154]
+[node name="Terrain_2_-3__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=1528550154]
 material_override = SubResource("ORMMaterial3D_20aqw")
 mesh = ExtResource("363_lfvch")
 
-[node name="Terrain_2_-3__Resource__9223370187686726216_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1901649985]
+[node name="Terrain_2_-3__Resource__9223370187686726216_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=1901649985]
 material_override = SubResource("ORMMaterial3D_tmmf4")
 mesh = ExtResource("364_c7t7u")
 
-[node name="Terrain_2_-3__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1289783730]
+[node name="Terrain_2_-3__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=1289783730]
 material_override = SubResource("ORMMaterial3D_xr45q")
 mesh = ExtResource("365_n2rqa")
 
-[node name="Terrain_2_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1990698246]
+[node name="Terrain_2_-3__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=1990698246]
 material_override = SubResource("ORMMaterial3D_ng2p1")
 mesh = ExtResource("366_fcla1")
 
-[node name="Terrain_2_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1405302479]
+[node name="Terrain_2_-3__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=1405302479]
 material_override = SubResource("ORMMaterial3D_to285")
 mesh = ExtResource("367_wqe6b")
 
-[node name="Terrain_2_-3__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1646067229]
+[node name="Terrain_2_-3__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=1646067229]
 material_override = SubResource("ORMMaterial3D_3kni2")
 mesh = ExtResource("368_lc1me")
 
-[node name="Terrain_2_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=249979590]
+[node name="Terrain_2_-3__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=249979590]
 material_override = SubResource("ORMMaterial3D_1nf86")
 mesh = ExtResource("369_pukav")
 
-[node name="Terrain_2_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1358588286]
+[node name="Terrain_2_-3__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=1358588286]
 material_override = SubResource("ORMMaterial3D_1crbf")
 mesh = ExtResource("370_myydr")
 
-[node name="Terrain_2_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=669698783]
+[node name="Terrain_2_-3__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=669698783]
 material_override = SubResource("ORMMaterial3D_20du1")
 mesh = ExtResource("371_85vaa")
 
-[node name="Terrain_2_-2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=970151401]
+[node name="Terrain_col_2_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-3_Body" unique_id=1926757115]
+shape = ExtResource("474_2rtb0")
+
+[node name="Terrain_2_-2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589374]
+
+[node name="Terrain_2_-2__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=970151401]
 material_override = SubResource("ORMMaterial3D_b7jur")
 mesh = ExtResource("372_uqldb")
 
-[node name="Terrain_2_-2__Resource__9223370187686726216_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1312381528]
+[node name="Terrain_2_-2__Resource__9223370187686726216_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=1312381528]
 material_override = SubResource("ORMMaterial3D_23mwc")
 mesh = ExtResource("373_k3i8d")
 
-[node name="Terrain_2_-2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=892331215]
+[node name="Terrain_2_-2__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=892331215]
 material_override = SubResource("ORMMaterial3D_b2na1")
 mesh = ExtResource("374_0pdo0")
 
-[node name="Terrain_2_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1178448106]
+[node name="Terrain_2_-2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=1178448106]
 material_override = SubResource("ORMMaterial3D_xfwba")
 mesh = ExtResource("375_pvvr6")
 
-[node name="Terrain_2_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2101238218]
+[node name="Terrain_2_-2__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=2101238218]
 material_override = SubResource("ORMMaterial3D_nqxq4")
 mesh = ExtResource("376_6r47i")
 
-[node name="Terrain_2_-2__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=184687515]
+[node name="Terrain_2_-2__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=184687515]
 material_override = SubResource("ORMMaterial3D_m238m")
 mesh = ExtResource("377_eynir")
 
-[node name="Terrain_2_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1922273618]
+[node name="Terrain_2_-2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=1922273618]
 material_override = SubResource("ORMMaterial3D_xn1qr")
 mesh = ExtResource("378_6i1hc")
 
-[node name="Terrain_2_-2__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=73418599]
+[node name="Terrain_2_-2__Resource__9223370246021107211_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=73418599]
 material_override = SubResource("ORMMaterial3D_k58jf")
 mesh = ExtResource("379_br123")
 
-[node name="Terrain_2_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1878756261]
+[node name="Terrain_2_-2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=1878756261]
 material_override = SubResource("ORMMaterial3D_euppj")
 mesh = ExtResource("380_ssman")
 
-[node name="Terrain_2_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1894605746]
+[node name="Terrain_2_-2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=1894605746]
 material_override = SubResource("ORMMaterial3D_4mrmy")
 mesh = ExtResource("381_qt4lk")
 
-[node name="Terrain_2_-1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2073418600]
+[node name="Terrain_col_2_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-2_Body" unique_id=1369805662]
+shape = ExtResource("475_vb3mg")
+
+[node name="Terrain_2_-1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589375]
+
+[node name="Terrain_2_-1__Resource__9223370187384736310_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=2073418600]
 material_override = SubResource("ORMMaterial3D_hn83n")
 mesh = ExtResource("382_4di5e")
 
-[node name="Terrain_2_-1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1736398246]
+[node name="Terrain_2_-1__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=1736398246]
 material_override = SubResource("ORMMaterial3D_caxf0")
 mesh = ExtResource("383_v3fuo")
 
-[node name="Terrain_2_-1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=457808383]
+[node name="Terrain_2_-1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=457808383]
 material_override = SubResource("ORMMaterial3D_yuftc")
 mesh = ExtResource("384_om3yy")
 
-[node name="Terrain_2_-1__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1282594632]
+[node name="Terrain_2_-1__Resource__9223370188005493339_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=1282594632]
 material_override = SubResource("ORMMaterial3D_v4on7")
 mesh = ExtResource("385_63rua")
 
-[node name="Terrain_2_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=529751124]
+[node name="Terrain_2_-1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=529751124]
 material_override = SubResource("ORMMaterial3D_783px")
 mesh = ExtResource("386_8nsh5")
 
-[node name="Terrain_2_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1358996054]
+[node name="Terrain_2_-1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=1358996054]
 material_override = SubResource("ORMMaterial3D_daixi")
 mesh = ExtResource("387_3daf5")
 
-[node name="Terrain_2_-1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1368753580]
+[node name="Terrain_2_-1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=1368753580]
 material_override = SubResource("ORMMaterial3D_ty07v")
 mesh = ExtResource("388_kwkvg")
 
-[node name="Terrain_2_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2038294001]
+[node name="Terrain_2_-1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=2038294001]
 material_override = SubResource("ORMMaterial3D_1rg86")
 mesh = ExtResource("389_l1f84")
 
-[node name="Terrain_2_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1306298026]
+[node name="Terrain_2_-1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=1306298026]
 material_override = SubResource("ORMMaterial3D_4xi6p")
 mesh = ExtResource("390_gs315")
 
-[node name="Terrain_2_0__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=230069123]
+[node name="Terrain_col_2_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_-1_Body" unique_id=2073703387]
+shape = ExtResource("476_1dsjx")
+
+[node name="Terrain_2_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589376]
+
+[node name="Terrain_2_0__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=230069123]
 material_override = SubResource("ORMMaterial3D_g4kk1")
 mesh = ExtResource("391_8hkid")
 
-[node name="Terrain_2_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1444626442]
+[node name="Terrain_2_0__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=1444626442]
 material_override = SubResource("ORMMaterial3D_uyjij")
 mesh = ExtResource("392_7jpej")
 
-[node name="Terrain_2_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1856784571]
+[node name="Terrain_2_0__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=1856784571]
 material_override = SubResource("ORMMaterial3D_shuq5")
 mesh = ExtResource("393_4nc77")
 
-[node name="Terrain_2_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1095554754]
+[node name="Terrain_2_0__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=1095554754]
 material_override = SubResource("ORMMaterial3D_2uf3u")
 mesh = ExtResource("394_ghn6g")
 
-[node name="Terrain_2_0__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1242128598]
+[node name="Terrain_2_0__Resource__9223370244074950138_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=1242128598]
 material_override = SubResource("ORMMaterial3D_hngde")
 mesh = ExtResource("395_jvgp1")
 
-[node name="Terrain_2_0__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1770456708]
+[node name="Terrain_2_0__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=1770456708]
 material_override = SubResource("ORMMaterial3D_bm51f")
 mesh = ExtResource("396_bdbwn")
 
-[node name="Terrain_2_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1535845029]
+[node name="Terrain_2_0__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=1535845029]
 material_override = SubResource("ORMMaterial3D_iyqft")
 mesh = ExtResource("397_mr3qt")
 
-[node name="Terrain_2_0__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1144731605]
+[node name="Terrain_2_0__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=1144731605]
 material_override = SubResource("ORMMaterial3D_2k8br")
 mesh = ExtResource("398_8jb4n")
 
-[node name="Terrain_2_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=146698095]
+[node name="Terrain_2_0__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=146698095]
 material_override = SubResource("ORMMaterial3D_neou4")
 mesh = ExtResource("399_k10vp")
 
-[node name="Terrain_2_1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1877414573]
+[node name="Terrain_col_2_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_0_Body" unique_id=467683906]
+shape = ExtResource("477_8cux7")
+
+[node name="Terrain_2_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589377]
+
+[node name="Terrain_2_1__Resource__9223370187502176829_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=1877414573]
 material_override = SubResource("ORMMaterial3D_r4xvw")
 mesh = ExtResource("400_riige")
 
-[node name="Terrain_2_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1813467486]
+[node name="Terrain_2_1__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=1813467486]
 material_override = SubResource("ORMMaterial3D_vgd57")
 mesh = ExtResource("401_u3cku")
 
-[node name="Terrain_2_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1428480869]
+[node name="Terrain_2_1__Resource__9223370241810025960_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=1428480869]
 material_override = SubResource("ORMMaterial3D_qgj7h")
 mesh = ExtResource("402_jydp0")
 
-[node name="Terrain_2_1__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1358121371]
+[node name="Terrain_2_1__Resource__9223370242548223469_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=1358121371]
 material_override = SubResource("ORMMaterial3D_4dbij")
 mesh = ExtResource("403_nmy6c")
 
-[node name="Terrain_2_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1714353038]
+[node name="Terrain_2_1__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=1714353038]
 material_override = SubResource("ORMMaterial3D_7b8ck")
 mesh = ExtResource("404_oi0wv")
 
-[node name="Terrain_2_1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=974405396]
+[node name="Terrain_2_1__Resource__9223370246759304720_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=974405396]
 material_override = SubResource("ORMMaterial3D_wa6as")
 mesh = ExtResource("405_a2gco")
 
-[node name="Terrain_2_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1326239355]
+[node name="Terrain_2_1__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=1326239355]
 material_override = SubResource("ORMMaterial3D_cloq8")
 mesh = ExtResource("406_hjf7p")
 
-[node name="Terrain_2_1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1014202515]
+[node name="Terrain_2_1__Resource__9223370249678540328_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=1014202515]
 material_override = SubResource("ORMMaterial3D_2msln")
 mesh = ExtResource("407_g8wtu")
 
-[node name="Terrain_2_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=937443817]
+[node name="Terrain_2_1__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=937443817]
 material_override = SubResource("ORMMaterial3D_76hhd")
 mesh = ExtResource("408_4qaka")
 
-[node name="Terrain_2_2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=655125221]
+[node name="Terrain_col_2_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_1_Body" unique_id=1340692705]
+shape = ExtResource("478_wjkfg")
+
+[node name="Terrain_2_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589378]
+
+[node name="Terrain_2_2__Resource__9223370187451845178_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_2_Body" unique_id=655125221]
 material_override = SubResource("ORMMaterial3D_b33og")
 mesh = ExtResource("409_r5sem")
 
-[node name="Terrain_2_2__Resource__9223370187955161688_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1221628946]
+[node name="Terrain_2_2__Resource__9223370187955161688_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_2_Body" unique_id=1221628946]
 material_override = SubResource("ORMMaterial3D_0mokb")
 mesh = ExtResource("410_rilee")
 
-[node name="Terrain_2_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=905532074]
+[node name="Terrain_2_2__Resource__9223370188173265509_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_2_Body" unique_id=905532074]
 material_override = SubResource("ORMMaterial3D_1vbbj")
 mesh = ExtResource("411_6uc4v")
 
-[node name="Terrain_2_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1801428126]
+[node name="Terrain_2_2__Resource__9223370243286420978_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_2_Body" unique_id=1801428126]
 material_override = SubResource("ORMMaterial3D_cqnld")
 mesh = ExtResource("412_3hjhc")
 
-[node name="Terrain_2_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1227576573]
+[node name="Terrain_2_2__Resource__9223370248168590878_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_2_Body" unique_id=1227576573]
 material_override = SubResource("ORMMaterial3D_krl1x")
 mesh = ExtResource("413_y2iql")
 
-[node name="Terrain_2_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1389678470]
+[node name="Terrain_2_2__Resource__9223370248923565603_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_2_Body" unique_id=1389678470]
 material_override = SubResource("ORMMaterial3D_4dwmh")
 mesh = ExtResource("414_bts8u")
 
-[node name="Terrain_2_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1738125024]
+[node name="Terrain_2_2__Resource__9223370250433515053_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_2_Body" unique_id=1738125024]
 material_override = SubResource("ORMMaterial3D_tibcl")
 mesh = ExtResource("415_hh20k")
 
-[node name="Terrain_2_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=877590373]
+[node name="Terrain_col_2_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_2_Body" unique_id=1130337298]
+shape = ExtResource("479_jfb7w")
+
+[node name="Terrain_2_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589379]
+
+[node name="Terrain_2_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_3_Body" unique_id=877590373]
 material_override = SubResource("ORMMaterial3D_ysw7u")
 mesh = ExtResource("416_tcliy")
 
-[node name="Terrain_3_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1158005349]
+[node name="Terrain_col_2_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_2_3_Body" unique_id=1249330416]
+shape = ExtResource("480_rw5ir")
+
+[node name="Terrain_3_-4_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589380]
+
+[node name="Terrain_3_-4__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_-4_Body" unique_id=1158005349]
 material_override = SubResource("ORMMaterial3D_an44b")
 mesh = ExtResource("417_io8as")
 
-[node name="Terrain_3_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=30124264]
+[node name="Terrain_col_3_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_-4_Body" unique_id=760549865]
+shape = ExtResource("481_7kvyx")
+
+[node name="Terrain_3_-3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589381]
+
+[node name="Terrain_3_-3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_-3_Body" unique_id=30124264]
 material_override = SubResource("ORMMaterial3D_70jk7")
 mesh = ExtResource("418_ojedi")
 
-[node name="Terrain_3_-2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1645578562]
+[node name="Terrain_col_3_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_-3_Body" unique_id=1048208669]
+shape = ExtResource("482_vfrr5")
+
+[node name="Terrain_3_-2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589382]
+
+[node name="Terrain_3_-2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_-2_Body" unique_id=1645578562]
 material_override = SubResource("ORMMaterial3D_278q7")
 mesh = ExtResource("419_75d00")
 
-[node name="Terrain_3_-1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=132798736]
+[node name="Terrain_col_3_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_-2_Body" unique_id=838020109]
+shape = ExtResource("483_q4cv7")
+
+[node name="Terrain_3_-1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589383]
+
+[node name="Terrain_3_-1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_-1_Body" unique_id=132798736]
 material_override = SubResource("ORMMaterial3D_yswvd")
 mesh = ExtResource("420_sej1o")
 
-[node name="Terrain_3_0__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=2035183393]
+[node name="Terrain_col_3_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_-1_Body" unique_id=1220445475]
+shape = ExtResource("484_k1hkb")
+
+[node name="Terrain_3_0_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589384]
+
+[node name="Terrain_3_0__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_0_Body" unique_id=2035183393]
 material_override = SubResource("ORMMaterial3D_6gbp2")
 mesh = ExtResource("421_i4lvx")
 
-[node name="Terrain_3_1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=715869259]
+[node name="Terrain_col_3_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_0_Body" unique_id=722914049]
+shape = ExtResource("485_xfpsk")
+
+[node name="Terrain_3_1_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589385]
+
+[node name="Terrain_3_1__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_1_Body" unique_id=715869259]
 material_override = SubResource("ORMMaterial3D_t7080")
 mesh = ExtResource("422_gbvdq")
 
-[node name="Terrain_3_2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1739454576]
+[node name="Terrain_col_3_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_1_Body" unique_id=1166744829]
+shape = ExtResource("486_r2mcb")
+
+[node name="Terrain_3_2_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589386]
+
+[node name="Terrain_3_2__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_2_Body" unique_id=1739454576]
 material_override = SubResource("ORMMaterial3D_a0ku2")
 mesh = ExtResource("423_ob533")
 
-[node name="Terrain_3_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Visuals" unique_id=1184944312]
+[node name="Terrain_col_3_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_2_Body" unique_id=1743100641]
+shape = ExtResource("487_erc73")
+
+[node name="Terrain_3_3_Body" type="StaticBody3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2130589387]
+
+[node name="Terrain_3_3__Resource__9223370187166632489_" type="MeshInstance3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_3_Body" unique_id=1184944312]
 material_override = SubResource("ORMMaterial3D_sm1kv")
 mesh = ExtResource("424_olrah")
 
-[node name="Collision" type="Node3D" parent="Builder/Generated" unique_id=1548307101]
-
-[node name="Terrain_Collision" type="StaticBody3D" parent="Builder/Generated/Collision" unique_id=1464527768]
-
-[node name="Terrain_col_-4_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1560723640]
-shape = ExtResource("425_3tsrr")
-
-[node name="Terrain_col_-4_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=196229431]
-shape = ExtResource("426_uong8")
-
-[node name="Terrain_col_-4_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1431612667]
-shape = ExtResource("427_ffnh6")
-
-[node name="Terrain_col_-4_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=687249969]
-shape = ExtResource("428_nkc4x")
-
-[node name="Terrain_col_-4_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1490938806]
-shape = ExtResource("429_q1d15")
-
-[node name="Terrain_col_-4_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=114194325]
-shape = ExtResource("430_tlfw1")
-
-[node name="Terrain_col_-4_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1783450668]
-shape = ExtResource("431_klqlk")
-
-[node name="Terrain_col_-4_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1556103021]
-shape = ExtResource("432_2wg4r")
-
-[node name="Terrain_col_-3_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1071713114]
-shape = ExtResource("433_g1xeq")
-
-[node name="Terrain_col_-3_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1938544979]
-shape = ExtResource("434_7cocu")
-
-[node name="Terrain_col_-3_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1557343958]
-shape = ExtResource("435_p1qqm")
-
-[node name="Terrain_col_-3_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=599991531]
-shape = ExtResource("436_cwxr8")
-
-[node name="Terrain_col_-3_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=406173278]
-shape = ExtResource("437_vj2wl")
-
-[node name="Terrain_col_-3_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=917691807]
-shape = ExtResource("438_7nyt2")
-
-[node name="Terrain_col_-3_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=330587321]
-shape = ExtResource("439_js1sy")
-
-[node name="Terrain_col_-3_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=673500096]
-shape = ExtResource("440_ts6uc")
-
-[node name="Terrain_col_-2_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1201363715]
-shape = ExtResource("441_f1grc")
-
-[node name="Terrain_col_-2_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=922735338]
-shape = ExtResource("442_vhmxq")
-
-[node name="Terrain_col_-2_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1732251458]
-shape = ExtResource("443_h4khv")
-
-[node name="Terrain_col_-2_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1046593653]
-shape = ExtResource("444_m326c")
-
-[node name="Terrain_col_-2_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=669053975]
-shape = ExtResource("445_e7u0v")
-
-[node name="Terrain_col_-2_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1984921997]
-shape = ExtResource("446_4wktd")
-
-[node name="Terrain_col_-2_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1178519515]
-shape = ExtResource("447_j385d")
-
-[node name="Terrain_col_-2_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1252335470]
-shape = ExtResource("448_ukpok")
-
-[node name="Terrain_col_-1_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1477882933]
-shape = ExtResource("449_npmcn")
-
-[node name="Terrain_col_-1_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1331258799]
-shape = ExtResource("450_jybbk")
-
-[node name="Terrain_col_-1_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1397366321]
-shape = ExtResource("451_hocam")
-
-[node name="Terrain_col_-1_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2115071041]
-shape = ExtResource("452_b2k43")
-
-[node name="Terrain_col_-1_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1260017209]
-shape = ExtResource("453_tvwbh")
-
-[node name="Terrain_col_-1_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=873547665]
-shape = ExtResource("454_oky8m")
-
-[node name="Terrain_col_-1_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=660496315]
-shape = ExtResource("455_8gq14")
-
-[node name="Terrain_col_-1_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1051574638]
-shape = ExtResource("456_hismw")
-
-[node name="Terrain_col_0_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=672247807]
-shape = ExtResource("457_ougqx")
-
-[node name="Terrain_col_0_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1396402690]
-shape = ExtResource("458_qbsn0")
-
-[node name="Terrain_col_0_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1075217408]
-shape = ExtResource("459_qyl1p")
-
-[node name="Terrain_col_0_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=936093969]
-shape = ExtResource("460_30qi6")
-
-[node name="Terrain_col_0_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1315865449]
-shape = ExtResource("461_tj5v5")
-
-[node name="Terrain_col_0_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1743675265]
-shape = ExtResource("462_mkfkv")
-
-[node name="Terrain_col_0_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=844947802]
-shape = ExtResource("463_6aa6d")
-
-[node name="Terrain_col_0_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=710686118]
-shape = ExtResource("464_4utxp")
-
-[node name="Terrain_col_1_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1729621063]
-shape = ExtResource("465_ol3dy")
-
-[node name="Terrain_col_1_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1758092914]
-shape = ExtResource("466_4rpkn")
-
-[node name="Terrain_col_1_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=700288059]
-shape = ExtResource("467_sm318")
-
-[node name="Terrain_col_1_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1381185333]
-shape = ExtResource("468_0jqe5")
-
-[node name="Terrain_col_1_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1949000039]
-shape = ExtResource("469_4yili")
-
-[node name="Terrain_col_1_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1456069421]
-shape = ExtResource("470_phlhq")
-
-[node name="Terrain_col_1_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1660000616]
-shape = ExtResource("471_v5cgv")
-
-[node name="Terrain_col_1_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=692484962]
-shape = ExtResource("472_7oss7")
-
-[node name="Terrain_col_2_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1034320548]
-shape = ExtResource("473_62wqg")
-
-[node name="Terrain_col_2_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1926757115]
-shape = ExtResource("474_2rtb0")
-
-[node name="Terrain_col_2_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1369805662]
-shape = ExtResource("475_vb3mg")
-
-[node name="Terrain_col_2_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=2073703387]
-shape = ExtResource("476_1dsjx")
-
-[node name="Terrain_col_2_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=467683906]
-shape = ExtResource("477_8cux7")
-
-[node name="Terrain_col_2_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1340692705]
-shape = ExtResource("478_wjkfg")
-
-[node name="Terrain_col_2_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1130337298]
-shape = ExtResource("479_jfb7w")
-
-[node name="Terrain_col_2_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1249330416]
-shape = ExtResource("480_rw5ir")
-
-[node name="Terrain_col_3_-4" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=760549865]
-shape = ExtResource("481_7kvyx")
-
-[node name="Terrain_col_3_-3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1048208669]
-shape = ExtResource("482_vfrr5")
-
-[node name="Terrain_col_3_-2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=838020109]
-shape = ExtResource("483_q4cv7")
-
-[node name="Terrain_col_3_-1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1220445475]
-shape = ExtResource("484_k1hkb")
-
-[node name="Terrain_col_3_0" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=722914049]
-shape = ExtResource("485_xfpsk")
-
-[node name="Terrain_col_3_1" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1166744829]
-shape = ExtResource("486_r2mcb")
-
-[node name="Terrain_col_3_2" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1743100641]
-shape = ExtResource("487_erc73")
-
-[node name="Terrain_col_3_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision" unique_id=1533682824]
+[node name="Terrain_col_3_3" type="CollisionShape3D" parent="Builder/Generated/Collision/Terrain_Collision/Terrain_3_3_Body" unique_id=1533682824]
 shape = ExtResource("488_1x3i4")
 
 [node name="Spawns" type="Node3D" parent="Builder/Generated" unique_id=579739068]

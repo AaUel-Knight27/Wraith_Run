@@ -11,8 +11,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/scripts/player/ViewModelBase.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/ViewModelBase.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/maps/Ashfields.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Ashfields.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/maps/DefaultWarehouse.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/DefaultWarehouse.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/maps/Depot.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Depot.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/maps/Lab.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Lab.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenes/maps/Prison.tscn" beforeDir="false" afterPath="$PROJECT_DIR$/scenes/maps/Prison.tscn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/network/GameWorld.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/GameWorld.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
