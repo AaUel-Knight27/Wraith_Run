@@ -117,8 +117,13 @@ public partial class ViewModelBase : Node3D
 					// Imported Benelli meshes carry a non-default render layer in the FBX scene.
 					// Viewmodels use the player's camera layer so camera culling cannot drop them.
 					mesh.Layers = 1;
-					EnsureAlbedoTexture(mesh);
 				}
+				// Any mesh we're actually keeping visible - arm, or the rig's own bundled weapon/magazine -
+				// needs its embedded texture checked. This used to run for arm meshes only, which is why the
+				// AK-47's "Ak"/"Mag_2" meshes (kept via keepRigWeapon/keepRigMagazine, not isArm) never got
+				// ResolveEmbeddedAlbedo's fix and rendered with no albedo at all.
+				if (isArm || keepRigWeapon || keepRigMagazine)
+					EnsureAlbedoTexture(mesh);
 			}
 		}
 

@@ -66,8 +66,6 @@ public partial class WeaponAttachment : Node3D
 	private OmniLight3D? _flashLight;
 	private float _flashRemaining;
 	private Vector3 _gripUnitFix = Vector3.One;
-	private BoneAttachment3D? _boneAttachment;
-	private static Vector3? _firstUnitFix;
 	private WeaponData? _weapon;
 	private Node3D? _grip;
 	private readonly RandomNumberGenerator _rng = new();
@@ -109,11 +107,11 @@ public partial class WeaponAttachment : Node3D
 
 	public override void _Process(double delta)
 	{
-		RefreshGripScale();
 		if (_flashRemaining <= 0.0f) return;
 		_flashRemaining -= (float)delta;
 		if (_flashRemaining > 0.0f) return;
 		SetFlashVisible(false);
+		SetProcess(false);
 	}
 
 	/// <summary>Single attachment path used for the initial equip and for hot switching.</summary>
@@ -161,16 +159,10 @@ public partial class WeaponAttachment : Node3D
 			BoneName = skeleton.GetBoneName(handBoneIndex),
 		};
 		skeleton.AddChild(attachment);
-		_boneAttachment = attachment;
 
 		// Convert weapon offsets and scale into the skeleton's authored unit space. Derive it from the live skeleton rather than hardcoding a
 		// model scale, so this survives a re-export at a different unit scale.
 		Vector3 unitFix = InverseScaleOf(skeleton);
-		// Every character shares one rig, so the correction should be the same for all of them. If it is not, a weapon
-		// will look hugely too big or small (the "weapons floating in the sky" bug): say so, with the numbers.
-		_firstUnitFix ??= unitFix;
-		if (!SkipAudio && (unitFix / _firstUnitFix.Value - Vector3.One).Length() > 0.01f)
-			GD.PushWarning($"Weapon attachment on '{skeleton.GetParent()?.GetParent()?.Name}': skeleton unit correction {unitFix} differs from the first character's {_firstUnitFix}. The weapon will be the wrong size.");
 
 		// The grip pivot carries the per-weapon offset/rotation and the unit correction. The model
 		// hangs off it, so the muzzle marker can be a sibling in the same frame and both move
@@ -186,22 +178,6 @@ public partial class WeaponAttachment : Node3D
 		AddModel(grip, weapon);
 		AddMuzzle(grip, weapon);
 		if (!SkipAudio) AddAudioPlayers(grip, weapon);
-		SetProcess(true); // keeps the grip's size correct every frame (see _Process)
-	}
-
-	/// <summary>The grip cancels the skeleton's scale so the weapon is its real size in the world. That scale was only
-	/// measured once, when the weapon was attached - but the bone it hangs off can change size later (the skeleton
-	/// settling, an animation with scale keys, a death clip), and the weapon then came out 100x too big or small and
-	/// hung in the sky. Measuring the attachment's real scale every frame makes the weapon's world size independent
-	/// of anything above it.</summary>
-	private void RefreshGripScale()
-	{
-		if (_grip == null || _weapon == null || _boneAttachment == null || !IsInstanceValid(_boneAttachment) || !_boneAttachment.IsInsideTree()) return;
-		Vector3 unitFix = InverseScaleOf(_boneAttachment);
-		if (unitFix.IsEqualApprox(_gripUnitFix)) return;
-		_gripUnitFix = unitFix;
-		_grip.Scale = unitFix;
-		_grip.Position = _weapon.GripPosition * unitFix;
 	}
 
 	/// <summary>Fire effects: one shot of audio plus a muzzle flash. Called on every peer.</summary>
@@ -360,7 +336,45 @@ public partial class WeaponAttachment : Node3D
 		}
 		model.Name = "EquippedWeapon";
 		model.Scale = Vector3.One * (weapon.ModelScale <= 0.0f ? 1.0f : weapon.ModelScale);
+		ApplyFallbackAlbedo(model, weapon.WeaponName);
 		grip.AddChild(model);
+	}
+
+	/// <summary>Mirrors ViewModelBase's embedded-texture patch, but for the world-model mesh every
+	/// peer sees (this attachment, not the local-only viewmodel). Some FBX imports (the AK-47's
+	/// art/weapons/AssaultRifle/AK47_gun.fbx) carry a material with no albedo bound and no texture
+	/// files sitting next to the source file, so the mesh otherwise renders flat grey/white for
+	/// every player who isn't the shooter. Reassigns the real texture by weapon name instead.</summary>
+	private static void ApplyFallbackAlbedo(Node3D model, string weaponName)
+	{
+		string path = weaponName switch
+		{
+			"AK-47" => "res://art/animations/player/combat/AK/textures/ak74m_AlbedoTransparency.png",
+			_ => string.Empty
+		};
+		if (string.IsNullOrEmpty(path) || !ResourceLoader.Exists(path)) return;
+		var albedo = GD.Load<Texture2D>(path);
+		foreach (Node child in model.GetChildren())
+			ApplyFallbackAlbedoRecursive(child, albedo);
+	}
+
+	private static void ApplyFallbackAlbedoRecursive(Node node, Texture2D albedo)
+	{
+		if (node is MeshInstance3D mesh && mesh.Mesh != null)
+		{
+			for (int surface = 0; surface < mesh.Mesh.GetSurfaceCount(); surface++)
+			{
+				Material? active = mesh.MaterialOverride ?? mesh.GetSurfaceOverrideMaterial(surface) ?? mesh.Mesh.SurfaceGetMaterial(surface);
+				if (active is BaseMaterial3D existing && existing.AlbedoTexture != null) continue;
+				BaseMaterial3D copy = active is BaseMaterial3D source
+					? (BaseMaterial3D)source.Duplicate(true)
+					: new StandardMaterial3D();
+				copy.AlbedoTexture = albedo;
+				mesh.SetSurfaceOverrideMaterial(surface, copy);
+			}
+		}
+		foreach (Node child in node.GetChildren())
+			ApplyFallbackAlbedoRecursive(child, albedo);
 	}
 
 	private void AddMuzzle(Node3D grip, WeaponData weapon)
