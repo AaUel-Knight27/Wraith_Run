@@ -275,7 +275,7 @@ public static class MenuStyle
 
     /// <summary>A compact Hero for stacked menu actions: smaller type, a title and one short subtitle line.
     /// It fills whatever width its parent gives it instead of forcing its own, so a long name such as
-    /// SHOOTING RANGE is never clipped.</summary>
+    /// CUSTOM GAME is never clipped.</summary>
     public static Button CompactHero(string title, string subtitle, Action onPressed, int height = 62)
     {
         var button = NewButton(new Vector2(0, height), onPressed, UiSounds.Sound.Start);

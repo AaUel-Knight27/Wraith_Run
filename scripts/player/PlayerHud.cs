@@ -257,13 +257,11 @@ public partial class PlayerHud : CanvasLayer
         }
 
         MatchManager? match = MatchManager.Instance;
-        // The hub and the shooting range have no match: no points, kills or team score on the screen. (The range
-        // inherits the hub's Team Deathmatch rules, which used to put ALPHA / BRAVO scores on its HUD.)
-        bool noMatch = HubState.Active || GetTree().CurrentScene is ShootingRange;
-        bool teamDeathmatch = match != null && match.IsTeamMode && !noMatch;
+        bool teamDeathmatch = match != null && match.IsTeamMode && !HubState.Active;
 
-        _scoreLabel.Visible = !noMatch;
-        if (_score != null && !noMatch)
+        // The hub has no match: no points, kills or team score on the screen.
+        _scoreLabel.Visible = !HubState.Active;
+        if (_score != null && !HubState.Active)
         {
             string scoreText = $"SCORE {_score.TotalPoints}\nK {_score.Kills} / D {_score.Deaths}";
             if (teamDeathmatch)

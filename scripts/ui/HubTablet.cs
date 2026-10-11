@@ -37,7 +37,7 @@ public partial class HubTablet : CanvasLayer
     private bool _connectionLost;
 
     /// <summary>Set before the tablet enters the tree to make it the in-game menu of this player (a match or
-    /// the shooting range) rather than the hub's: same device, same look, but the pages are RESUME / LEAVE,
+    /// a match) rather than the hub's: same device, same look, but the pages are RESUME / LEAVE,
     /// OPERATOR and SETTINGS, and PauseMenu decides when it opens and closes.</summary>
     public CharacterBody3D? GamePlayer { get; set; }
     private bool InGame => GamePlayer != null;
@@ -154,7 +154,7 @@ public partial class HubTablet : CanvasLayer
 
     public override void _Input(InputEvent @event)
     {
-        // Leaving for another scene (the shooting range, a match): the tablet is done and its screen may already be gone.
+        // Leaving for another scene (a match, the hub): the tablet is done and its screen may already be gone.
         if (_leaving || !IsInsideTree()) return;
         // While the tablet is up, pointer and keyboard go to ITS screen, through the glass - except while the
         // quit question is showing: its buttons are on the main screen and need the pointer themselves.
@@ -522,19 +522,6 @@ public partial class HubTablet : CanvasLayer
         _topBar.AddChild(MenuStyle.IconButton("settings", 24, _section == Section.Settings ? MenuStyle.Accent : MenuStyle.TextMain, () => { _playStep = PlayStep.Home; ShowSection(Section.Settings); }));
     }
 
-    private void LeaveForTraining()
-    {
-        if (_leaving) return;
-        _leaving = true;
-        Close(); // tablet down: HUD back, pointer state restored
-        GameUiState.Reset();
-        if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
-        LoadingScreen.Instance?.Show();
-        // The hub's network session is left standing until the range replaces it (ShootingRange sets up its own
-        // offline session in _Ready), so nothing in this scene runs for a frame with no peer.
-        GetTree().ChangeSceneToFile("res://scenes/training/ShootingRange.tscn");
-    }
-
     /// <summary>Jumps to a tablet page by name (Home, Play, Operator, Status, Chat, Settings). Used by
     /// the in-game debug tools and automated checks; harmless to call from anywhere once the tablet exists.</summary>
     public void ShowSectionByName(string name)
@@ -715,14 +702,13 @@ public partial class HubTablet : CanvasLayer
         }
         else
         {
-            right.AddChild(MenuStyle.CompactHero("SHOOTING RANGE", "Practice with any weapon", LeaveForTraining));
             right.AddChild(MenuStyle.CompactHero("PLAY", "Solo match against bots", () => { _playStep = PlayStep.Solo; ShowSection(Section.Play); }));
             right.AddChild(MenuStyle.CompactHero("CUSTOM GAME", "Host or join on this Wi-Fi", () => { _playStep = PlayStep.Home; ShowSection(Section.Play); }));
         }
     }
 
     // -------------------------------------------------------------------------------------------
-    // In a match or the shooting range
+    // In a match
     // -------------------------------------------------------------------------------------------
 
     /// <summary>Called by PauseMenu when the host drops: the tablet opens and stays open on a single way out.</summary>
@@ -746,7 +732,6 @@ public partial class HubTablet : CanvasLayer
     private void BuildGameHome()
     {
         MatchManager? match = MatchManager.Instance;
-        bool range = GetTree().CurrentScene is ShootingRange;
 
         var mark = MenuStyle.Text("WRAITH RUN", 150, new Color(0.9f, 0.08f, 0.08f, 0.06f), MenuStyle.Bold);
         MenuStyle.Place(mark, 0, 0, 1, 0, 0, 40, 0, 300);
@@ -759,19 +744,17 @@ public partial class HubTablet : CanvasLayer
         left.AddThemeConstantOverride("separation", 14);
         _content.AddChild(left);
 
-        var tag = MenuStyle.Chip(_connectionLost ? "HOST LINK LOST" : range ? "PRACTICE" : "IN A MATCH", MenuStyle.Accent, 14, true);
+        var tag = MenuStyle.Chip(_connectionLost ? "HOST LINK LOST" : "IN A MATCH", MenuStyle.Accent, 14, true);
         tag.SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin;
         left.AddChild(tag);
 
-        string title = range ? "SHOOTING RANGE" : match != null ? match.ModeRules.DisplayName.ToUpperInvariant() : "WRAITH RUN";
+        string title = match != null ? match.ModeRules.DisplayName.ToUpperInvariant() : "WRAITH RUN";
         left.AddChild(MenuStyle.Wrapped(title, 60, MenuStyle.TextMain, MenuStyle.Bold));
-        if (!range && match != null)
+        if (match != null)
             left.AddChild(MenuStyle.Text(match.MapDisplayName.ToUpperInvariant(), 26, MenuStyle.Accent, MenuStyle.Bold));
         string body = _connectionLost
             ? "The host closed the match or the connection dropped. There is nothing left to play."
-            : range
-                ? "Practice with any weapon. Nothing here counts toward a match."
-                : "The match keeps running while the tablet is up, so keep an eye out.";
+            : "The match keeps running while the tablet is up, so keep an eye out.";
         left.AddChild(MenuStyle.Wrapped(body, 20, MenuStyle.TextDim, MenuStyle.Medium));
 
         var right = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
@@ -792,13 +775,13 @@ public partial class HubTablet : CanvasLayer
             return;
         }
         if (!_connectionLost) right.AddChild(MenuStyle.CompactHero("RESUME", "Back to the game", Close));
-        right.AddChild(MenuStyle.CompactHero(range ? "LEAVE RANGE" : "LEAVE MATCH", "Back to the warehouse", LeaveGame));
+        right.AddChild(MenuStyle.CompactHero("LEAVE MATCH", "Back to the warehouse", LeaveGame));
     }
 
     private void LeaveGame()
     {
-        // Nothing is lost leaving the range, and with the host gone there is nothing to ask: go straight out.
-        if (_connectionLost || GetTree().CurrentScene is ShootingRange) { LeaveNow(); return; }
+        // With the host gone there is nothing to ask: go straight out.
+        if (_connectionLost) { LeaveNow(); return; }
         _confirmLeave = true;
         ShowSection(Section.Home);
     }

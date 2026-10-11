@@ -1,6 +1,6 @@
 # Wraith Run
 
-Wraith Run is a 3D first-person combat game built with Godot and C#. The project includes LAN multiplayer, solo matches against AI bots, several match rulesets, character and weapon loadouts, vehicles, a player hub, and a shooting range.
+Wraith Run is a 3D first-person combat game built with Godot and C#. The project includes LAN multiplayer, solo matches against AI bots, several match rulesets, character and weapon loadouts, vehicles, and a player hub.
 
 ## Requirements
 
@@ -18,7 +18,7 @@ Godot export presets are provided for Android, Windows Desktop, and Windows Lean
 
 ## Play
 
-The project has a first-person player controller with keyboard/mouse and touch controls. From the menus, players can start a solo bot match, host or join a match on a local network, customize their operator and loadout, or enter the shooting range. The in-world hub also provides access to match setup and practice.
+The project has a first-person player controller with keyboard/mouse and touch controls. From the menus, players can start a solo bot match, host or join a match on a local network, or customize their operator and loadout. The in-world hub also provides access to match setup.
 
 ### Default keyboard and mouse controls
 

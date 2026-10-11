@@ -218,9 +218,6 @@ public partial class LanMenu : Control
 
 		var play = MenuStyle.Hero("PLAY", null, new Vector2(300, 78), ShowPlay);
 		column.AddChild(play);
-		column.AddChild(MenuStyle.Card("crosshair", "RANGE", null, new Vector2(300, 64),
-			LeaveForTraining,
-			titleSize: 26, iconSize: 34));
 
 		play.GrabFocus();
 	}
@@ -979,20 +976,6 @@ public partial class LanMenu : Control
 	}
 
 	private void ChangeToHub() => GetTree().ChangeSceneToFile(GameSession.HubScene);
-
-	private void LeaveForTraining()
-	{
-		if (_sceneChangeQueued) return;
-		_sceneChangeQueued = true;
-		_leavingMenu = true;
-		RunTerminalCleanup();
-		LoadingScreen.Instance?.Show();
-		SetProcess(false);
-		CallDeferred(nameof(ChangeToShootingRange));
-	}
-
-	private void ChangeToShootingRange() =>
-		GetTree().ChangeSceneToFile("res://scenes/training/ShootingRange.tscn");
 
 	private void RunTerminalCleanup()
 	{
