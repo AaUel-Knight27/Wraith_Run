@@ -141,6 +141,7 @@ public partial class SettingsManager : Node
         EnsureControllerBindings();
         CaptureBusBaselines();
         Load();
+        GameCursor.Apply();
     }
 
     /// <summary>What TouchControls and PlayerHud both check to decide whether the mobile layout

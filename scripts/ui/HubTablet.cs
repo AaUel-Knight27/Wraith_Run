@@ -156,8 +156,10 @@ public partial class HubTablet : CanvasLayer
     {
         // Leaving for another scene (the shooting range, a match): the tablet is done and its screen may already be gone.
         if (_leaving || !IsInsideTree()) return;
-        // While the tablet is up, pointer and keyboard go to ITS screen, through the glass.
-        if (_open && _device != null)
+        // While the tablet is up, pointer and keyboard go to ITS screen, through the glass - except while the
+        // quit question is showing: its buttons are on the main screen and need the pointer themselves.
+        bool quitUp = _quitConfirm != null && _quitConfirm.Visible;
+        if (_open && _device != null && !quitUp)
         {
             if (@event is InputEventKey hot && hot.Pressed && !hot.Echo && !TypingOnScreen())
             {
@@ -1302,15 +1304,25 @@ public partial class HubTablet : CanvasLayer
     // ---- quit confirmation (Esc in the hub) ----------------------------------------------------
     private Control? _quitConfirm;
 
+    private Button? _quitStay;
+
     private void ShowQuitConfirm()
     {
         if (_quitConfirm == null) BuildQuitConfirm();
+        // The question needs a pointer. The mouse used to stay captured (hidden, locked to the middle of the
+        // window) and the player kept walking and looking underneath, so the buttons could barely be hit.
+        GameUiState.SetMenuOpen(true);
+        if (!OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Visible;
         _quitConfirm!.Visible = true;
+        _quitStay?.GrabFocus(); // the safe answer is the default one (keyboard / gamepad)
     }
 
     private void HideQuitConfirm()
     {
         if (_quitConfirm != null) _quitConfirm.Visible = false;
+        // back to where we were: still on the tablet (pointer free) or playing (pointer captured)
+        GameUiState.SetMenuOpen(_open);
+        if (!_open && !OS.HasFeature("mobile")) Input.MouseMode = Input.MouseModeEnum.Captured;
     }
 
     private void BuildQuitConfirm()
@@ -1331,11 +1343,16 @@ public partial class HubTablet : CanvasLayer
         var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
         row.AddThemeConstantOverride("separation", 24);
         row.AddChild(MenuStyle.Card("power", "QUIT", null, new Vector2(200, 54), () => GameSession.QuitToDesktop(GetTree())));
-        row.AddChild(MenuStyle.Card("arrow-left", "STAY", null, new Vector2(200, 54), HideQuitConfirm));
+        Button stay = MenuStyle.Card("arrow-left", "STAY", null, new Vector2(200, 54), HideQuitConfirm);
+        row.AddChild(stay);
+        _quitStay = stay;
         panel.AddChild(row);
         overlay.AddChild(panel);
         overlay.Visible = false;
-        AddChild(overlay);
+        // its own layer, above the match HUD, scoreboard and loading layers, so nothing can sit on top of the buttons
+        var layer = new CanvasLayer { Name = "QuitConfirmLayer", Layer = 90 };
+        layer.AddChild(overlay);
+        AddChild(layer);
         _quitConfirm = overlay;
     }
 }

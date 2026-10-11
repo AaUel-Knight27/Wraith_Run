@@ -10,9 +10,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -43,13 +41,13 @@
     <setting file="file://$PROJECT_DIR$/scripts/data/WeaponData.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/network/LanMenu.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/CharacterAppearance.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/scripts/player/PlayerHud.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/player/PlayerHud.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/PlayerMovement.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/training/ShootingRange.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/scripts/ui/HubTablet.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/ui/HubTablet.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/ui/MenuStyle.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/scripts/ui/PauseMenu.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/scripts/ui/PauseMenu.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/scripts/ui/Scoreboard.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="McpProjectServerCommands">
@@ -59,23 +57,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0404172157157294" />
-      <entry key="MS500" value="1.699352482723405" />
-      <entry key="S2" value="3.22454390203704" />
-      <entry key="S5" value="4.119939808874944" />
-      <entry key="S10" value="4.524637867624406" />
-      <entry key="S30" value="4.834218985327961" />
-      <entry key="S60" value="5.011537708919542" />
-      <entry key="M2" value="5.778736321349071" />
-      <entry key="M5" value="8.258451991089277" />
-      <entry key="M10" value="12.522768051313763" />
-      <entry key="M15" value="18.158434399385833" />
-      <entry key="M30" value="38.945361341711305" />
-      <entry key="H1" value="72.18309922641279" />
-      <entry key="H2" value="108.2334006241415" />
-      <entry key="H4" value="153.54621006960994" />
-      <entry key="D1" value="357.57737844119646" />
-      <entry key="W1" value="458.9510873095794" />
+      <entry key="MS100" value="1.0000000000003844" />
+      <entry key="MS500" value="1.0055433934733318" />
+      <entry key="S2" value="1.7706219111319406" />
+      <entry key="S5" value="3.3240212498843533" />
+      <entry key="S10" value="4.398274351575068" />
+      <entry key="S30" value="5.394247593481227" />
+      <entry key="S60" value="5.778043556923973" />
+      <entry key="M2" value="6.642511195200338" />
+      <entry key="M5" value="9.180021946063693" />
+      <entry key="M10" value="13.463162190281361" />
+      <entry key="M15" value="19.10076825817276" />
+      <entry key="M30" value="39.883472344948515" />
+      <entry key="H1" value="73.12572248575903" />
+      <entry key="H2" value="109.19037591074914" />
+      <entry key="H4" value="154.51568835310678" />
+      <entry key="D1" value="358.5655309986432" />
+      <entry key="W1" value="459.9489149630448" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -97,23 +95,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9373166237152324" />
-      <entry key="MS500" value="1.6447267587242382" />
-      <entry key="S2" value="3.1984791722806087" />
-      <entry key="S5" value="4.107030482596451" />
-      <entry key="S10" value="4.51764057698554" />
-      <entry key="S30" value="4.831749665245665" />
-      <entry key="S60" value="5.010251670150041" />
-      <entry key="M2" value="5.777961285165453" />
-      <entry key="M5" value="8.257959229801207" />
-      <entry key="M10" value="12.522304511598703" />
-      <entry key="M15" value="18.15787718066831" />
-      <entry key="M30" value="38.94456920649685" />
-      <entry key="H1" value="72.18228973980085" />
-      <entry key="H2" value="108.2327877640811" />
-      <entry key="H4" value="153.54580567680637" />
-      <entry key="D1" value="357.5772604045354" />
-      <entry key="W1" value="458.9510671139724" />
+      <entry key="MS100" value="7.155859157653446E-13" />
+      <entry key="MS500" value="0.008627263149998274" />
+      <entry key="S2" value="1.0033791264391243" />
+      <entry key="S5" value="2.880830282955612" />
+      <entry key="S10" value="4.144078930193913" />
+      <entry key="S30" value="5.300991123916202" />
+      <entry key="S60" value="5.730226117413215" />
+      <entry key="M2" value="6.618180914551946" />
+      <entry key="M5" value="9.170036921840612" />
+      <entry key="M10" value="13.457941057747808" />
+      <entry key="M15" value="19.09703708693862" />
+      <entry key="M30" value="39.88109234483363" />
+      <entry key="H1" value="73.12411876482402" />
+      <entry key="H2" value="109.18936577641836" />
+      <entry key="H4" value="154.51508526198478" />
+      <entry key="D1" value="358.56537983336494" />
+      <entry key="W1" value="459.9488900342478" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -243,7 +241,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="added materials to the maps." />
     <MESSAGE value="add Player account and Status board system" />
     <MESSAGE value="added materials to the existing maps" />
     <MESSAGE value="added texture materials to the existing maps" />
@@ -268,7 +265,8 @@
     <MESSAGE value="added more bugs to the file" />
     <MESSAGE value="weapon animations bug fix" />
     <MESSAGE value="weapons texture" />
-    <option name="LAST_COMMIT_MESSAGE" value="weapons texture" />
+    <MESSAGE value="fix animation bugs" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix animation bugs" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
