@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 /// <summary>Loads per-weapon viewmodel data only on the owning human player.</summary>
@@ -14,6 +15,13 @@ public partial class ViewModelManager : Node3D
 	private bool _localHuman;
 	private string _activeWeapon = string.Empty;
 	private string _lastMovementClip = string.Empty;
+	private readonly Dictionary<string, ViewModelWeaponData> _savedSnapshots = new();
+	private readonly Dictionary<string, ViewModelWeaponData> _baseSnapshots = new();
+	private readonly Dictionary<string, string> _sourcePaths = new();
+
+	public ViewModelBase? ActiveViewModel => _activeViewModel;
+	public string ActiveWeaponName => _activeWeapon;
+	public IEnumerable<string> WeaponNames => _weaponData.Keys;
 
 	public override void _Ready()
 	{
@@ -26,6 +34,8 @@ public partial class ViewModelManager : Node3D
 		_camera = player?.GetNodeOrNull<Camera3D>("Head/CameraShake/FirstPersonCamera");
 		_cameraMotion = GetParent() as ViewModelCameraMotion;
 		LoadWeaponData();
+		var tuner = new ViewModelTuner { Name = "ViewModelTuner", Manager = this };
+		AddChild(tuner);
 	}
 
 	public void EquipWeapon(string weaponName)
@@ -68,6 +78,55 @@ public partial class ViewModelManager : Node3D
 	public void Play(string genericName, float speed = 1.0f)
 	{ if (_localHuman) _activeViewModel?.Play(genericName, speed); }
 
+	public void PlayMuzzleFire()
+	{ if (_localHuman) _activeViewModel?.PlayMuzzleFire(); }
+
+	public ViewModelWeaponData? GetWeaponData(string weaponName) =>
+		_weaponData.TryGetValue(weaponName, out ViewModelWeaponData? data) ? data : null;
+
+	public ViewModelWeaponData? GetSavedSnapshot(string weaponName) =>
+		_savedSnapshots.TryGetValue(weaponName, out ViewModelWeaponData? data) ? data : null;
+
+	public bool IsModified(string weaponName)
+	{
+		if (!_weaponData.TryGetValue(weaponName, out ViewModelWeaponData? data) || !_savedSnapshots.TryGetValue(weaponName, out ViewModelWeaponData? saved)) return false;
+		foreach (Godot.Collections.Dictionary property in data.GetPropertyList())
+			if (IsStoredExport(property))
+			{
+				string name = property["name"].AsString();
+				if (!data.Get(name).Equals(saved.Get(name))) return true;
+			}
+		return false;
+	}
+
+	public bool EquipForTuner(string weaponName)
+	{
+		if (!_localHuman) return false;
+		WeaponSwitcher? switcher = GetParent()?.GetParent()?.GetParent()?.GetNodeOrNull<WeaponSwitcher>("WeaponSwitcher");
+		return switcher?.EquipByName(weaponName) ?? false;
+	}
+
+	public void RefreshActiveViewModel(bool rebuild = false)
+	{
+		if (!_localHuman || _activeViewModel == null) return;
+		if (rebuild)
+		{
+			string weaponName = _activeWeapon;
+			_activeWeapon = string.Empty;
+			EquipWeapon(weaponName);
+		}
+		else _activeViewModel.ApplyData();
+	}
+
+	public string GetSourcePath(string weaponName) => _sourcePaths.TryGetValue(weaponName, out string? path) ? path : string.Empty;
+
+	public void RestoreSaved(string weaponName)
+	{
+		if (!_weaponData.TryGetValue(weaponName, out ViewModelWeaponData? target) || !_savedSnapshots.TryGetValue(weaponName, out ViewModelWeaponData? source)) return;
+		CopyProperties(source, target);
+		RefreshActiveViewModel();
+	}
+
 	public void PlayForDuration(string genericName, float duration)
 	{
 		if (!_localHuman || _activeViewModel == null) return;
@@ -107,15 +166,97 @@ public partial class ViewModelManager : Node3D
 		string file;
 		while ((file = dir.GetNext()) != "")
 		{
-			if (dir.CurrentIsDir() || !file.EndsWith(".tres")) continue;
-			string path = $"{DataDirectory.TrimEnd('/')}/{file}";
+			if (dir.CurrentIsDir()) continue;
+			// Godot's exported PCK stores imported text resources under their remap names
+			// (for example AK47.tres.remap). Keep loading the original resource path so
+			// ResourceLoader follows the remap, but normalize the filename before filtering.
+			string resourceFile = file.EndsWith(".remap", System.StringComparison.Ordinal)
+				? file[..^".remap".Length]
+				: file;
+			if (!resourceFile.EndsWith(".tres", System.StringComparison.Ordinal)) continue;
+			string path = $"{DataDirectory.TrimEnd('/')}/{resourceFile}";
 			var data = ResourceLoader.Load<ViewModelWeaponData>(path);
 			if (data == null || string.IsNullOrWhiteSpace(data.WeaponName)) { GD.PushWarning($"Invalid viewmodel data resource '{path}'."); continue; }
+			_baseSnapshots[data.WeaponName] = (ViewModelWeaponData)data.Duplicate(true);
+			ApplyUserOverride(data);
 			_weaponData[data.WeaponName] = data;
+			_savedSnapshots[data.WeaponName] = (ViewModelWeaponData)data.Duplicate(true);
+			_sourcePaths[data.WeaponName] = path;
 			GD.Print($"VIEWMODEL DATA weapon='{data.WeaponName}' rig='{data.RigScene?.ResourcePath ?? "none"}' attach='{data.AttachBoneName}' clips={FormatClipMap(data.ClipMap)} enabled={data.UseViewModel}");
 		}
 		dir.ListDirEnd();
 		ValidateAndLogWeaponData();
+	}
+
+	private static string OverridePath(string weaponName) => $"user://viewmodel_overrides/{weaponName}.json";
+
+	private static void ApplyUserOverride(ViewModelWeaponData data)
+	{
+		string path = OverridePath(data.WeaponName);
+		if (!FileAccess.FileExists(path)) return;
+		using FileAccess? file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+		if (file == null) return;
+		Variant parsed = Json.ParseString(file.GetAsText());
+		if (parsed.VariantType != Variant.Type.Dictionary) { GD.PushWarning($"Invalid viewmodel override '{path}'."); return; }
+		var values = parsed.AsGodotDictionary();
+		foreach (Variant key in values.Keys)
+		{
+			string property = key.AsString();
+			if (values[key].VariantType != Variant.Type.String) continue;
+			data.Set(property, GD.StrToVar(values[key].AsString()));
+		}
+	}
+
+	public Error SaveOverride(string weaponName, out string path)
+	{
+		path = OverridePath(weaponName);
+		if (!_weaponData.TryGetValue(weaponName, out ViewModelWeaponData? data) || !_baseSnapshots.TryGetValue(weaponName, out ViewModelWeaponData? baseline)) return Error.DoesNotExist;
+		DirAccess.MakeDirRecursiveAbsolute(ProjectSettings.GlobalizePath("user://viewmodel_overrides"));
+		var changed = new Godot.Collections.Dictionary<string, string>();
+		foreach (Godot.Collections.Dictionary property in data.GetPropertyList())
+		{
+			if (!IsStoredExport(property)) continue;
+			string name = property["name"].AsString();
+			Variant value = data.Get(name);
+			if (!value.Equals(baseline.Get(name))) changed[name] = GD.VarToStr(value);
+		}
+		using FileAccess? file = FileAccess.Open(path, FileAccess.ModeFlags.Write);
+		if (file == null) return FileAccess.GetOpenError();
+		file.StoreString(Json.Stringify(changed, "\t"));
+		_savedSnapshots[weaponName] = (ViewModelWeaponData)data.Duplicate(true);
+		return Error.Ok;
+	}
+
+	public Error SaveResource(string weaponName, string path)
+	{
+		if (!_weaponData.TryGetValue(weaponName, out ViewModelWeaponData? data)) return Error.DoesNotExist;
+		Error result = ResourceSaver.Save(data, path);
+		if (result == Error.Ok)
+		{
+			_savedSnapshots[weaponName] = (ViewModelWeaponData)data.Duplicate(true);
+			if (FileAccess.FileExists(OverridePath(weaponName)))
+				DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(OverridePath(weaponName)));
+		}
+		return result;
+	}
+
+	private static bool IsStoredExport(Godot.Collections.Dictionary property)
+	{
+		if (!property.ContainsKey("usage")) return false;
+		PropertyUsageFlags usage = (PropertyUsageFlags)property["usage"].AsInt64();
+		// C# Resource exports are marked Storage at runtime, but some Godot builds do not retain
+		// the Editor bit in GetPropertyList(). Storage is the stable persistence contract here.
+		return usage.HasFlag(PropertyUsageFlags.Storage);
+	}
+
+	private static void CopyProperties(ViewModelWeaponData source, ViewModelWeaponData target)
+	{
+		foreach (Godot.Collections.Dictionary property in source.GetPropertyList())
+			if (IsStoredExport(property))
+			{
+				string name = property["name"].AsString();
+				target.Set(name, source.Get(name));
+			}
 	}
 
 	private void ValidateAndLogWeaponData()

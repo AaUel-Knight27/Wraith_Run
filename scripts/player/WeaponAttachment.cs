@@ -16,8 +16,6 @@ public partial class WeaponAttachment : Node3D
 	/// <summary>Skip audio nodes when this attachment is used only to preview a weapon in the UI.</summary>
 	[Export] public bool SkipAudio { get; set; }
 
-	private const float MuzzleFlashSeconds = 0.045f;
-
 	// Shared across every weapon rather than a per-weapon WeaponData field: only one recording was
 	// supplied, and "a body got hit" reads the same whether it was a bullet or a melee strike.
 	private const string FleshImpactSound = "res://audio/Clips/Weapons/Impacts/Feedback/flesh_hit.wav";
@@ -62,9 +60,7 @@ public partial class WeaponAttachment : Node3D
 	private AudioStreamPlayer3D? _reloadAudio;
 	private AudioStreamPlayer3D? _emptyAudio;
 	private Node3D? _muzzle;
-	private MeshInstance3D? _flashMesh;
-	private OmniLight3D? _flashLight;
-	private float _flashRemaining;
+	private MuzzleFireEffect? _muzzleFire;
 	private Vector3 _gripUnitFix = Vector3.One;
 	private WeaponData? _weapon;
 	private Node3D? _grip;
@@ -105,15 +101,6 @@ public partial class WeaponAttachment : Node3D
 		// twice on every spawn.
 	}
 
-	public override void _Process(double delta)
-	{
-		if (_flashRemaining <= 0.0f) return;
-		_flashRemaining -= (float)delta;
-		if (_flashRemaining > 0.0f) return;
-		SetFlashVisible(false);
-		SetProcess(false);
-	}
-
 	/// <summary>Single attachment path used for the initial equip and for hot switching.</summary>
 	public void Equip(WeaponData? weapon)
 	{
@@ -130,9 +117,7 @@ public partial class WeaponAttachment : Node3D
 		_reloadAudio = null;
 		_emptyAudio = null;
 		_muzzle = null;
-		_flashMesh = null;
-		_flashLight = null;
-		_flashRemaining = 0.0f;
+		_muzzleFire = null;
 		SetProcess(false);
 		_weapon = weapon;
 		if (weapon == null)
@@ -194,10 +179,7 @@ public partial class WeaponAttachment : Node3D
 			else
 				_fireAudio.Play();
 		}
-		if (_flashMesh == null && _flashLight == null) return;
-		SetFlashVisible(true);
-		_flashRemaining = MuzzleFlashSeconds;
-		SetProcess(true);
+		_muzzleFire?.Fire();
 	}
 
 	public void PlayReload()
@@ -336,29 +318,30 @@ public partial class WeaponAttachment : Node3D
 		}
 		model.Name = "EquippedWeapon";
 		model.Scale = Vector3.One * (weapon.ModelScale <= 0.0f ? 1.0f : weapon.ModelScale);
-		ApplyFallbackAlbedo(model, weapon.WeaponName);
+		ApplyFallbackTextures(model, weapon.WeaponName);
 		grip.AddChild(model);
 	}
 
-	/// <summary>Mirrors ViewModelBase's embedded-texture patch, but for the world-model mesh every
-	/// peer sees (this attachment, not the local-only viewmodel). Some FBX imports (the AK-47's
-	/// art/weapons/AssaultRifle/AK47_gun.fbx) carry a material with no albedo bound and no texture
-	/// files sitting next to the source file, so the mesh otherwise renders flat grey/white for
-	/// every player who isn't the shooter. Reassigns the real texture by weapon name instead.</summary>
-	private static void ApplyFallbackAlbedo(Node3D model, string weaponName)
+	/// <summary>Supplies the project's known texture sets only when an FBX import has no albedo
+	/// bound. Embedded/imported material assignments are deliberately left untouched.</summary>
+	private static void ApplyFallbackTextures(Node3D model, string weaponName)
 	{
-		string path = weaponName switch
+		TextureSet textures = weaponName switch
 		{
-			"AK-47" => "res://art/animations/player/combat/AK/textures/ak74m_AlbedoTransparency.png",
-			_ => string.Empty
+			"AK-47" => new TextureSet("res://art/animations/player/combat/AK/textures/ak74m_AlbedoTransparency.png", "res://art/animations/player/combat/AK/textures/ak74m_Normal.png", "res://art/animations/player/combat/AK/textures/ak74m_Metallic.png", "res://art/animations/player/combat/AK/textures/ak74m_Roughness.png"),
+			"M4" => new TextureSet("res://art/animations/player/combat/M4/textures/m16_M16A3_BaseColor.png", "res://art/animations/player/combat/M4/textures/m16_M16A3_Normal.png", "res://art/animations/player/combat/M4/textures/m16_M16A3_Metallic.png", "res://art/animations/player/combat/M4/textures/m16_M16A3_Roughness.png"),
+			"Sniper" => new TextureSet("res://art/animations/player/combat/Sniper/textures/Rifle_albedo.jpg", "res://art/animations/player/combat/Sniper/textures/Rifle_normal.png", "res://art/animations/player/combat/Sniper/textures/Rifle_metallic.jpg", "res://art/animations/player/combat/Sniper/textures/Rifle_roughness.jpg"),
+			"Kriss Vector" => new TextureSet("res://art/animations/player/combat/Vector/textures/Vector_D.png"),
+			"FN 502" => new TextureSet("res://art/animations/player/combat/fn 502/textures/material_diffuse.png", "res://art/animations/player/combat/fn 502/textures/material_normal.png"),
+			"Shotgun" => new TextureSet("res://art/animations/player/combat/benelli m4/textures/TTI_Benelli_M4_BaseColor_brand_friendly.png", "res://art/animations/player/combat/benelli m4/textures/TTI_Benelli_M4_Normal_brand_friendly.png", "res://art/animations/player/combat/benelli m4/textures/TTI_Benelli_M4_Metallic_brand_friendly.png", "res://art/animations/player/combat/benelli m4/textures/TTI_Benelli_M4_Roughness_brand_friendly.png"),
+			_ => default,
 		};
-		if (string.IsNullOrEmpty(path) || !ResourceLoader.Exists(path)) return;
-		var albedo = GD.Load<Texture2D>(path);
+		if (string.IsNullOrEmpty(textures.AlbedoPath) || !ResourceLoader.Exists(textures.AlbedoPath)) return;
 		foreach (Node child in model.GetChildren())
-			ApplyFallbackAlbedoRecursive(child, albedo);
+			ApplyFallbackTexturesRecursive(child, textures);
 	}
 
-	private static void ApplyFallbackAlbedoRecursive(Node node, Texture2D albedo)
+	private static void ApplyFallbackTexturesRecursive(Node node, TextureSet textures)
 	{
 		if (node is MeshInstance3D mesh && mesh.Mesh != null)
 		{
@@ -369,12 +352,25 @@ public partial class WeaponAttachment : Node3D
 				BaseMaterial3D copy = active is BaseMaterial3D source
 					? (BaseMaterial3D)source.Duplicate(true)
 					: new StandardMaterial3D();
-				copy.AlbedoTexture = albedo;
+				copy.AlbedoTexture = GD.Load<Texture2D>(textures.AlbedoPath);
+				if (!string.IsNullOrEmpty(textures.NormalPath)) copy.NormalTexture = GD.Load<Texture2D>(textures.NormalPath);
+				if (!string.IsNullOrEmpty(textures.MetallicPath)) copy.MetallicTexture = GD.Load<Texture2D>(textures.MetallicPath);
+				if (!string.IsNullOrEmpty(textures.RoughnessPath)) copy.RoughnessTexture = GD.Load<Texture2D>(textures.RoughnessPath);
 				mesh.SetSurfaceOverrideMaterial(surface, copy);
 			}
 		}
 		foreach (Node child in node.GetChildren())
-			ApplyFallbackAlbedoRecursive(child, albedo);
+			ApplyFallbackTexturesRecursive(child, textures);
+	}
+
+	private readonly struct TextureSet
+	{
+		public readonly string AlbedoPath;
+		public readonly string NormalPath;
+		public readonly string MetallicPath;
+		public readonly string RoughnessPath;
+		public TextureSet(string albedoPath, string normalPath = "", string metallicPath = "", string roughnessPath = "")
+		{ AlbedoPath = albedoPath; NormalPath = normalPath; MetallicPath = metallicPath; RoughnessPath = roughnessPath; }
 	}
 
 	private void AddMuzzle(Node3D grip, WeaponData weapon)
@@ -385,47 +381,15 @@ public partial class WeaponAttachment : Node3D
 		_muzzle = new Node3D { Name = "Muzzle", Position = new Vector3(0.0f, weapon.MuzzleDistance, 0.0f) };
 		grip.AddChild(_muzzle);
 
-		var flashMaterial = new StandardMaterial3D
+		_muzzleFire = new MuzzleFireEffect { Name = "MuzzleFireEffect", RotationDegrees = new Vector3(90.0f, 0.0f, 0.0f), NoDepthTest = false };
+		_muzzle.AddChild(_muzzleFire);
+		_muzzleFire.Configure(new ViewModelWeaponData
 		{
-			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-			Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
-			BlendMode = BaseMaterial3D.BlendModeEnum.Add,
-			AlbedoColor = new Color(1.0f, 0.78f, 0.35f),
-			BillboardMode = BaseMaterial3D.BillboardModeEnum.Enabled,
-			DisableReceiveShadows = true,
-		};
-		_flashMesh = new MeshInstance3D
-		{
-			Name = "Flash",
-			Mesh = new QuadMesh { Size = new Vector2(0.28f, 0.28f) },
-			MaterialOverride = flashMaterial,
-			Visible = false,
-			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-		};
-		_muzzle.AddChild(_flashMesh);
-
-		// A real light sells the flash far better than a billboard alone, and one short-lived omni
-		// is affordable even on the HD 520 - but only while it is actually on, hence Visible.
-		_flashLight = new OmniLight3D
-		{
-			Name = "FlashLight",
-			LightColor = new Color(1.0f, 0.82f, 0.45f),
-			LightEnergy = 2.4f,
-			OmniRange = 4.0f,
-			ShadowEnabled = false,
-			Visible = false,
-		};
-		_muzzle.AddChild(_flashLight);
-	}
-
-	private void SetFlashVisible(bool visible)
-	{
-		if (_flashMesh != null) _flashMesh.Visible = visible;
-		if (_flashLight != null) _flashLight.Visible = visible;
-		if (!visible || _flashMesh == null) return;
-		// Re-roll the flash each shot so a full-auto burst does not look like one frozen sprite.
-		_flashMesh.RotationDegrees = new Vector3(0.0f, 0.0f, _rng.RandfRange(0.0f, 360.0f));
-		_flashMesh.Scale = Vector3.One * _rng.RandfRange(0.8f, 1.25f);
+			MuzzleFlashEnabled = true,
+			MuzzleFlashScale = weapon.WeaponClass == "Shotgun" ? 1.5f : 1.0f,
+			MuzzleParticleSpeed = weapon.WeaponClass is "SMG" ? 7.0f : 4.0f,
+			MuzzleSpreadDegrees = weapon.WeaponClass == "Shotgun" ? 28.0f : 12.0f,
+		}, 1);
 	}
 
 	private void AddAudioPlayers(Node3D grip, WeaponData weapon)

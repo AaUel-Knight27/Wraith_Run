@@ -29,6 +29,17 @@ public partial class ViewModelWeaponData : Resource
 	[Export] public Godot.Collections.Array<string> NormalizationReferenceArmMeshNames { get; set; } = new();
 	[Export] public float CullMargin { get; set; } = 0.5f;
 	[Export] public Vector3 MuzzlePointOffset { get; set; } = new(0, 0, -0.5f);
+	// Optional model-space muzzle socket. When absent, MuzzlePointOffset is relative to the weapon model.
+	[Export] public string MuzzleNodeName { get; set; } = string.Empty;
+	[Export] public Vector3 MuzzleDirectionOffsetDegrees { get; set; } = Vector3.Zero;
+	[Export] public bool MuzzleFlashEnabled { get; set; }
+	[Export] public float MuzzleFlashScale { get; set; } = 1.0f;
+	[Export] public Color MuzzleFlashColor { get; set; } = new(1.0f, 0.82f, 0.45f, 1.0f);
+	[Export] public float MuzzleFlashDuration { get; set; } = 0.05f;
+	[Export] public float MuzzleLightEnergy { get; set; } = 2.4f;
+	[Export] public bool MuzzleSmokeEnabled { get; set; }
+	[Export] public float MuzzleParticleSpeed { get; set; } = 4.0f;
+	[Export] public float MuzzleSpreadDegrees { get; set; } = 12.0f;
 	[Export] public string MagazineNodeName { get; set; } = string.Empty;
 	[Export] public string MagazineBoneName { get; set; } = string.Empty;
 	[Export] public Vector3 MagazinePosition { get; set; } = Vector3.Zero;

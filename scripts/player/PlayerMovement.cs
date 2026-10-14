@@ -203,7 +203,7 @@ public partial class PlayerMovement : CharacterBody3D
         // the mouse mode for as long as it is up - so this branch only re-captures the mouse after
         // something ELSE freed it (a debug tool, say), and never while the menu is open.
         if (@event is InputEventMouseButton && Input.MouseMode == Input.MouseModeEnum.Visible
-            && !GameUiState.MenuOpen)
+			&& !GameUiState.BlocksGameplayInput)
             Input.MouseMode = Input.MouseModeEnum.Captured;
     }
 

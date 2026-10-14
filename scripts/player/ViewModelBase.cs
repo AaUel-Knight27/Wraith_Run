@@ -19,6 +19,11 @@ public partial class ViewModelBase : Node3D
 	private AnimationPlayer? _animationPlayer;
 	private Node3D? _muzzlePoint;
 	private Node3D? _weaponModel;
+	private Node3D? _weaponGrip;
+	private Node3D? _magazineModel;
+	private MuzzleFireEffect? _muzzleFire;
+	private MeshInstance3D? _muzzleGizmo;
+	private bool _showMuzzleGizmo;
 	private readonly Dictionary<string, string> _resolvedClips = new();
 	private string _idleClip = string.Empty;
 	private string _activeMovementClip = string.Empty;
@@ -30,6 +35,7 @@ public partial class ViewModelBase : Node3D
 	public Skeleton3D? Skeleton => _skeleton;
 	public Node3D? MuzzlePoint => _muzzlePoint;
 	public IReadOnlyDictionary<string, string> ResolvedClips => _resolvedClips;
+	public Node3D? WeaponModel => _weaponModel;
 
 	public void Configure(ViewModelWeaponData data)
 	{
@@ -38,6 +44,31 @@ public partial class ViewModelBase : Node3D
 		PositionOffset = data.ViewPosition;
 		RotationOffsetDegrees = data.ViewRotationDegrees;
 		ScaleOffset = data.ViewScale;
+	}
+
+	/// <summary>Applies safe visual tuning values without recreating the animation rig.</summary>
+	public void ApplyData()
+	{
+		if (Data == null) return;
+		PositionOffset = Data.ViewPosition;
+		RotationOffsetDegrees = Data.ViewRotationDegrees;
+		ScaleOffset = Data.ViewScale;
+		Position = PositionOffset;
+		RotationDegrees = RotationOffsetDegrees;
+		Scale = ScaleOffset;
+		ApplyWeaponPlacement();
+		ApplyMagazinePlacement();
+		ConfigureMuzzleAnchor();
+		foreach (Node node in GetDescendants(_rig ?? this))
+			if (node is MeshInstance3D mesh) mesh.ExtraCullMargin = Mathf.Max(mesh.ExtraCullMargin, Data.CullMargin);
+	}
+
+	public void PlayMuzzleFire() => _muzzleFire?.Fire();
+
+	public void SetMuzzleGizmoVisible(bool visible)
+	{
+		_showMuzzleGizmo = visible;
+		if (_muzzleGizmo != null) _muzzleGizmo.Visible = visible;
 	}
 
 	public override void _Ready()
@@ -131,6 +162,7 @@ public partial class ViewModelBase : Node3D
 		ResolveAndConfigureClips();
 		_animationPlayer.AnimationFinished += OnAnimationFinished;
 		AttachWeaponModel();
+		ApplyData();
 		ProcessPriority = 100;
 		RefreshDebugGeometry();
 		GD.Print($"VIEWMODEL weapon='{Data.WeaponName}' rig='{Data.RigScene.ResourcePath}' attach='{Data.AttachBoneName}' clips={FormatResolvedClips()} arm_extent={GetArmExtent():F4}m normalization={_normalizationScale:F6}");
@@ -196,6 +228,7 @@ public partial class ViewModelBase : Node3D
 		// moves with the bone, so it still follows the animation.
 		var grip = new Node3D { Name = "WeaponGrip" };
 		attachment.AddChild(grip);
+		_weaponGrip = grip;
 		Node3D model = Data.WeaponModelScene.Instantiate<Node3D>();
 		model.Name = "WeaponModel";
 		grip.AddChild(model);
@@ -204,20 +237,72 @@ public partial class ViewModelBase : Node3D
 		// Where the rig's own gun sits in this viewmodel. Every rig was designed around the hands, so the new
 		// model is centred on that same spot: the hands then hold it the way they hold the rig's gun. The
 		// AttachPosition/AttachRotation/AttachScale values are fine adjustments on top of that alignment.
-		Basis rotation = Basis.FromEuler(Data.AttachRotationDegrees * (Mathf.Pi / 180.0f), EulerOrder.Yxz);
-		Basis scaled = rotation.Scaled(Data.AttachScale);
-		Vector3 modelCenter = LocalAabb(model).GetCenter();
-		Vector3 rigCentre = RigGunCentreInRoot();
-		bool haveRigGun = rigCentre != Vector3.Inf;
-		Vector3 anchor = (haveRigGun ? rigCentre : Vector3.Zero) + Data.AttachPosition;
-		Transform3D wantedInRoot = new Transform3D(scaled, anchor - scaled * modelCenter);
-		int boneIndex = _skeleton.FindBone(Data.AttachBoneName);
-		Transform3D boneGlobal = _skeleton.GlobalTransform * _skeleton.GetBoneGlobalPose(boneIndex);
-		grip.Transform = boneGlobal.AffineInverse() * GlobalTransform * wantedInRoot;
 		model.Transform = Transform3D.Identity;
+		ApplyWeaponPlacement();
+		_magazineModel = string.IsNullOrEmpty(Data.MagazineNodeName) ? null : model.FindChild(Data.MagazineNodeName, true, false) as Node3D;
+		ApplyMagazinePlacement();
+		CreateMuzzleAnchor();
 
 		ReportWeaponLocalBounds(model);
 		GD.Print($"VIEWMODEL ATTACH weapon='{Data.WeaponName}' model='{Data.WeaponModelScene.ResourcePath}' bone='{Data.AttachBoneName}'");
+	}
+
+	private void ApplyWeaponPlacement()
+	{
+		if (Data == null || _skeleton == null || _weaponModel == null || _weaponGrip == null) return;
+		Basis rotation = Basis.FromEuler(Data.AttachRotationDegrees * (Mathf.Pi / 180.0f), EulerOrder.Yxz);
+		Basis scaled = rotation.Scaled(Data.AttachScale);
+		Vector3 modelCenter = LocalAabb(_weaponModel).GetCenter();
+		Vector3 rigCentre = RigGunCentreInRoot();
+		Vector3 anchor = (rigCentre != Vector3.Inf ? rigCentre : Vector3.Zero) + Data.AttachPosition;
+		Transform3D wantedInRoot = new Transform3D(scaled, anchor - scaled * modelCenter);
+		int boneIndex = _skeleton.FindBone(Data.AttachBoneName);
+		if (boneIndex < 0) return;
+		Transform3D boneGlobal = _skeleton.GlobalTransform * _skeleton.GetBoneGlobalPose(boneIndex);
+		_weaponGrip.Transform = boneGlobal.AffineInverse() * GlobalTransform * wantedInRoot;
+	}
+
+	private void CreateMuzzleAnchor()
+	{
+		if (Data == null || _weaponModel == null) return;
+		Node3D parent = _weaponModel.FindChild(Data.MuzzleNodeName, true, false) as Node3D ?? _weaponModel;
+		_muzzlePoint = new Node3D { Name = "MuzzleAnchor" };
+		parent.AddChild(_muzzlePoint);
+		_muzzleFire = new MuzzleFireEffect { Name = "MuzzleFireEffect" };
+		_muzzlePoint.AddChild(_muzzleFire);
+		CreateMuzzleGizmo();
+		ConfigureMuzzleAnchor();
+	}
+
+	private void ApplyMagazinePlacement()
+	{
+		if (Data == null || _magazineModel == null) return;
+		_magazineModel.Position = Data.MagazinePosition;
+		_magazineModel.RotationDegrees = Data.MagazineRotationDegrees;
+		_magazineModel.Scale = Data.MagazineScale;
+	}
+
+	private void ConfigureMuzzleAnchor()
+	{
+		if (Data == null || _muzzlePoint == null) return;
+		// A named socket is already at the authored muzzle; offsets preserve the old model-root path.
+		_muzzlePoint.Position = _muzzlePoint.GetParent() == _weaponModel ? Data.MuzzlePointOffset : Vector3.Zero;
+		_muzzlePoint.RotationDegrees = Data.MuzzleDirectionOffsetDegrees;
+		_muzzleFire?.Configure(Data, 1);
+		if (_muzzleGizmo != null) _muzzleGizmo.Visible = _showMuzzleGizmo;
+	}
+
+	private void CreateMuzzleGizmo()
+	{
+		if (_muzzlePoint == null) return;
+		var lines = new ImmediateMesh();
+		lines.SurfaceBegin(Mesh.PrimitiveType.Lines);
+		lines.SurfaceSetColor(Colors.Red); lines.SurfaceAddVertex(Vector3.Zero); lines.SurfaceAddVertex(Vector3.Right * 0.12f);
+		lines.SurfaceSetColor(Colors.Green); lines.SurfaceAddVertex(Vector3.Zero); lines.SurfaceAddVertex(Vector3.Up * 0.12f);
+		lines.SurfaceSetColor(Colors.Blue); lines.SurfaceAddVertex(Vector3.Zero); lines.SurfaceAddVertex(Vector3.Back * 0.24f);
+		lines.SurfaceEnd();
+		_muzzleGizmo = new MeshInstance3D { Name = "MuzzleAnchorGizmo", Mesh = lines, MaterialOverride = DebugMaterial(Colors.White), Visible = false, CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, ExtraCullMargin = 2.0f };
+		_muzzlePoint.AddChild(_muzzleGizmo);
 	}
 
 	private static Vector3 InverseScale(Vector3 scale) => new(
@@ -293,6 +378,9 @@ public partial class ViewModelBase : Node3D
 		string path = Data.WeaponName switch
 		{
 			"AK-47" when meshName.ToString() is "Ak" or "Mag_2" => "res://art/animations/player/combat/AK/textures/ak74m_AlbedoTransparency.png",
+			"M4" when meshName.ToString().StartsWith("BARREL", StringComparison.OrdinalIgnoreCase) => "res://art/animations/player/combat/M4/textures/m16_M16A3_BaseColor.png",
+			"Sniper" when meshName.ToString().StartsWith("Rifle", StringComparison.OrdinalIgnoreCase) => "res://art/animations/player/combat/Sniper/textures/Rifle_albedo.jpg",
+			"Kriss Vector" when meshName.ToString() is "main" or "mag" => "res://art/animations/player/combat/Vector/textures/Vector_D.png",
 			"Glock 19" or "Desert Eagle" or "FN 502" when meshName.ToString() == "502_1_low_001" => "res://art/animations/player/combat/fn 502/textures/material_diffuse.png",
 			"Shotgun" when meshName.ToString().StartsWith("12g_", StringComparison.Ordinal) => "res://art/animations/player/combat/benelli m4/textures/12gauge_BaseColor_red.png",
 			"Shotgun" when meshName.ToString().StartsWith("matchsaverz", StringComparison.OrdinalIgnoreCase) => "res://art/animations/player/combat/benelli m4/textures/matchsaverz_BaseColor_black_brand_friendly.png",

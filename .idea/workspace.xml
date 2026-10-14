@@ -10,29 +10,7 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/data/weapons/WeaponRegistry.tres" beforeDir="false" afterPath="$PROJECT_DIR$/data/weapons/WeaponRegistry.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/autoloads/SettingsManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/autoloads/SettingsManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/autoloads/SoundManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/autoloads/SoundManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/bots/BotBrain.Combat.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/bots/BotBrain.Combat.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/combat/IShootable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/combat/IShootable.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/combat/KillStyle.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/combat/KillStyle.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/data/OperatorInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/OperatorInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/data/PlayerProfile.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/PlayerProfile.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponData.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponData.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponRegistry.tres" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/data/WeaponSets.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/data/WeaponSets.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/network/LanMenu.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/network/LanMenu.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/Health.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/Health.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerAudio.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerAudio.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/PlayerHud.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/PlayerHud.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/TouchControls.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/TouchControls.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponAttachment.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/player/WeaponSwitcher.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/LoadoutScreens.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/LoadoutScreens.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/ui/WeaponScreens.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/ui/WeaponScreens.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/world/HubWeaponWall.cs" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/world/HubWeaponWall.cs" afterDir="false" />
-    </list>
+    <list default="true" id="daeade38-bdd1-463f-8b70-950b70a6df8b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -88,23 +66,23 @@
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000000016821946" />
-      <entry key="MS500" value="1.0252033324712841" />
-      <entry key="S2" value="1.6598365691102435" />
-      <entry key="S5" value="2.282375947246705" />
-      <entry key="S10" value="2.6565635953078677" />
-      <entry key="S30" value="4.116879202316602" />
-      <entry key="S60" value="5.676288429410666" />
-      <entry key="M2" value="7.026905927822614" />
-      <entry key="M5" value="8.516468139771199" />
-      <entry key="M10" value="10.74153291939422" />
-      <entry key="M15" value="12.63499690779942" />
-      <entry key="M30" value="16.340519860753204" />
-      <entry key="H1" value="23.500693070488207" />
-      <entry key="H2" value="49.85263260303773" />
-      <entry key="H4" value="107.5780504350444" />
-      <entry key="D1" value="371.8078526104698" />
-      <entry key="W1" value="515.9277789472613" />
+      <entry key="MS100" value="1.0065832932197378" />
+      <entry key="MS500" value="1.5054176609987087" />
+      <entry key="S2" value="2.989409907039752" />
+      <entry key="S5" value="5.65805036419202" />
+      <entry key="S10" value="9.096416655810266" />
+      <entry key="S30" value="13.998808256603612" />
+      <entry key="S60" value="15.827089207013376" />
+      <entry key="M2" value="16.866935047301872" />
+      <entry key="M5" value="17.74287789680287" />
+      <entry key="M10" value="19.445130619762" />
+      <entry key="M15" value="21.5106530492021" />
+      <entry key="M30" value="26.72508573635745" />
+      <entry key="H1" value="35.21033277871941" />
+      <entry key="H2" value="60.6912161733107" />
+      <entry key="H4" value="117.56487309582589" />
+      <entry key="D1" value="385.04630944271764" />
+      <entry key="W1" value="532.9787645800875" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -126,23 +104,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.8705505647119506" />
-      <entry key="MS500" value="0.9970824165764637" />
-      <entry key="S2" value="1.6480513518643511" />
-      <entry key="S5" value="2.275830576253874" />
-      <entry key="S10" value="2.651758122367462" />
-      <entry key="S30" value="4.107629582023106" />
-      <entry key="S60" value="5.667063610963558" />
-      <entry key="M2" value="7.020282931570744" />
-      <entry key="M5" value="8.513142781611112" />
-      <entry key="M10" value="10.739691668059596" />
-      <entry key="M15" value="12.633702913611879" />
-      <entry key="M30" value="16.33980722743253" />
-      <entry key="H1" value="23.500233200109182" />
-      <entry key="H2" value="49.852189743365386" />
-      <entry key="H4" value="107.57762603963148" />
-      <entry key="D1" value="371.8076832885295" />
-      <entry key="W1" value="515.9277487104694" />
+      <entry key="MS100" value="0.8124108603213644" />
+      <entry key="MS500" value="1.446029336527906" />
+      <entry key="S2" value="2.956632247153478" />
+      <entry key="S5" value="5.631259168518647" />
+      <entry key="S10" value="9.074718358009289" />
+      <entry key="S30" value="13.987783350300768" />
+      <entry key="S60" value="15.82088307272775" />
+      <entry key="M2" value="16.863635404001485" />
+      <entry key="M5" value="17.74142670889991" />
+      <entry key="M10" value="19.44414907902005" />
+      <entry key="M15" value="21.509813100704157" />
+      <entry key="M30" value="26.72446864433065" />
+      <entry key="H1" value="35.20987841065087" />
+      <entry key="H2" value="60.69077828518895" />
+      <entry key="H4" value="117.56445102267848" />
+      <entry key="D1" value="385.04613741116935" />
+      <entry key="W1" value="532.9787337020944" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -275,7 +253,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="fix host and peer bugs" />
     <MESSAGE value="added lobby system inside warehouse and additional map" />
     <MESSAGE value="added animation player entering car" />
     <MESSAGE value="additional map and rider buggy vehicle" />
@@ -300,7 +277,8 @@
     <MESSAGE value="in game bugs fix" />
     <MESSAGE value="added more bugs" />
     <MESSAGE value="more buggs" />
-    <option name="LAST_COMMIT_MESSAGE" value="more buggs" />
+    <MESSAGE value="melees removed for bug reducing purpose" />
+    <option name="LAST_COMMIT_MESSAGE" value="melees removed for bug reducing purpose" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

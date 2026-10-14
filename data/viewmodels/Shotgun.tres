@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://art/animations/player/combat/benelli m4/source/HandWithGloves_AnimateRDY.fbx" id="2_rig"]
@@ -9,27 +9,29 @@ script = ExtResource("1_script")
 WeaponName = "Shotgun"
 RigScene = ExtResource("2_rig")
 AttachBoneName = "Main"
-AttachPosition = Vector3(0, 0, 0)
 AttachRotationDegrees = Vector3(-90, 0, 0)
 AttachScale = Vector3(0.2, 0.2, 0.2)
-ViewPosition = Vector3(0.28, -0.45, -0.48)
+ViewPosition = Vector3(0.008, -0.067, -0.026)
 ViewRotationDegrees = Vector3(0, 180, 0)
-ArmMeshNames = PackedStringArray("sleeve", "hardknuckle")
-OriginalWeaponMeshNames = PackedStringArray("12g_12gauge_0", "benelli_m4_TTI_Benelli_M4_0")
+ArmMeshNames = ["sleeve", "hardknuckle"]
+OriginalWeaponMeshNames = ["12g_12gauge_0", "benelli_m4_TTI_Benelli_M4_0"]
 HideOriginalWeapon = false
-OriginalMagazineMeshNames = PackedStringArray()
-ClipMap = {
-"idle": "Rig|M4_Idle",
-"walk": "Rig|M4_Walk",
-"run": "Rig|M4_Run",
+ClipMap = Dictionary[String, String]({
 "fire": "Rig|M4_Fire",
+"idle": "Rig|M4_Idle",
 "reload": "Rig|M4_ReloadOne_type1",
-"reload_full": "Rig|M4_ReloadFull_type1"
-}
-IdlePoseTime = 0.0
+"reload_full": "Rig|M4_ReloadFull_type1",
+"run": "Rig|M4_Run",
+"walk": "Rig|M4_Walk"
+})
 NormalizationReferenceRig = ExtResource("4_reference")
-NormalizationReferenceArmMeshNames = PackedStringArray("arms")
+NormalizationReferenceArmMeshNames = ["arms"]
 CullMargin = 1.0
 MuzzlePointOffset = Vector3(0, 0, -0.75)
-MagazineNodeName = ""
-MagazineBoneName = ""
+MuzzleFlashEnabled = true
+MuzzleFlashScale = 1.6
+MuzzleFlashDuration = 0.065
+MuzzleLightEnergy = 3.6
+MuzzleSmokeEnabled = true
+MuzzleParticleSpeed = 3.0
+MuzzleSpreadDegrees = 30.0

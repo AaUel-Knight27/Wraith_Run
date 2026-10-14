@@ -35,12 +35,16 @@ public static class GameUiState
     /// <summary>True while the end-of-match results screen is up (the pause menu stays shut).</summary>
     public static bool ResultsOpen { get; set; }
 
+    /// <summary>Local-only visual tooling blocks controls but deliberately does not pause simulation.</summary>
+    public static bool ViewModelTunerOpen { get; private set; }
+
     /// <summary>What PlayerMovement and WeaponSwitcher check before reading gameplay input.</summary>
-    public static bool BlocksGameplayInput => MenuOpen;
+    public static bool BlocksGameplayInput => MenuOpen || ViewModelTunerOpen;
 
     public static void SetMenuOpen(bool open) => MenuOpen = open;
+    public static void SetViewModelTunerOpen(bool open) => ViewModelTunerOpen = open;
 
-    public static void Reset() { MenuOpen = false; ResultsOpen = false; }
+    public static void Reset() { MenuOpen = false; ResultsOpen = false; ViewModelTunerOpen = false; }
 
     /// <summary>Idempotent - safe to call from every player's HUD. Adds the two actions and their
     /// default keys if they are not in the InputMap yet, and never touches an existing binding.</summary>

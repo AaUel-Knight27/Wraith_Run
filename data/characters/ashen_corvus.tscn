@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://cu5fd7wgkmige"]
+
+[ext_resource type="PackedScene" uid="uid://slepl22na36o" path="res://art/characters/AshenCorvus.fbx" id="1_xk4rt"]
+
+[node name="AshenCorvus" unique_id=1943081808 instance=ExtResource("1_xk4rt")]

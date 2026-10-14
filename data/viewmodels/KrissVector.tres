@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://art/animations/player/combat/Vector/source/Vector.fbx" id="2_rig"]
@@ -7,31 +7,30 @@
 script = ExtResource("1_script")
 WeaponName = "Kriss Vector"
 RigScene = ExtResource("2_rig")
-AttachBoneName = ""
-AttachPosition = Vector3(0, 0, 0)
-AttachRotationDegrees = Vector3(0, 0, 0)
-AttachScale = Vector3(1, 1, 1)
-ViewPosition = Vector3(0.08, -0.35, -0.33)
+AttachPosition = Vector3(-10, 0, 0)
+ViewPosition = Vector3(0.026, -1.536, -0.328)
 ViewRotationDegrees = Vector3(0, 180, 0)
-ArmMeshNames = PackedStringArray("Hand_Mesh")
-OriginalWeaponMeshNames = PackedStringArray("main", "mag")
-OriginalMagazineMeshNames = PackedStringArray("mag")
-ClipMap = {
-"idle": "Idle",
-"walk": "Idle",
-"run": "Idle",
-"fire": "Shoot",
-"reload": "Reload",
-"reload_full": "Reload",
-"draw": "Draw"
-}
-IdlePoseTime = 0.0
-NormalizationReferenceRig = ExtResource("2_rig")
-NormalizationReferenceArmMeshNames = PackedStringArray("Hand_Mesh")
-MeshMaterials = {}
+ArmMeshNames = Array[String](["Hand_Mesh"])
+OriginalWeaponMeshNames = Array[String](["main", "mag"])
+OriginalMagazineMeshNames = Array[String](["mag"])
 HideOriginalWeapon = false
 HideOriginalMagazine = false
+ClipMap = Dictionary[String, String]({
+"draw": "Draw",
+"fire": "Shoot",
+"idle": "Idle",
+"reload": "Reload",
+"reload_full": "Reload",
+"run": "Idle",
+"walk": "Idle"
+})
+NormalizationReferenceRig = ExtResource("2_rig")
+NormalizationReferenceArmMeshNames = Array[String](["Hand_Mesh"])
 CullMargin = 1.0
 MuzzlePointOffset = Vector3(0, 0, -0.65)
-MagazineNodeName = ""
-MagazineBoneName = ""
+MuzzleFlashEnabled = true
+MuzzleFlashScale = 0.85
+MuzzleFlashDuration = 0.04
+MuzzleLightEnergy = 2.0
+MuzzleParticleSpeed = 7.0
+MuzzleSpreadDegrees = 13.0

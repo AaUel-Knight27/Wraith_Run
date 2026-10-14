@@ -472,6 +472,9 @@ public partial class WeaponSwitcher : Node
 	{
 		if (!IsAuthorizedEffectSender()) return;
 		_attachment.PlayFire();
+		// This is the same replicated fire-effects event as the world weapon. The local-only
+		// viewmodel has its own live muzzle anchor, so it can follow animation/recoil exactly.
+		_viewmodel?.PlayMuzzleFire();
 		_viewmodel?.Play("fire");
 		// Bots (host only) hear the shot: everyone nearby learns roughly where it came from.
 		if (_currentWeapon != null && _currentWeapon.WeaponClass != "Melee")

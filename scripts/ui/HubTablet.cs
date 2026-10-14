@@ -101,6 +101,7 @@ public partial class HubTablet : CanvasLayer
 
     public override void _ExitTree()
     {
+        _leaving = true;
         if (Instance == this) Instance = null;
         StopListening();
         if (_open) GameUiState.Reset();
@@ -163,15 +164,15 @@ public partial class HubTablet : CanvasLayer
         {
             if (@event is InputEventKey hot && hot.Pressed && !hot.Echo && !TypingOnScreen())
             {
-                if (hot.PhysicalKeycode == Key.Q) { GetViewport().SetInputAsHandled(); CycleTab(-1); return; }
-                if (hot.PhysicalKeycode == Key.E) { GetViewport().SetInputAsHandled(); CycleTab(1); return; }
-                if (hot.PhysicalKeycode == Key.Space) { GetViewport().SetInputAsHandled(); PrimaryAction(); return; }
+                if (hot.PhysicalKeycode == Key.Q) { MarkInputHandled(); CycleTab(-1); return; }
+                if (hot.PhysicalKeycode == Key.E) { MarkInputHandled(); CycleTab(1); return; }
+                if (hot.PhysicalKeycode == Key.Space) { MarkInputHandled(); PrimaryAction(); return; }
             }
             // Esc closes the tablet - except while a key row waits for a key, where it cancels the rebind
             bool closing = !IsCapturingKey && (@event.IsActionPressed(GameUiState.PauseAction) || @event.IsActionPressed("ui_cancel"));
             if (!closing && ForwardToScreen(@event))
             {
-                GetViewport().SetInputAsHandled();
+                MarkInputHandled();
                 return;
             }
         }
@@ -181,13 +182,13 @@ public partial class HubTablet : CanvasLayer
         {
             if (_typing)
             {
-                if (key.Keycode == Key.Enter || key.Keycode == Key.KpEnter) { GetViewport().SetInputAsHandled(); EndQuickChat(send: true); }
-                else if (key.Keycode == Key.Escape) { GetViewport().SetInputAsHandled(); EndQuickChat(send: false); }
+                if (key.Keycode == Key.Enter || key.Keycode == Key.KpEnter) { MarkInputHandled(); EndQuickChat(send: true); }
+                else if (key.Keycode == Key.Escape) { MarkInputHandled(); EndQuickChat(send: false); }
                 return;
             }
             if (!_open && (key.Keycode == Key.Enter || key.Keycode == Key.KpEnter))
             {
-                GetViewport().SetInputAsHandled();
+                MarkInputHandled();
                 BeginQuickChat();
                 return;
             }
@@ -196,21 +197,21 @@ public partial class HubTablet : CanvasLayer
         bool escape = @event.IsActionPressed(GameUiState.PauseAction);
         if (escape)
         {
-            GetViewport().SetInputAsHandled();
+            MarkInputHandled();
             if (_quitConfirm != null && _quitConfirm.Visible) HideQuitConfirm();
             else ShowQuitConfirm();
             return;
         }
         if (_quitConfirm != null && _quitConfirm.Visible)
         {
-            if (@event.IsActionPressed("ui_cancel")) { GetViewport().SetInputAsHandled(); HideQuitConfirm(); }
+            if (@event.IsActionPressed("ui_cancel")) { MarkInputHandled(); HideQuitConfirm(); }
             return;
         }
         bool tab = @event.IsActionPressed(GameUiState.ScoreboardAction) && !@event.IsEcho();
         bool back = _open && @event.IsActionPressed("ui_cancel");
         if (!tab && !back) return;
         if (GameUiState.ResultsOpen) return;
-        GetViewport().SetInputAsHandled();
+        MarkInputHandled();
         if (_open && _section == Section.Play && !InSession && (_playStep == PlayStep.Host || _playStep == PlayStep.Join))
         {
             // one step back inside HOST / JOIN before the tablet closes
@@ -368,6 +369,16 @@ public partial class HubTablet : CanvasLayer
         return IsInstanceValid(screen) && screen.IsInsideTree() ? screen : null;
     }
 
+    /// <summary>Input can finish dispatching while a scene transition removes this tablet or its
+    /// viewport. Only mark the event handled while the owning viewport is still alive.</summary>
+    private void MarkInputHandled()
+    {
+        if (!IsInsideTree()) return;
+        Viewport? viewport = GetViewport();
+        if (viewport != null && IsInstanceValid(viewport) && viewport.IsInsideTree())
+            viewport.SetInputAsHandled();
+    }
+
     private bool TypingOnScreen() => GetInputScreen()?.GuiGetFocusOwner() is LineEdit or TextEdit;
 
     private void SetOverlays(bool tabletUp)
@@ -385,7 +396,7 @@ public partial class HubTablet : CanvasLayer
         // The tablet is mounted onto the player's camera asynchronously. Input can arrive during
         // that gap (or while a scene is being torn down), so never PushInput into an unattached
         // SubViewport; Godot reports errors and can throw from that call when it is outside the tree.
-        if (screen == null) return true;
+        if (screen == null || !screen.IsInsideTree()) return true;
         switch (e)
         {
             case InputEventMouseMotion or InputEventMouseButton:
