@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://art/animations/player/combat/fn 502/source/FPS_Anims.fbx" id="2_rig"]
@@ -12,32 +12,26 @@ AttachBoneName = "Main"
 AttachPosition = Vector3(-0.05, 0.07, 0.15)
 AttachRotationDegrees = Vector3(-90, 0, 0)
 AttachScale = Vector3(0.5, 0.5, 0.5)
-ViewPosition = Vector3(0.08, -0.29, -0.2758)
+ViewPosition = Vector3(0, -0.167, -0.157)
 ViewRotationDegrees = Vector3(0, 180, 0)
-ArmMeshNames = PackedStringArray("arms")
-OriginalWeaponMeshNames = PackedStringArray("502_1_low_001")
-OriginalMagazineMeshNames = PackedStringArray("Magazine")
-ClipMap = {
-"idle": "Armature|FN_Walk",
-"walk": "Armature|FN_Walk",
-"run": "Armature|FN_Run",
-"fire": "Armature|FN_Shot",
-"reload": "Armature|FN_Reload",
-"reload_full": "Armature|FN_ReloadFull"
-}
-IdlePoseTime = 0.0
-NormalizationReferenceRig = ExtResource("4_reference")
-NormalizationReferenceArmMeshNames = PackedStringArray("arms")
+ArmMeshNames = ["arms"]
+OriginalWeaponMeshNames = ["502_1_low_001"]
+OriginalMagazineMeshNames = ["Magazine"]
 HideOriginalWeapon = false
 HideOriginalMagazine = false
-MeshMaterials = {}
+ClipMap = Dictionary[String, String]({
+"fire": "Armature|FN_Shot",
+"idle": "Armature|FN_Walk",
+"reload": "Armature|FN_Reload",
+"reload_full": "Armature|FN_ReloadFull",
+"run": "Armature|FN_Run",
+"walk": "Armature|FN_Walk"
+})
+NormalizationReferenceRig = ExtResource("4_reference")
+NormalizationReferenceArmMeshNames = ["arms"]
 CullMargin = 1.0
 MuzzlePointOffset = Vector3(0, 0, -0.4)
 MuzzleFlashEnabled = true
 MuzzleFlashScale = 0.9
-MuzzleFlashDuration = 0.05
 MuzzleLightEnergy = 2.2
-MuzzleParticleSpeed = 4.0
 MuzzleSpreadDegrees = 11.0
-MagazineNodeName = ""
-MagazineBoneName = ""

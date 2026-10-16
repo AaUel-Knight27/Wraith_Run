@@ -168,9 +168,11 @@ public partial class HubTablet : CanvasLayer
                 if (hot.PhysicalKeycode == Key.E) { MarkInputHandled(); CycleTab(1); return; }
                 if (hot.PhysicalKeycode == Key.Space) { MarkInputHandled(); PrimaryAction(); return; }
             }
-            // Esc closes the tablet - except while a key row waits for a key, where it cancels the rebind
-            bool closing = !IsCapturingKey && (@event.IsActionPressed(GameUiState.PauseAction) || @event.IsActionPressed("ui_cancel"));
-            if (!closing && ForwardToScreen(@event))
+            // Escape follows the same route as the on-screen BACK button. A controls rebind owns
+            // Escape while it is listening, so leave that event for SettingsPanel.
+            bool back = !IsCapturingKey && (@event.IsActionPressed(GameUiState.PauseAction) || @event.IsActionPressed("ui_cancel"));
+            if (back) { MarkInputHandled(); BackPressed(); return; }
+            if (ForwardToScreen(@event))
             {
                 MarkInputHandled();
                 return;
@@ -193,13 +195,14 @@ public partial class HubTablet : CanvasLayer
                 return;
             }
         }
-        // Hub keys: Esc asks whether to quit (it never opens the tablet here); Tab opens and closes it.
+        // Escape owns the tablet everywhere: open it from the hub, then follow the visible BACK
+        // button while it is raised. Tab remains an optional shortcut for opening and closing it.
         bool escape = @event.IsActionPressed(GameUiState.PauseAction);
         if (escape)
         {
             MarkInputHandled();
             if (_quitConfirm != null && _quitConfirm.Visible) HideQuitConfirm();
-            else ShowQuitConfirm();
+            else if (!_open) Open();
             return;
         }
         if (_quitConfirm != null && _quitConfirm.Visible)
@@ -208,18 +211,11 @@ public partial class HubTablet : CanvasLayer
             return;
         }
         bool tab = @event.IsActionPressed(GameUiState.ScoreboardAction) && !@event.IsEcho();
-        bool back = _open && @event.IsActionPressed("ui_cancel");
-        if (!tab && !back) return;
+        bool backRequested = _open && @event.IsActionPressed("ui_cancel");
+        if (!tab && !backRequested) return;
         if (GameUiState.ResultsOpen) return;
         MarkInputHandled();
-        if (_open && _section == Section.Play && !InSession && (_playStep == PlayStep.Host || _playStep == PlayStep.Join))
-        {
-            // one step back inside HOST / JOIN before the tablet closes
-            _playStep = PlayStep.Home;
-            ShowSection(Section.Play);
-            return;
-        }
-        Toggle();
+        BackPressed();
     }
 
     public override void _Notification(int what)
@@ -483,9 +479,23 @@ public partial class HubTablet : CanvasLayer
 
     private void BackPressed()
     {
-        if (_section == Section.Play && !InSession && (_playStep == PlayStep.Host || _playStep == PlayStep.Join)) { _playStep = PlayStep.Home; ShowSection(Section.Play); }
-        else if (_section != Section.Home) { _playStep = PlayStep.Home; ShowSection(Section.Home); }
-        else Close();
+        if (!NavigateBack()) Close();
+    }
+
+    /// <summary>Moves to the tablet's parent page. Returns false at the home page so callers can
+    /// close the device there, which is exactly what the visible BACK button does.</summary>
+    public bool NavigateBack()
+    {
+        if (_section == Section.Play && !InSession && (_playStep == PlayStep.Host || _playStep == PlayStep.Join))
+        {
+            _playStep = PlayStep.Home;
+            ShowSection(Section.Play);
+            return true;
+        }
+        if (_section == Section.Home) return false;
+        _playStep = PlayStep.Home;
+        ShowSection(Section.Home);
+        return true;
     }
 
     private void CycleTab(int direction)

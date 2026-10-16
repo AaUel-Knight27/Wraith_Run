@@ -30,6 +30,9 @@ public partial class ViewModelTuner : Node
 	private string _projectFolder = string.Empty;
 	private readonly Stack<ViewModelWeaponData> _undo = new();
 	private readonly Stack<ViewModelWeaponData> _redo = new();
+	// These are editing conveniences, not weapon data. A lock applies only while this tuner window
+	// is open and the current weapon is selected.
+	private readonly HashSet<string> _uniformScaleLocks = new();
 
 	public override void _Ready()
 	{
@@ -164,6 +167,7 @@ public partial class ViewModelTuner : Node
 		if (equip) Manager?.EquipForTuner(weapon);
 		if (_weaponPicker != null)
 			for (int i = 0; i < _weaponPicker.ItemCount; i++) if (_weaponPicker.GetItemText(i) == weapon) _weaponPicker.Select(i);
+		_uniformScaleLocks.Clear();
 		_undo.Clear(); _redo.Clear(); BuildProperties();
 	}
 
@@ -229,11 +233,44 @@ public partial class ViewModelTuner : Node
 				for (int i = 0; i < 3; i++)
 				{
 					int axis = i;
-					var field = new SpinBox { Step = 0.001, Value = vector[i], MinValue = -1000.0, MaxValue = 1000.0, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
-					field.ValueChanged += v => Mutate(() => { Vector3 next = data.Get(name).AsVector3(); next[axis] = (float)v; data.Set(name, next); }, false, RequiresRebuild(name));
-					row.AddChild(field);
+					string axisName = axis switch { 0 => "X", 1 => "Y", _ => "Z" };
+					var axisField = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+					axisField.AddChild(new Label
+					{
+						Text = axisName,
+						TooltipText = AxisTooltip(axis),
+						CustomMinimumSize = new Vector2(18.0f, 0.0f),
+					});
+					// A viewmodel is a child of the first-person camera. Its pivot must remain in
+					// front of that camera (negative Z); otherwise it is physically behind the view
+					// and appears to vanish. Keep a small buffer beyond the 5 mm camera near plane.
+					double maximum = name == "ViewPosition" && axis == 2 ? -0.01 : 1000.0;
+					var field = new SpinBox { Step = 0.001, Value = vector[i], MinValue = -1000.0, MaxValue = maximum, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, TooltipText = $"{axisName}: {AxisTooltip(axis)}" };
+					field.ValueChanged += v => Mutate(() =>
+					{
+						Vector3 next = data.Get(name).AsVector3();
+						if (name.EndsWith("Scale", StringComparison.Ordinal) && _uniformScaleLocks.Contains(name)) next = Vector3.One * (float)v;
+						else next[axis] = (float)v;
+						data.Set(name, next);
+					}, false, RequiresRebuild(name));
+					axisField.AddChild(field);
+					row.AddChild(axisField);
 				}
-				if (name.EndsWith("Scale", StringComparison.Ordinal)) { var uniform = new CheckBox { Text = "Uniform" }; uniform.Toggled += locked => { if (locked) Mutate(() => { Vector3 next = data.Get(name).AsVector3(); data.Set(name, Vector3.One * next.X); }, true); }; row.AddChild(uniform); }
+				if (name.EndsWith("Scale", StringComparison.Ordinal))
+				{
+					var uniform = new CheckBox
+					{
+						Text = "Uniform",
+						ButtonPressed = _uniformScaleLocks.Contains(name),
+						TooltipText = "Lock all scale axes together. With this checked, changing X, Y, or Z changes all three.",
+					};
+					uniform.Toggled += locked =>
+					{
+						if (locked) _uniformScaleLocks.Add(name); else _uniformScaleLocks.Remove(name);
+						if (locked) Mutate(() => data.Set(name, Vector3.One * data.Get(name).AsVector3().X), true);
+					};
+					row.AddChild(uniform);
+				}
 				break;
 			case Variant.Type.Color:
 				var color = new ColorPickerButton { Color = value.AsColor() }; color.ColorChanged += v => Mutate(() => data.Set(name, v), false, RequiresRebuild(name)); row.AddChild(color); break;
@@ -363,6 +400,12 @@ public partial class ViewModelTuner : Node
 	private static string ResourcePath(Variant value) => value.AsGodotObject() is Resource resource ? resource.ResourcePath : "(none)";
 	private static readonly string[] CopyGroups = { "Identity", "Rig / Attach", "View Placement", "Muzzle", "Magazine", "Clips", "Culling" };
 	private static bool IsStoredExport(Godot.Collections.Dictionary property) => property.ContainsKey("usage") && ((PropertyUsageFlags)property["usage"].AsInt64()).HasFlag(PropertyUsageFlags.Storage);
+	private static string AxisTooltip(int axis) => axis switch
+	{
+		0 => "X axis: left / right",
+		1 => "Y axis: down / up",
+		_ => "Z axis: back / forward (negative Z is forward from the camera)",
+	};
 	private static void Copy(ViewModelWeaponData source, ViewModelWeaponData target) { foreach (Godot.Collections.Dictionary p in source.GetPropertyList()) if (IsStoredExport(p)) { string n = p["name"].AsString(); target.Set(n, source.Get(n)); } }
 	private static bool RequiresRebuild(string property) => property is "RigScene" or "AttachBoneName" or "ClipMap";
 	private static bool AllowsNegative(string property) => property is "IdlePoseTime";

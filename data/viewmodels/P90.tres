@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://art/animations/player/combat/P90/source/FPS_Animated_P90.glb" id="2_rig"]
@@ -7,30 +7,25 @@
 script = ExtResource("1_script")
 WeaponName = "P90"
 RigScene = ExtResource("2_rig")
-AttachBoneName = ""
-AttachPosition = Vector3(0, 0, 0)
-AttachRotationDegrees = Vector3(0, 0, 0)
-AttachScale = Vector3(1, 1, 1)
-ViewPosition = Vector3(0.08, -0.35, -0.33)
-ViewRotationDegrees = Vector3(0, 180, 0)
-ArmMeshNames = PackedStringArray("Arms_Arms_0")
-OriginalWeaponMeshNames = PackedStringArray("Gun_Personal_Defense_Weapon_0", "Trigger_Personal_Defense_Weapon_0", "Bolt_Personal_Defense_Weapon_0", "Magazine_Personal_Defense_Weapon_0")
-OriginalMagazineMeshNames = PackedStringArray("Magazine_Personal_Defense_Weapon_0")
-ClipMap = {
-"idle": "PDWRIG|04 Idle",
-"walk": "PDWRIG|06 Walk",
-"run": "PDWRIG|07 Run",
-"fire": "PDWRIG|08 Fire",
-"reload": "Reload",
-"reload_full": "Empty Reload",
-"draw": "Select"
-}
-IdlePoseTime = 0.0
-NormalizationReferenceRig = ExtResource("2_rig")
-NormalizationReferenceArmMeshNames = PackedStringArray("Arms_Arms_0")
-MeshMaterials = {}
+ViewPosition = Vector3(0.033, -0.033, -0.045)
+AimPositionOffset = Vector3(-0.033, 0.12, -0.08)
+AimTransitionSeconds = 0.12
+ArmMeshNames = ["Arms_Arms_0"]
+OriginalWeaponMeshNames = ["Gun_Personal_Defense_Weapon_0", "Trigger_Personal_Defense_Weapon_0", "Bolt_Personal_Defense_Weapon_0", "Magazine_Personal_Defense_Weapon_0"]
+OriginalMagazineMeshNames = ["Magazine_Personal_Defense_Weapon_0"]
 HideOriginalWeapon = false
 HideOriginalMagazine = false
+ClipMap = Dictionary[String, String]({
+"draw": "Select",
+"fire": "PDWRIG|08 Fire",
+"idle": "PDWRIG|04 Idle",
+"reload": "Reload",
+"reload_full": "Empty Reload",
+"run": "PDWRIG|07 Run",
+"walk": "PDWRIG|06 Walk"
+})
+NormalizationReferenceRig = ExtResource("2_rig")
+NormalizationReferenceArmMeshNames = ["Arms_Arms_0"]
 CullMargin = 1.0
 MuzzlePointOffset = Vector3(0, 0, -0.65)
 MuzzleFlashEnabled = true
@@ -39,5 +34,3 @@ MuzzleFlashDuration = 0.04
 MuzzleLightEnergy = 2.0
 MuzzleParticleSpeed = 7.0
 MuzzleSpreadDegrees = 13.0
-MagazineNodeName = ""
-MagazineBoneName = ""

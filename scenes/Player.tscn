@@ -104,7 +104,7 @@ script = ExtResource("18_viewmodels")
 
 [node name="FirstPersonCamera" type="Camera3D" parent="Head/CameraShake" unique_id=250919579]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0052988976, 0.08884847, -0.15)
-near = 0.03
+near = 0.005
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=830123937]
 replication_config = SubResource("3")

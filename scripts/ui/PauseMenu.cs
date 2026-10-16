@@ -75,6 +75,8 @@ public partial class PauseMenu : CanvasLayer
         GetViewport().SetInputAsHandled();
         // With the "leave this match?" question showing, Escape / Back answers NO rather than closing everything.
         if (_tablet.IsOpen && _tablet.CancelLeaveQuestion()) return;
+        // Escape mirrors the tablet's visible BACK control before it closes the device.
+        if (_tablet.IsOpen && _tablet.NavigateBack()) return;
         Toggle();
     }
 
@@ -85,6 +87,7 @@ public partial class PauseMenu : CanvasLayer
         // (The hub's tablet handles this itself.)
         if (what != (int)NotificationWMGoBackRequest || _inHub || _tablet == null || GameUiState.ResultsOpen) return;
         if (_tablet.IsOpen && _tablet.CancelLeaveQuestion()) return;
+        if (_tablet.IsOpen && _tablet.NavigateBack()) return;
         Toggle();
     }
 

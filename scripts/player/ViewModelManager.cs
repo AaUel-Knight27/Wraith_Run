@@ -38,6 +38,17 @@ public partial class ViewModelManager : Node3D
 		AddChild(tuner);
 	}
 
+	public override void _Process(double delta)
+	{
+		if (_activeViewModel == null) return;
+		// The tablet is a physical device in front of the player's camera. Leaving the weapon
+		// viewmodel active puts its hands and gun through the tablet/menu, as though the player is
+		// holding both items at once. Hide it while the tablet owns the interface.
+		bool tabletOpen = GameUiState.MenuOpen;
+		_activeViewModel.Visible = !tabletOpen;
+		_activeViewModel.SetAiming(!tabletOpen && _movement?.IsAiming == true);
+	}
+
 	public void EquipWeapon(string weaponName)
 	{
 		if (!_localHuman || weaponName == _activeWeapon) return;

@@ -16,6 +16,11 @@ public partial class ViewModelWeaponData : Resource
 	[Export] public Vector3 ViewPosition { get; set; } = Vector3.Zero;
 	[Export] public Vector3 ViewRotationDegrees { get; set; } = Vector3.Zero;
 	[Export] public Vector3 ViewScale { get; set; } = Vector3.One;
+	/// <summary>Offset added to the resting viewmodel position while aiming. This moves the real
+	/// hands and weapon into the sight picture rather than placing a flat image over the screen.</summary>
+	[Export] public Vector3 AimPositionOffset { get; set; } = Vector3.Zero;
+	[Export] public Vector3 AimRotationOffsetDegrees { get; set; } = Vector3.Zero;
+	[Export] public float AimTransitionSeconds { get; set; } = 0.12f;
 	[Export] public Godot.Collections.Array<string> ArmMeshNames { get; set; } = new();
 	[Export] public Godot.Collections.Dictionary<string, Material> MeshMaterials { get; set; } = new();
 	[Export] public Godot.Collections.Array<string> OriginalWeaponMeshNames { get; set; } = new();

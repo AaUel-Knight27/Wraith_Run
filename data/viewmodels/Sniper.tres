@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3]
 
 [ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
 [ext_resource type="PackedScene" path="res://art/animations/player/combat/Sniper/source/BoltActionRifle.fbx" id="2_rig"]
@@ -7,30 +7,24 @@
 script = ExtResource("1_script")
 WeaponName = "Sniper"
 RigScene = ExtResource("2_rig")
-AttachBoneName = ""
-AttachPosition = Vector3(0, 0, 0)
-AttachRotationDegrees = Vector3(0, 0, 0)
-AttachScale = Vector3(1, 1, 1)
-ViewPosition = Vector3(0.08, -0.35, -0.33)
+ViewPosition = Vector3(0.074, -0.392, -0.087)
 ViewRotationDegrees = Vector3(0, 180, 0)
-ArmMeshNames = PackedStringArray("arms")
-OriginalWeaponMeshNames = PackedStringArray("Rifle")
-OriginalMagazineMeshNames = PackedStringArray()
-ClipMap = {
-"idle": "Rig|SRifle_Idle",
-"walk": "Rig|SRifle_Walk",
-"run": "Rig|SRifle_Walk",
-"fire": "Rig|SRifle_Shot_nosight",
-"reload": "Rig|SRifle_Reload",
-"reload_full": "Rig|SRifle_Reload_Full",
-"draw": "Rig|SRifle_Idle"
-}
-IdlePoseTime = 0.0
-NormalizationReferenceRig = ExtResource("2_rig")
-NormalizationReferenceArmMeshNames = PackedStringArray("arms")
-MeshMaterials = {}
+ViewScale = Vector3(1.581, 1.581, 1.581)
+ArmMeshNames = ["arms"]
+OriginalWeaponMeshNames = ["Rifle"]
 HideOriginalWeapon = false
 HideOriginalMagazine = false
+ClipMap = Dictionary[String, String]({
+"draw": "Rig|SRifle_Idle",
+"fire": "Rig|SRifle_Shot_nosight",
+"idle": "Rig|SRifle_Idle",
+"reload": "Rig|SRifle_Reload",
+"reload_full": "Rig|SRifle_Reload_Full",
+"run": "Rig|SRifle_Walk",
+"walk": "Rig|SRifle_Walk"
+})
+NormalizationReferenceRig = ExtResource("2_rig")
+NormalizationReferenceArmMeshNames = ["arms"]
 CullMargin = 1.0
 MuzzlePointOffset = Vector3(0, 0, -0.65)
 MuzzleFlashEnabled = true
@@ -40,5 +34,3 @@ MuzzleLightEnergy = 3.0
 MuzzleSmokeEnabled = true
 MuzzleParticleSpeed = 6.0
 MuzzleSpreadDegrees = 5.0
-MagazineNodeName = ""
-MagazineBoneName = ""

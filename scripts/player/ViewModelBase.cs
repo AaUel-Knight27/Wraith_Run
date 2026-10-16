@@ -31,6 +31,13 @@ public partial class ViewModelBase : Node3D
 	private float _normalizationScale = 1.0f;
 	private Camera3D? _viewCamera;
 	private Texture2D? _neutralAlbedo;
+	// ViewScale is intentionally applied to the imported rig rather than this camera child. This
+	// lets us scale about the visible weapon/hand centre instead of the camera origin.
+	private Transform3D _rigBaseTransform = Transform3D.Identity;
+	private Vector3 _rigBaseScale = Vector3.One;
+	private Vector3 _viewScalePivot = Vector3.Zero;
+	private float _aimBlend;
+	private bool _aiming;
 
 	public Skeleton3D? Skeleton => _skeleton;
 	public Node3D? MuzzlePoint => _muzzlePoint;
@@ -53,9 +60,9 @@ public partial class ViewModelBase : Node3D
 		PositionOffset = Data.ViewPosition;
 		RotationOffsetDegrees = Data.ViewRotationDegrees;
 		ScaleOffset = Data.ViewScale;
-		Position = PositionOffset;
-		RotationDegrees = RotationOffsetDegrees;
-		Scale = ScaleOffset;
+		ApplyAimPose();
+		Scale = Vector3.One;
+		ApplyViewScale();
 		ApplyWeaponPlacement();
 		ApplyMagazinePlacement();
 		ConfigureMuzzleAnchor();
@@ -65,6 +72,26 @@ public partial class ViewModelBase : Node3D
 
 	public void PlayMuzzleFire() => _muzzleFire?.Fire();
 
+	/// <summary>Called by the weapon manager every frame. The weapon itself moves to ADS; FOV is
+	/// still controlled by PlayerMovement, so both parts of the transition begin and end together.</summary>
+	public void SetAiming(bool aiming) => _aiming = aiming;
+
+	public override void _Process(double delta)
+	{
+		if (Data == null) return;
+		float duration = Mathf.Max(Data.AimTransitionSeconds, 0.001f);
+		float weight = 1.0f - Mathf.Exp(-(float)delta / duration);
+		_aimBlend = Mathf.Lerp(_aimBlend, _aiming ? 1.0f : 0.0f, weight);
+		ApplyAimPose();
+	}
+
+	private void ApplyAimPose()
+	{
+		if (Data == null) return;
+		Position = PositionOffset + Data.AimPositionOffset * _aimBlend;
+		RotationDegrees = RotationOffsetDegrees + Data.AimRotationOffsetDegrees * _aimBlend;
+	}
+
 	public void SetMuzzleGizmoVisible(bool visible)
 	{
 		_showMuzzleGizmo = visible;
@@ -73,9 +100,8 @@ public partial class ViewModelBase : Node3D
 
 	public override void _Ready()
 	{
-		Position = PositionOffset;
-		RotationDegrees = RotationOffsetDegrees;
-		Scale = ScaleOffset;
+		ApplyAimPose();
+		Scale = Vector3.One;
 		_viewCamera = GetParent() as Camera3D;
 		_neutralAlbedo = CreateNeutralAlbedoTexture();
 		if (Data?.RigScene == null)
@@ -162,6 +188,7 @@ public partial class ViewModelBase : Node3D
 		ResolveAndConfigureClips();
 		_animationPlayer.AnimationFinished += OnAnimationFinished;
 		AttachWeaponModel();
+		CaptureViewScalePivot();
 		ApplyData();
 		ProcessPriority = 100;
 		RefreshDebugGeometry();
@@ -190,6 +217,37 @@ public partial class ViewModelBase : Node3D
 		}
 		_normalizationScale = reference / current;
 		_rig.Scale *= Vector3.One * _normalizationScale;
+	}
+
+	/// <summary>Captures a stable scale pivot from the visible hands and weapon. Imported FPS rigs
+	/// commonly place their meshes away from their root, so scaling the camera child would otherwise
+	/// make a weapon look as though ViewPosition had changed.</summary>
+	private void CaptureViewScalePivot()
+	{
+		if (_rig == null) return;
+		_rigBaseTransform = _rig.Transform;
+		_rigBaseScale = _rig.Scale;
+		Transform3D rigInverse = _rig.GlobalTransform.AffineInverse();
+		Aabb? bounds = null;
+		foreach (Node node in GetDescendants(_rig))
+			if (node is MeshInstance3D mesh && mesh.Visible && mesh.Mesh != null)
+			{
+				// Use the source mesh AABB, not CustomAabb: visible skinned meshes deliberately
+				// receive a huge custom box to prevent culling, which is not a useful scale pivot.
+				Aabb local = TransformAabb(mesh.Mesh.GetAabb(), rigInverse * mesh.GlobalTransform);
+				bounds = bounds.HasValue ? bounds.Value.Merge(local) : local;
+			}
+		_viewScalePivot = bounds?.GetCenter() ?? Vector3.Zero;
+	}
+
+	private void ApplyViewScale()
+	{
+		if (_rig == null) return;
+		_rig.Transform = _rigBaseTransform;
+		Vector3 basePivot = _rigBaseTransform.Basis * _viewScalePivot;
+		_rig.Scale = _rigBaseScale * ScaleOffset;
+		Vector3 scaledPivot = _rig.Transform.Basis * _viewScalePivot;
+		_rig.Position = _rigBaseTransform.Origin + basePivot - scaledPivot;
 	}
 
 	private void ResolveAndConfigureClips()
