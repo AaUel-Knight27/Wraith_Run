@@ -1,7 +1,8 @@
 using Godot;
+using GameAudio;
 
 /// <summary>
-/// Everything the player's body makes noise about: walking, running, jumping, crouching, taking a
+/// Everything the player's body makes noise about: walking, running, jumping, taking a
 /// hit, dying (or not making a sound about it), respawning and - for the local
 /// player only - breathing hard at low health. All of it 3D and positional except the low-health
 /// breathing, and all of it running on EVERY peer rather than just the owner - hearing someone
@@ -11,6 +12,12 @@ using Godot;
 /// local State, which is only ever written on the authority. The authority writes both every
 /// frame, so one code path covers both cases.
 ///
+/// FOOTSTEPS: there is no walk/sprint loop clip anymore (the quality_audio pack has no multi-second
+/// pre-mixed loop file to replace the old one with, only discrete one-shot steps) - every stride is
+/// now a one-shot picked by SurfaceClassifier via UpdateSurfaceFootstepAccent, at the same
+/// WalkStepSeconds/SprintStepSeconds/CrouchStepSeconds cadence the old fallback system already had
+/// tuned. See that method, and CurrentSurfaceFolder for which material it reads.
+///
 /// DEATH SOUNDS (the rules, in one place - see also Health.DetermineIfDeathStruggles):
 ///  - Instant death (headshot or explosive hit): NO sound, for anyone.
 ///  - Every other death (a body shot, any melee kill): the victim makes a struggling sound that
@@ -18,22 +25,33 @@ using Godot;
 ///  - Downed (at or below 20% HP): a breathing loop plays for the victim. If no medic revives within
 ///    Health.DownedWindowSeconds the struggle plays as the death. A hit while downed is instant and silent.
 ///    The medic voice recording is reserved for future use and is not loaded or played by this script.
+///
+/// SOUND SOURCE: audio/SFX (the quality_audio pack) for everything below except low-health
+/// breathing, which the pack has no equivalent for - see LowHealthBreathingSound's own comment.
 /// </summary>
 public partial class PlayerAudio : Node3D
 {
-	private const string FootstepDirectory = "res://audio/Clips/Player/Footsteps And Landing";
-	private const string HitDeadRespawnDirectory = "res://audio/Clips/Player/Hit Dead And Respawn";
-	private const string HitSound = HitDeadRespawnDirectory + "/PlayerHit.wav";
-	private const string StruggleSound = HitDeadRespawnDirectory + "/PlayerDeathFinisher.wav";
-	private const string RespawnSound = HitDeadRespawnDirectory + "/PlayerRespawn.wav";
+	// Several variants now instead of one fixed clip (the pack ships three) - PickRandom below rolls
+	// one at play time, same idea as WeaponAttachment's RollFireVariant.
+	private static readonly string[] HitSounds =
+	{
+		"res://audio/SFX/impacts/blood_01.wav",
+		"res://audio/SFX/impacts/blood_02.wav",
+		"res://audio/SFX/impacts/blood_03.wav",
+	};
+	// "Man down" reads as the moment-of-death vocalization the doc comment above describes. No
+	// per-character gender exists anywhere in CharacterData yet, so - same as every other sound in
+	// this file - one voice is used for everyone rather than guessing at a new per-character system.
+	private const string StruggleSound = "res://audio/SFX/voice/male/man_down.wav";
+	private const string RespawnSound = "res://audio/SFX/voice/male/relief.wav";
+	// No dedicated jump take-off sound in the pack; "low hop" is the closest thing it ships to a
+	// push-off grunt.
+	private const string JumpSound = "res://audio/SFX/player/low_hop.wav";
 
-	private const string MovementDirectory = "res://audio/Clips/Player/Movement";
-	private const string JumpSound = MovementDirectory + "/PlayerJump.wav";
-	private const string LandingSound = MovementDirectory + "/jump_landing.mp3";
-	private const string CrouchSound = MovementDirectory + "/PlayerCrouch.wav";
-	private const string WalkSound = MovementDirectory + "/PlayerWalkLoop.wav";
-	private const string SprintSound = MovementDirectory + "/PlayerSprintLoop.wav";
-
+	// No breathing-loop clip anywhere in the pack (voice/ has pain/relief/kill lines, nothing
+	// sustained), so this one is deliberately left on the old asset rather than going silent on a
+	// real gameplay cue - see cleanup_old_audio.sh, which carves this file out of the old folder it
+	// otherwise deletes for exactly this reason.
 	private const string LowHealthBreathingSound = "res://audio/Clips/Player/Low Health/LowHealthBreathing.wav";
 
 	/// <summary>Below this fraction of MaxHealth, the local player hears their own breathing.
@@ -41,30 +59,13 @@ public partial class PlayerAudio : Node3D
 	private const float LowHealthThreshold = 0.30f;
 
 	// --- levels -------------------------------------------------------------------------------
-	// Gain trims in dB. The clips were recorded at wildly different levels (the walk/run clips are
-	// hot, the crouch clip peaks around -29 dBFS), so each gets its own trim on top of its player.
-	// All of these are by-the-numbers starting points, not by-ear values - nudge them here.
-	private const float WalkVolumeDb = -6.0f;
-	private const float SprintVolumeDb = -12.0f;
-	private const float CrouchWalkVolumeDb = -16.0f;
-	private const float CrouchWalkPitch = 0.85f;
+	// Starting points, not by-ear values - nudge these once you've actually heard the new clips.
 	private const float JumpVolumeDb = -3.0f;
-	private const float LandingVolumeDb = -4.0f;
-	private const float CrouchVolumeDb = 14.0f;
 	private const float HitVolumeDb = -2.0f;
 	private const float StruggleVolumeDb = 0.0f;
 	private const float LowHealthVolumeDb = 0.0f;
 
-	// --- locomotion loops ---------------------------------------------------------------------
-	// PlayerWalkLoop.wav is 2.0 s but only the first ~1.2 s is sound: two footsteps (~0.26 s and
-	// ~0.86 s) and then silence. Looping the whole file would leave a 1.4 s gap after every second
-	// step, so it is restarted at 1.2 s (in the silence) to give an even 0.6 s cadence.
-	// PlayerSprintLoop.wav is two evenly spaced steps in 0.88 s and loops as it is (0 = whole clip).
-	private const float WalkLoopSeconds = 1.2f;
-	private const float SprintLoopSeconds = 0.0f;
-
-	// Stride intervals in seconds for the OLD per-step footstep clips, used only if the walk/sprint
-	// loops above are missing from the project.
+	// Stride interval in seconds, per movement state - drives UpdateSurfaceFootstepAccent below.
 	private const float WalkStepSeconds = 0.48f;
 	private const float SprintStepSeconds = 0.34f;
 	private const float CrouchStepSeconds = 0.72f;
@@ -72,34 +73,28 @@ public partial class PlayerAudio : Node3D
 	private PlayerMovement _movement = null!;
 	private Health? _health;
 	private KillFeed? _killFeed;
-	private AudioStreamPlayer3D _footstepPlayer = null!;
 	private AudioStreamPlayer3D? _voicePlayer;
 	private AudioStreamPlayer3D? _deathPlayer;
 	private AudioStreamPlayer3D? _actionPlayer;
-	private AudioStreamPlayer3D? _locomotionLoopPlayer;
 	// Local-only (non-positional, no AudioStreamPlayer3D): this represents the player's own
 	// laboured breathing, not something happening in the world at a point other players could hear
 	// from a direction - the same "owner-only, non-positional" reasoning WeaponSwitcher's hit
 	// marker already uses.
 	private AudioStreamPlayer? _lowHealthPlayer;
 
-	private AudioStream[] _footsteps = System.Array.Empty<AudioStream>();
 	private AudioStream[] _hits = System.Array.Empty<AudioStream>();
 	private AudioStream? _struggle;
 	private AudioStream? _respawn;
 	private AudioStream? _jump;
-	private AudioStream? _landing;
-	private AudioStream? _crouch;
-	private AudioStream? _walkLoop;
-	private AudioStream? _sprintLoop;
 	private AudioStream? _lowHealthBreathing;
 	private readonly RandomNumberGenerator _rng = new();
 
-	private float _stepTimer;
+	// Drives the surface-specific footstep one-shot (see UpdateSurfaceFootstepAccent) - the sole
+	// footstep mechanism now that there is no loop clip to layer it on top of.
+	private float _surfaceStepTimer;
 	private float _lastKnownHealth = -1.0f;
 	private bool _wasDead;
 	private PlayerMovement.MovementState _previousState = PlayerMovement.MovementState.Idle;
-	private PlayerMovement.MovementState? _loopState;
 	private bool _lowHealthActive;
 
 	// Team-match bleed-out, run identically on every peer from the same KillAnnounced broadcast.
@@ -112,21 +107,11 @@ public partial class PlayerAudio : Node3D
 		_killFeed = KillFeed.From(this);
 		if (_killFeed != null) _killFeed.KillAnnounced += OnKillAnnounced;
 
-		_footsteps = LoadFootsteps();
-		_hits = LoadExisting(HitSound);
+		_hits = LoadExisting(HitSounds);
 		_struggle = Load(StruggleSound);
 		_respawn = Load(RespawnSound);
 		_jump = Load(JumpSound);
-		_landing = Load(LandingSound);
-		_crouch = Load(CrouchSound);
-		_walkLoop = Load(WalkSound);
-		_sprintLoop = Load(SprintSound);
 
-		// Footsteps (only used if the walk/sprint loops are missing) sit low and carry a short
-		// distance; the hit voice carries further because it is a positional cue about a fight, not
-		// a detail of someone's gait.
-		_footstepPlayer = new AudioStreamPlayer3D { Name = "Footsteps", UnitSize = 7.0f, VolumeDb = -3.0f, MaxDistance = 40.0f, Bus = "Movement" };
-		AddChild(_footstepPlayer);
 		_voicePlayer = new AudioStreamPlayer3D { Name = "Voice", UnitSize = 14.0f, VolumeDb = HitVolumeDb, Bus = "Voice" };
 		AddChild(_voicePlayer);
 
@@ -136,16 +121,10 @@ public partial class PlayerAudio : Node3D
 		_deathPlayer = new AudioStreamPlayer3D { Name = "DeathStruggle", UnitSize = 6.0f, VolumeDb = StruggleVolumeDb, MaxDistance = 25.0f, Bus = "Voice" };
 		AddChild(_deathPlayer);
 
-		// Jump/crouch get their own player rather than sharing Footsteps or Voice: both of those
-		// already restart on a schedule this script doesn't control, and stealing either one's
-		// node would cut a sound off partway through instead of just layering another one in.
+		// Jump gets its own player rather than sharing Voice: stealing that node would cut a voice
+		// line off partway through instead of just layering the jump accent in alongside it.
 		_actionPlayer = new AudioStreamPlayer3D { Name = "Action", UnitSize = 7.0f, MaxDistance = 40.0f, Bus = "Movement" };
 		AddChild(_actionPlayer);
-
-		// The walk / run steps. Restarted by hand in UpdateLocomotionLoop rather than through the
-		// .wav's own loop flag, because the walk clip needs a custom loop point (see WalkLoopSeconds).
-		_locomotionLoopPlayer = new AudioStreamPlayer3D { Name = "LocomotionLoop", UnitSize = 7.0f, MaxDistance = 40.0f, Bus = "Movement" };
-		AddChild(_locomotionLoopPlayer);
 
 		// Only the owning player ever needs to hear their own low-health breathing, so only their
 		// copy of this node builds the player for it at all.
@@ -158,9 +137,6 @@ public partial class PlayerAudio : Node3D
 			AddChild(_lowHealthPlayer);
 			_lowHealthPlayer.Finished += OnLowHealthLoopFinished;
 		}
-
-		if (_walkLoop == null && _sprintLoop == null && _footsteps.Length == 0)
-			GD.PushWarning($"No walk/sprint loops or footstep clips found ({MovementDirectory}, {FootstepDirectory}).");
 	}
 
 	public override void _ExitTree()
@@ -171,8 +147,8 @@ public partial class PlayerAudio : Node3D
 	public override void _PhysicsProcess(double delta)
 	{
 		UpdateHealthSounds();
-		UpdateFootsteps((float)delta);
 		UpdateMovementStateSounds();
+		UpdateSurfaceFootstepAccent((float)delta);
 		UpdateLowHealthBreathing();
 	}
 
@@ -226,31 +202,6 @@ public partial class PlayerAudio : Node3D
 	// Movement
 	// -------------------------------------------------------------------------------------------
 
-	/// <summary>Only used when the new walk/sprint loops are missing - otherwise the loops ARE the
-	/// footsteps and this stays out of the way so steps are not doubled up.</summary>
-	private void UpdateFootsteps(float delta)
-	{
-		if (_walkLoop != null || _sprintLoop != null) return;
-		if (_footsteps.Length == 0) return;
-		if (_health != null && _health.IsDead) return;
-
-		float interval = StrideSecondsFor(CurrentState());
-		if (interval <= 0.0f)
-		{
-			// Standing still: arm the next step so the very first stride after starting to move
-			// lands immediately instead of half a stride later.
-			_stepTimer = 0.0f;
-			return;
-		}
-
-		_stepTimer -= delta;
-		if (_stepTimer > 0.0f) return;
-		_stepTimer = interval;
-		_footstepPlayer.Stream = _footsteps[_rng.RandiRange(0, _footsteps.Length - 1)];
-		_footstepPlayer.PitchScale = _rng.RandfRange(0.92f, 1.08f);
-		_footstepPlayer.Play();
-	}
-
 	private static float StrideSecondsFor(PlayerMovement.MovementState state) => state switch
 	{
 		PlayerMovement.MovementState.Walk => WalkStepSeconds,
@@ -261,13 +212,41 @@ public partial class PlayerAudio : Node3D
 	};
 
 	/// <summary>
-	/// Jump take-off, crouch settle, and the walk/run steps, all driven by watching CurrentState()'s
-	/// transitions rather than by signals - the same reason UpdateHealthSounds polls CurrentHealth
-	/// instead of Health's Died/Respawned signals: PlayerMovement's real input handling only ever
-	/// runs on the owning peer, so a signal raised there would never reach a remote observer's copy
-	/// of this node. ReplicatedMovementState is what actually crosses the network, so reading it
-	/// here is what lets every peer hear it.
+	/// The sole footstep mechanism (see the class doc comment for why there is no loop clip to layer
+	/// this on top of anymore). Runs on every peer the same way UpdateMovementStateSounds does, off
+	/// CurrentState() rather than raw velocity, since velocity itself is only meaningful on the
+	/// authority.
 	/// </summary>
+	private void UpdateSurfaceFootstepAccent(float delta)
+	{
+		if (_health != null && _health.IsDead) { _surfaceStepTimer = 0.0f; return; }
+
+		float interval = StrideSecondsFor(CurrentState());
+		if (interval <= 0.0f) { _surfaceStepTimer = 0.0f; return; }
+
+		_surfaceStepTimer -= delta;
+		if (_surfaceStepTimer > 0.0f) return;
+		_surfaceStepTimer = interval;
+		Audio.PlayAt($"surfaces/{CurrentSurfaceFolder()}/step", GlobalPosition);
+	}
+
+	/// <summary>Maps SurfaceClassifier's read of what PlayerMovement reports standing on to a
+	/// folder under audio/SFX/surfaces. Glass has no footstep clips in the pack (only an impact
+	/// crack - see WeaponAttachment's bullet-impact use of SurfaceType.Glass, a different system),
+	/// and Generic is this project's own documented "no material identity left to read" catch-all
+	/// (see SurfaceType.cs) - both fall back to concrete, a reasonable default for maps this
+	/// industrial/urban (Warehouse, Prison, Depot, Lab).</summary>
+	private string CurrentSurfaceFolder() => SurfaceClassifier.Classify(_movement.GroundCollider()) switch
+	{
+		SurfaceType.Metal => "metal",
+		SurfaceType.Wood => "wood",
+		SurfaceType.Concrete => "concrete",
+		SurfaceType.Dirt => "dirt",
+		SurfaceType.Tile => "tile",
+		SurfaceType.Water => "water",
+		_ => "concrete",
+	};
+
 	private void UpdateMovementStateSounds()
 	{
 		var state = CurrentState();
@@ -276,15 +255,12 @@ public partial class PlayerAudio : Node3D
 			if (state == PlayerMovement.MovementState.Jump && _previousState != PlayerMovement.MovementState.Jump)
 				PlayAction(_jump, JumpVolumeDb);
 			else if (IsAirborne(_previousState) && !IsAirborne(state))
-				PlayAction(_landing, LandingVolumeDb);
+				Audio.PlayAt($"surfaces/{CurrentSurfaceFolder()}/land", GlobalPosition);
 
-			bool enteringCrouch = state is PlayerMovement.MovementState.Crouch or PlayerMovement.MovementState.CrouchWalk;
-			bool wasCrouching = _previousState is PlayerMovement.MovementState.Crouch or PlayerMovement.MovementState.CrouchWalk;
-			if (enteringCrouch && !wasCrouching)
-				PlayAction(_crouch, CrouchVolumeDb);
+			// No crouch-settle clip anywhere in the pack - dropped rather than reusing something
+			// that would read wrong. Tell me if you add/find one and I'll wire it back in.
 		}
 
-		UpdateLocomotionLoop(state);
 		_previousState = state;
 	}
 
@@ -299,73 +275,6 @@ public partial class PlayerAudio : Node3D
 
 	private static bool IsAirborne(PlayerMovement.MovementState state) =>
 		state is PlayerMovement.MovementState.Jump or PlayerMovement.MovementState.Fall;
-
-	/// <summary>Walk / crouch-walk / sprint steps. Walk and crouch-walk share the walk clip
-	/// (crouch-walk is quieter and slower); sprint has its own. Any other state stops the sound.</summary>
-	private void UpdateLocomotionLoop(PlayerMovement.MovementState state)
-	{
-		if (_locomotionLoopPlayer == null) return;
-		if (_health != null && _health.IsDead)
-		{
-			StopLocomotion();
-			return;
-		}
-
-		AudioStream? desired = null;
-		float volumeDb = 0.0f;
-		float pitch = 1.0f;
-		float loopSeconds = 0.0f;
-		switch (state)
-		{
-			case PlayerMovement.MovementState.Walk:
-				desired = _walkLoop;
-				volumeDb = WalkVolumeDb;
-				loopSeconds = WalkLoopSeconds;
-				break;
-			case PlayerMovement.MovementState.CrouchWalk:
-				desired = _walkLoop;
-				volumeDb = CrouchWalkVolumeDb;
-				pitch = CrouchWalkPitch;
-				loopSeconds = WalkLoopSeconds;
-				break;
-			case PlayerMovement.MovementState.Sprint:
-				desired = _sprintLoop;
-				volumeDb = SprintVolumeDb;
-				loopSeconds = SprintLoopSeconds;
-				break;
-		}
-
-		if (desired == null)
-		{
-			StopLocomotion();
-			return;
-		}
-
-		if (_loopState != state)
-		{
-			// New state (or first frame moving): switch clip/level/pitch and start from the top.
-			_loopState = state;
-			_locomotionLoopPlayer.Stream = desired;
-			_locomotionLoopPlayer.VolumeDb = volumeDb;
-			_locomotionLoopPlayer.PitchScale = pitch;
-			_locomotionLoopPlayer.Play();
-			return;
-		}
-
-		// Same state: keep it going. Restart when the clip has finished, or - for the walk clip,
-		// which ends in silence - once playback reaches its loop point. GetPlaybackPosition is in
-		// stream time, so this is unaffected by the crouch-walk pitch.
-		if (!_locomotionLoopPlayer.Playing)
-			_locomotionLoopPlayer.Play();
-		else if (loopSeconds > 0.0f && _locomotionLoopPlayer.GetPlaybackPosition() >= loopSeconds)
-			_locomotionLoopPlayer.Play();
-	}
-
-	private void StopLocomotion()
-	{
-		_loopState = null;
-		if (_locomotionLoopPlayer != null && _locomotionLoopPlayer.Playing) _locomotionLoopPlayer.Stop();
-	}
 
 	/// <summary>Owner-only. CurrentHealth crossing LowHealthThreshold starts/stops a looping
 	/// breathing track - manually re-triggered on Finished.</summary>
@@ -458,17 +367,6 @@ public partial class PlayerAudio : Node3D
 	// Loading
 	// -------------------------------------------------------------------------------------------
 
-	private static AudioStream[] LoadFootsteps()
-	{
-		var streams = new System.Collections.Generic.List<AudioStream>();
-		for (int i = 1; i <= 9; i++)
-		{
-			var stream = Load($"{FootstepDirectory}/Player_Footstep_0{i}.wav");
-			if (stream != null) streams.Add(stream);
-		}
-		return streams.ToArray();
-	}
-
 	/// <summary>Loads whichever of the given paths actually resolve, silently skipping any that
 	/// don't.</summary>
 	private static AudioStream[] LoadExisting(params string[] paths)
@@ -482,8 +380,8 @@ public partial class PlayerAudio : Node3D
 		return streams.ToArray();
 	}
 
-	/// <summary>Exists-check first, so an optional clip that is not in the project (the old
-	/// respawn sound, the old footstep set) is a quiet null instead of an engine error.</summary>
+	/// <summary>Exists-check first, so an optional clip that is not in the project is a quiet null
+	/// instead of an engine error.</summary>
 	private static AudioStream? Load(string path) =>
 		ResourceLoader.Exists(path) ? ResourceLoader.Load<AudioStream>(path) : null;
 }

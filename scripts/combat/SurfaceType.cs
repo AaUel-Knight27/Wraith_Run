@@ -27,6 +27,14 @@ public enum SurfaceType
 	Metal,
 	Wood,
 	Glass,
+	// Added for the footstep/landing surface pack (scripts/player/PlayerAudio.cs). Appended after
+	// Glass rather than reordered, so the existing 0-3 values (and anything that already persisted
+	// or replicated them) do not shift. See WeaponSwitcher.RpcGeometryImpact for the one place that
+	// bounds-checks this enum's range over the network - it was widened alongside this change.
+	Concrete,
+	Dirt,
+	Tile,
+	Water,
 }
 
 public static class SurfaceClassifier
@@ -34,6 +42,10 @@ public static class SurfaceClassifier
 	private const string MetalGroup = "surface_metal";
 	private const string WoodGroup = "surface_wood";
 	private const string GlassGroup = "surface_glass";
+	private const string ConcreteGroup = "surface_concrete";
+	private const string DirtGroup = "surface_dirt";
+	private const string TileGroup = "surface_tile";
+	private const string WaterGroup = "surface_water";
 
 	public static SurfaceType Classify(Node? collider)
 	{
@@ -42,6 +54,10 @@ public static class SurfaceClassifier
 			if (n.IsInGroup(MetalGroup)) return SurfaceType.Metal;
 			if (n.IsInGroup(WoodGroup)) return SurfaceType.Wood;
 			if (n.IsInGroup(GlassGroup)) return SurfaceType.Glass;
+			if (n.IsInGroup(ConcreteGroup)) return SurfaceType.Concrete;
+			if (n.IsInGroup(DirtGroup)) return SurfaceType.Dirt;
+			if (n.IsInGroup(TileGroup)) return SurfaceType.Tile;
+			if (n.IsInGroup(WaterGroup)) return SurfaceType.Water;
 		}
 
 		string name = collider?.Name.ToString().ToLowerInvariant() ?? string.Empty;
@@ -51,6 +67,14 @@ public static class SurfaceClassifier
 			return SurfaceType.Wood;
 		if (ContainsAny(name, "glass", "window"))
 			return SurfaceType.Glass;
+		if (ContainsAny(name, "dirt", "mud", "sand", "gravel", "rubble", "debris"))
+			return SurfaceType.Dirt;
+		if (ContainsAny(name, "tile", "ceramic", "bathroom"))
+			return SurfaceType.Tile;
+		if (ContainsAny(name, "water", "puddle", "flood", "pool", "lake", "river"))
+			return SurfaceType.Water;
+		if (ContainsAny(name, "concrete", "pavement", "asphalt", "road", "sidewalk"))
+			return SurfaceType.Concrete;
 		return SurfaceType.Generic;
 	}
 

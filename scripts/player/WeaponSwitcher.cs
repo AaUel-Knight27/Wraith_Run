@@ -57,7 +57,7 @@ public partial class WeaponSwitcher : Node
 
 	private static readonly string[] HitMarkerSounds =
 	{
-		"res://audio/Clips/Weapons/Impacts/Feedback/hit_marker.mp3",
+		"res://audio/SFX/ui/hitmark.wav",
 	};
 
 	private WeaponAttachment _attachment = null!;
@@ -671,7 +671,10 @@ public partial class WeaponSwitcher : Node
 		TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
 	public void RpcGeometryImpact(Vector3 worldPosition, int surface, bool ricochet)
 	{
-		if (!IsAuthorizedEffectSender() || surface < 0 || surface > (int)SurfaceType.Glass) return;
+		// Bounds against the full enum (now Concrete/Dirt/Tile/Water too, added for footstep audio -
+		// see SurfaceType.cs) rather than hardcoding Glass, so this does not silently reject a valid
+		// value the day someone's bullet impact logic starts producing one of the newer surfaces.
+		if (!IsAuthorizedEffectSender() || surface < 0 || surface > (int)SurfaceType.Water) return;
 		_attachment.PlayGeometryImpact(worldPosition, (SurfaceType)surface, ricochet);
 	}
 

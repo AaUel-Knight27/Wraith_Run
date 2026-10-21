@@ -215,7 +215,13 @@ public partial class HubTablet : CanvasLayer
         if (!tab && !backRequested) return;
         if (GameUiState.ResultsOpen) return;
         MarkInputHandled();
-        BackPressed();
+        // BUG FIX: this used to call BackPressed() unconditionally, which can only navigate back or
+        // Close() - so with the tablet already closed, pressing Tab did nothing (Close() on an
+        // unopened tablet is a no-op). That silently broke the "Tab remains an optional shortcut for
+        // opening and closing it" promise above the escape branch, leaving Escape as the only key
+        // that actually opened the tablet. Tab now opens it from closed, same as Escape.
+        if (tab && !_open) Open();
+        else BackPressed();
     }
 
     public override void _Notification(int what)

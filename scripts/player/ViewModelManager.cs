@@ -13,6 +13,7 @@ public partial class ViewModelManager : Node3D
 	private ViewModelCameraMotion? _cameraMotion;
 	private ViewModelBase? _activeViewModel;
 	private bool _localHuman;
+	private bool _wasAiming;
 	private string _activeWeapon = string.Empty;
 	private string _lastMovementClip = string.Empty;
 	private readonly Dictionary<string, ViewModelWeaponData> _savedSnapshots = new();
@@ -46,7 +47,25 @@ public partial class ViewModelManager : Node3D
 		// holding both items at once. Hide it while the tablet owns the interface.
 		bool tabletOpen = GameUiState.MenuOpen;
 		_activeViewModel.Visible = !tabletOpen;
-		_activeViewModel.SetAiming(!tabletOpen && _movement?.IsAiming == true);
+		bool aiming = !tabletOpen && _movement?.IsAiming == true;
+		_activeViewModel.SetAiming(aiming);
+		PlayAdsSoundOnChange(aiming);
+	}
+
+	/// <summary>
+	/// The aim-in/aim-out cue (weapons/shared/ads_down and ads_up in the audio pack - "down"/"up"
+	/// read as the button, not the weapon: pressed to engage ADS, released to leave it). Owner-only
+	/// and non-positional, same treatment PlayerAudio.cs already gives low-health breathing and
+	/// WeaponSwitcher gives the hit marker - this node's _Process only even runs for the local human
+	/// (see SetProcess(_localHuman) in _Ready), so there is no remote copy to worry about leaving
+	/// silent. Edge-detected against the aim flag GameAudio polls every frame above, since playing a
+	/// sound every frame aim is held would spam it instead of marking the transition.
+	/// </summary>
+	private void PlayAdsSoundOnChange(bool aiming)
+	{
+		if (aiming == _wasAiming) return;
+		_wasAiming = aiming;
+		GameAudio.Audio.Play(aiming ? "weapons/shared/ads_down" : "weapons/shared/ads_up");
 	}
 
 	public void EquipWeapon(string weaponName)

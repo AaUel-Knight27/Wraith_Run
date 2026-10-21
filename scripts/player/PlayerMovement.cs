@@ -69,6 +69,17 @@ public partial class PlayerMovement : CharacterBody3D
     [Export] public string ReplicatedMovementState { get; set; } = MovementState.Idle.ToString();
     [Export] public bool ReplicatedAimState { get; set; }
 
+    /// <summary>Best-effort read of whatever is currently underfoot, for surface-aware footstep/
+    /// landing audio (PlayerAudio.cs) via SurfaceClassifier. Prefers the ground probe's live
+    /// shapecast result since it is checked every physics frame regardless of velocity; falls back
+    /// to the last slide collision (what IsOnFloor() itself is based on) for the frame the probe
+    /// has not yet updated on, e.g. immediately after a jump lands.</summary>
+    public Node? GroundCollider()
+    {
+        if (_groundProbe.IsColliding()) return _groundProbe.GetCollider(0) as Node;
+        return GetLastSlideCollision()?.GetCollider() as Node;
+    }
+
     private CollisionShape3D _collisionShape = null!;
     private ShapeCast3D _groundProbe = null!;
     private Node3D _head = null!;

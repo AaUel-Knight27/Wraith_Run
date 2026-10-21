@@ -34,6 +34,7 @@ SettingsManager="*res://scripts/autoloads/SettingsManager.cs"
 MatchStats="*res://scripts/autoloads/MatchStats.cs"
 CareerTracker="*res://scripts/account/CareerTracker.cs"
 SoundManager="*res://scripts/autoloads/SoundManager.cs"
+Audio="*res://scripts/autoloads/Audio.cs"
 LoadingScreen="*res://scripts/autoloads/LoadingScreen.cs"
 UiSounds="*res://scripts/ui/UiSounds.cs"
 

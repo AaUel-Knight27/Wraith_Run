@@ -101,6 +101,10 @@ public partial class LanMenu : Control
 		_menuMusic.Play();
 	}
 
+	// Deliberately NOT swapped to audio/SFX: the quality_audio pack is sound effects only, no music
+	// tracks, so there is nothing in it to replace a menu music loop with. These two are the only
+	// audio/Clips files left referenced anywhere in the project - see cleanup_old_audio.sh, which
+	// carves them out of the old folder it otherwise deletes for exactly this reason.
 	private static AudioStream[] LoadMenuMusicTracks()
 	{
 		var streams = new System.Collections.Generic.List<AudioStream>();

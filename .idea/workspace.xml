@@ -255,7 +255,6 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="added animation player entering car" />
     <MESSAGE value="additional map and rider buggy vehicle" />
     <MESSAGE value="modify car system to integrate with every system" />
     <MESSAGE value="updated camera view and weapon holding system" />
@@ -280,7 +279,8 @@
     <MESSAGE value="more buggs" />
     <MESSAGE value="melees removed for bug reducing purpose" />
     <MESSAGE value="rebuild weapon grip tunner and baked the textures to the models" />
-    <option name="LAST_COMMIT_MESSAGE" value="rebuild weapon grip tunner and baked the textures to the models" />
+    <MESSAGE value="ADS and sounds tunning" />
+    <option name="LAST_COMMIT_MESSAGE" value="ADS and sounds tunning" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

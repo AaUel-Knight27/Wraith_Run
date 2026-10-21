@@ -16,32 +16,50 @@ public partial class WeaponAttachment : Node3D
 	/// <summary>Skip audio nodes when this attachment is used only to preview a weapon in the UI.</summary>
 	[Export] public bool SkipAudio { get; set; }
 
-	// Shared across every weapon rather than a per-weapon WeaponData field: only one recording was
-	// supplied, and "a body got hit" reads the same whether it was a bullet or a melee strike.
-	private const string FleshImpactSound = "res://audio/Clips/Weapons/Impacts/Feedback/flesh_hit.wav";
+	// Shared across every weapon rather than a per-weapon WeaponData field: "a body got hit" reads
+	// the same whether it was a bullet or a melee strike. Three variants now instead of one fixed
+	// clip - see PlayFleshImpact, which rolls one at play time the same way RollFireVariant does.
+	private static readonly string[] FleshImpactSounds =
+	{
+		"res://audio/SFX/impacts/blood_01.wav",
+		"res://audio/SFX/impacts/blood_02.wav",
+		"res://audio/SFX/impacts/blood_03.wav",
+	};
 
 	// Bullet-on-surface sounds. Which one plays comes from SurfaceClassifier (scripts/combat/
-	// SurfaceType.cs); ricochet and flyby are layered/triggered by WeaponSwitcher. The trims level
-	// the clips against each other - as supplied they span ~24 dB of peak level (the wall hit is
-	// quiet, the metal hits are hot), and one 3D player gain per clip is the cheapest fix that
-	// leaves the audio files themselves untouched.
-	private const string SurfaceDirectory = "res://audio/Clips/Weapons/Impacts/Surfaces";
-	private const string MetalHeavySound = SurfaceDirectory + "/BulletMetalHeavy.mp3";
-	private const string MetalThickSound = SurfaceDirectory + "/BulletMetalThick.mp3";
-	private const string WoodSound = SurfaceDirectory + "/BulletWood.mp3";
-	private const string GlassSound = SurfaceDirectory + "/BulletGlassHit.wav";
-	private const string WallSound = SurfaceDirectory + "/BulletWallHit.wav";
-	private const string RicochetSound = SurfaceDirectory + "/BulletRicochet.wav";
-	private const string FlyBySound = SurfaceDirectory + "/bullet_flyby.wav";
+	// SurfaceType.cs); ricochet and flyby are layered/triggered by WeaponSwitcher. The pack has no
+	// distinct "ricochet whine" clip, so Ricochet reuses the bullet-whiz pool flyby draws from -
+	// sonically close enough (both are a metallic zing past the ear), rolled independently so a
+	// ricochet next to a flyby does not always pick the same take.
+	private const string SurfaceDirectory = "res://audio/SFX/surfaces";
+	private const string MetalHeavySound = SurfaceDirectory + "/metal/metal_impact.wav";
+	private const string MetalThickSound = SurfaceDirectory + "/metal/metal_impact01.wav";
+	private const string WoodSound = SurfaceDirectory + "/wood/wood_impact.wav";
+	private const string GlassSound = SurfaceDirectory + "/glass/impact 01.wav";
+	private const string WallSound = SurfaceDirectory + "/concrete/concrete_impact.wav";
+	private static readonly string[] RicochetSounds =
+	{
+		"res://audio/SFX/impacts/bullet_whiz_01.wav",
+		"res://audio/SFX/impacts/bullet_whiz_02.wav",
+		"res://audio/SFX/impacts/bullet_whiz_03.wav",
+	};
+	private static readonly string[] FlyBySounds = RicochetSounds;
+	// No RPG/rocket weapon exists in WeaponRegistry.tres yet (RocketFlyBySound is dead code until
+	// one does), and the pack has no doppler/rocket-flyby equivalent to give it anyway - left
+	// pointing at the old file on purpose. See cleanup_old_audio.sh, which carves this one file out
+	// of the old folder it otherwise deletes for exactly this reason.
 	private const string RocketFlyBySound = "res://audio/Clips/Weapons/RPG/Extras/rpg_doppler_effect.wav";
 
-	private const float MetalHeavyTrimDb = -6.0f;
-	private const float MetalThickTrimDb = -7.0f;
-	private const float WoodTrimDb = -6.0f;
+	// Trims are starting points, not by-ear values - the new pack's files are more consistently
+	// normalised than the old set (which spanned ~24 dB peak-to-peak), so these are mild until
+	// someone actually listens to them in place.
+	private const float MetalHeavyTrimDb = -3.0f;
+	private const float MetalThickTrimDb = -4.0f;
+	private const float WoodTrimDb = -3.0f;
 	private const float GlassTrimDb = -2.0f;
-	private const float WallTrimDb = 8.0f;
+	private const float WallTrimDb = 0.0f;
 	private const float RicochetTrimDb = -2.0f;
-	private const float FlyByTrimDb = 9.0f;
+	private const float FlyByTrimDb = -2.0f;
 	private const float RocketFlyByTrimDb = -3.0f;
 
 	/// <summary>A metal hit from a weapon whose BodyDamage is at least this plays the heavy clip
@@ -189,6 +207,7 @@ public partial class WeaponAttachment : Node3D
 		// far shorter than the clip. Restarting it each time would cut it off half a second in, over
 		// and over, so let a pass that is already playing finish instead.
 		if (_weapon != null && _weapon.ShellByShellReload && _reloadAudio.Playing) return;
+		RollReloadVariant();
 		_reloadAudio.PitchScale = _rng.RandfRange(0.97f, 1.03f);
 		_reloadAudio.Play();
 	}
@@ -234,9 +253,15 @@ public partial class WeaponAttachment : Node3D
 
 		SpawnOneShotAt(stream, worldPosition, SurfaceImpactUnitSize, SurfaceImpactMaxDistance, trimDb);
 		if (ricochet)
-			SpawnOneShotAt(LoadStream(RicochetSound), worldPosition, SurfaceImpactUnitSize,
+			SpawnOneShotAt(LoadStream(PickRandom(RicochetSounds)), worldPosition, SurfaceImpactUnitSize,
 				SurfaceImpactMaxDistance, RicochetTrimDb);
 	}
+
+	/// <summary>Random pick from a variant list - used for the handful of one-shots (flesh impact,
+	/// ricochet, flyby) that get several takes from the pack but only ever had one AudioStream field
+	/// to put them in, rather than restructuring those into per-weapon arrays like FireSounds.</summary>
+	private string PickRandom(string[] paths) =>
+		paths.Length == 0 ? string.Empty : paths[_rng.RandiRange(0, paths.Length - 1)];
 
 	private (string Path, float TrimDb) SurfaceSound(SurfaceType surface)
 	{
@@ -263,7 +288,7 @@ public partial class WeaponAttachment : Node3D
 		if (rocket)
 			SpawnOneShotAt(LoadStream(RocketFlyBySound), worldPosition, 12.0f, 150.0f, RocketFlyByTrimDb);
 		else
-			SpawnOneShotAt(LoadStream(FlyBySound), worldPosition, 4.0f, 40.0f, FlyByTrimDb);
+			SpawnOneShotAt(LoadStream(PickRandom(FlyBySounds)), worldPosition, 4.0f, 40.0f, FlyByTrimDb);
 	}
 
 	/// <summary>Plays the shared "hit a person" sound at the impact point - bullet or blade, any
@@ -273,7 +298,7 @@ public partial class WeaponAttachment : Node3D
 	{
 		// A rocket hit is an explosion, not a body-blow thud.
 		if (_weapon != null && !_weapon.ImpactUsesSurfaceVariation) { PlayImpact(worldPosition); return; }
-		SpawnOneShotAt(LoadStream(FleshImpactSound), worldPosition, 9.0f, 60.0f, 0.0f);
+		SpawnOneShotAt(LoadStream(PickRandom(FleshImpactSounds)), worldPosition, 9.0f, 60.0f, 0.0f);
 	}
 
 	private void SpawnOneShotAt(AudioStream? stream, Vector3 worldPosition, float unitSize,
@@ -430,9 +455,23 @@ public partial class WeaponAttachment : Node3D
 
 		if (weapon.FireSounds.Length == 0)
 			GD.PushWarning($"{weapon.WeaponName} has no fire sounds assigned.");
+
+		if (weapon.ReloadSounds.Length > 1)
+		{
+			// Same idea as _fireVariants above: the shotgun's shell-by-shell reload calls PlayReload
+			// once per shell, so without this every shell would be the identical clip.
+			_reloadVariants = new AudioStream?[weapon.ReloadSounds.Length];
+			for (int i = 0; i < weapon.ReloadSounds.Length; i++)
+				_reloadVariants[i] = LoadStream(weapon.ReloadSounds[i]);
+		}
+		else
+		{
+			_reloadVariants = null;
+		}
 	}
 
 	private AudioStream?[]? _fireVariants;
+	private AudioStream?[]? _reloadVariants;
 
 	/// <summary>Swaps in a random fire clip before the shot plays. Kept separate from PlayFire so
 	/// the variant list can be absent without branching at the call site.</summary>
@@ -441,6 +480,16 @@ public partial class WeaponAttachment : Node3D
 		if (_fireVariants == null || _fireAudio == null) return;
 		var pick = _fireVariants[_rng.RandiRange(0, _fireVariants.Length - 1)];
 		if (pick != null) _fireAudio.Stream = pick;
+	}
+
+	/// <summary>Swaps in a random reload clip before it plays, mirroring RollFireVariant. A no-op
+	/// for every weapon that only has one ReloadSounds entry (the reload player already has that
+	/// one clip loaded from AddAudioPlayers via PickOne, so there is nothing to swap).</summary>
+	private void RollReloadVariant()
+	{
+		if (_reloadVariants == null || _reloadAudio == null) return;
+		var pick = _reloadVariants[_rng.RandiRange(0, _reloadVariants.Length - 1)];
+		if (pick != null) _reloadAudio.Stream = pick;
 	}
 
 	private static string PickOne(string[] paths) => paths.Length == 0 ? string.Empty : paths[0];

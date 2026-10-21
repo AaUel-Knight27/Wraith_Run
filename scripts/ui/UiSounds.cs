@@ -20,15 +20,18 @@ public partial class UiSounds : Node
 {
 	public enum Sound { Click, Select, Start, Error }
 
-	private const string Directory = "res://audio/Clips/UI and HUD/Menu Sounds";
+	// The quality_audio pack only ships three generic UI one-shots (scroll/notification/hitmark -
+	// hitmark is used for WeaponSwitcher's hit marker, not here) and nothing error- or go-flavoured,
+	// so Start and Error below are the least-bad picks available rather than a real 1:1 swap.
+	private const string Directory = "res://audio/SFX";
 
-	// Level trims (dB): the four clips are already close in loudness, so these are small.
+	// Level trims (dB): tune these by ear once you've actually heard the new clips in place.
 	private static readonly Dictionary<Sound, (string Path, float VolumeDb)> Clips = new()
 	{
-		[Sound.Click] = (Directory + "/InterfaceClick.wav", 0.0f),
-		[Sound.Select] = (Directory + "/SelectSound.wav", 0.0f),
-		[Sound.Start] = (Directory + "/StartClick.wav", 0.0f),
-		[Sound.Error] = (Directory + "/ErrorSound.wav", 0.0f),
+		[Sound.Click] = (Directory + "/ui/scroll.wav", 0.0f),
+		[Sound.Select] = (Directory + "/ui/notification.wav", 0.0f),
+		[Sound.Start] = (Directory + "/gameplay/kill.wav", 0.0f),
+		[Sound.Error] = (Directory + "/misc/noise.wav", 0.0f),
 	};
 
 	public static UiSounds? Instance { get; private set; }
