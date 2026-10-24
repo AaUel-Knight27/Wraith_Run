@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://inspect_rigs_temp_uid"]
+
+[ext_resource type="Script" path="res://scripts/tests/InspectRigs.cs" id="1_test"]
+
+[node name="InspectRigs" type="Node"]
+script = ExtResource("1_test")

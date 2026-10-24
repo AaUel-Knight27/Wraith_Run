@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://inspect_m4_shotgun_uid"]
+
+[ext_resource type="Script" path="res://scripts/tests/InspectM4AndShotgun.cs" id="1_test"]
+
+[node name="InspectM4AndShotgun" type="Node"]
+script = ExtResource("1_test")
