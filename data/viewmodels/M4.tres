@@ -1,16 +1,22 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3 uid="uid://ci00pc5a3ioyl"]
 
-[ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
-[ext_resource type="PackedScene" path="res://art/animations/player/combat/M4/source/m4_assult_rfile.fbx" id="2_rig"]
+[ext_resource type="Script" uid="uid://b0quhdwsg45qj" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://h6ffgxehe26b" path="res://art/animations/player/combat/M4/source/m4_assult_rfile.fbx" id="2_rig"]
 
 [resource]
 script = ExtResource("1_script")
 WeaponName = "M4"
 RigScene = ExtResource("2_rig")
-ViewPosition = Vector3(5.611, -26.82, -1.329)
-ViewRotationDegrees = Vector3(0, 180, 0)
-ArmMeshNames = ["sleeve", "hardknuckle"]
-OriginalWeaponMeshNames = ["BARREL", "BARREL_001", "BARREL_002"]
+UseRigCameraTransform = true
+CameraBoneName = "camera"
+ViewPosition = Vector3(0.12, -0.1, -0.04)
+ViewRotationDegrees = Vector3(0, 0, 0)
+ViewScale = Vector3(0.042, 0.042, 0.042)
+HasScope = false
+AimPositionOffset = Vector3(-0.182, 0.102, 0.04)
+AimTransitionSeconds = 0.12
+ArmMeshNames = Array[String](["sleeve", "hardknuckle"])
+OriginalWeaponMeshNames = Array[String](["BARREL", "BARREL_001", "BARREL_002"])
 HideOriginalWeapon = false
 HideOriginalMagazine = false
 ClipMap = Dictionary[String, String]({
@@ -22,11 +28,15 @@ ClipMap = Dictionary[String, String]({
 "run": "Armature|Idle",
 "walk": "Armature|Idle"
 })
+ClipSpeedMultipliers = Dictionary[String, float]({
+"fire": 2.5
+})
 NormalizationReferenceRig = ExtResource("2_rig")
-NormalizationReferenceArmMeshNames = ["sleeve", "hardknuckle"]
+NormalizationReferenceArmMeshNames = Array[String](["sleeve", "hardknuckle"])
 CullMargin = 1.0
-MuzzlePointOffset = Vector3(0, 0, -0.65)
+MuzzlePointOffset = Vector3(0, -0.065, -0.875)
 MuzzleFlashEnabled = true
+MuzzleFlashScale = 0.9
 MuzzleLightEnergy = 2.5
 MuzzleParticleSpeed = 5.0
 MuzzleSpreadDegrees = 10.0

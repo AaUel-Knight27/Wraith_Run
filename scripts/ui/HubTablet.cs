@@ -65,7 +65,7 @@ public partial class HubTablet : CanvasLayer
 
     // join screen
     private PacketPeerUdp? _listener;
-    private readonly Dictionary<string, (string Name, string Host, int Players, string Map, string Mode, ulong Seen)> _games = new();
+    private readonly Dictionary<string, (string Name, string Host, int Port, int Players, string Map, string Mode, ulong Seen)> _games = new();
     private VBoxContainer? _gamesList;
     private Label? _joinStatus;
     private double _pollTimer;
@@ -1283,12 +1283,13 @@ public partial class HubTablet : CanvasLayer
             string host = string.IsNullOrWhiteSpace(source) ? advertised : source;
             if (string.IsNullOrEmpty(host)) continue;
             string session = packet.GetValueOrDefault("session", host).AsString();
+            int port = (int)packet.GetValueOrDefault("port", LanSession.GamePort).AsInt64();
             var entry = (
-                packet.GetValueOrDefault("name", "Wraith Run").AsString(), host,
+                packet.GetValueOrDefault("name", "Wraith Run").AsString(), host, port,
                 (int)packet.GetValueOrDefault("players", 1).AsInt64(),
                 packet.GetValueOrDefault("map", "").AsString(), packet.GetValueOrDefault("mode", "").AsString(),
                 Time.GetTicksMsec());
-            if (!_games.TryGetValue(session, out var prior) || prior.Name != entry.Item1 || prior.Players != entry.Item3 || prior.Map != entry.Item4) changed = true;
+            if (!_games.TryGetValue(session, out var prior) || prior.Name != entry.Item1 || prior.Port != entry.Item3 || prior.Players != entry.Item4 || prior.Map != entry.Item5) changed = true;
             _games[session] = entry;
         }
         foreach (string key in new List<string>(_games.Keys))
@@ -1304,13 +1305,15 @@ public partial class HubTablet : CanvasLayer
         foreach (var game in _games.Values)
         {
             string host = game.Host;
-            _gamesList.AddChild(MenuStyle.Row(game.Name, $"{game.Mode}  |  {game.Map}  |  {game.Players} in room", () => JoinGame(host)));
+            int port = game.Port;
+            string portSuffix = port != LanSession.GamePort ? $":{port}" : "";
+            _gamesList.AddChild(MenuStyle.Row(game.Name, $"{game.Mode}  |  {game.Map}  |  {host}{portSuffix}  |  {game.Players} in room", () => JoinGame(host, port)));
         }
     }
 
-    private void JoinGame(string address)
+    private void JoinGame(string address, int port = LanSession.GamePort)
     {
-        if (_hub != null && _hub.JoinSession(address))
+        if (_hub != null && _hub.JoinSession(address, port))
         {
             if (_joinStatus != null) _joinStatus.Text = $"Connecting to {address}...";
             Close();

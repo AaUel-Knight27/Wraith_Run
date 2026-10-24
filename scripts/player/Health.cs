@@ -64,16 +64,32 @@ public partial class Health : Node
         get => _currentHealth;
         set
         {
+            bool wasDead = _hasInitialized && _currentHealth <= 0.0f;
             bool wasAlive = _currentHealth > 0.0f || !_hasInitialized;
             _hasInitialized = true;
             _currentHealth = Mathf.Clamp(value, 0.0f, MaxHealth);
             ApplyVisualState(_currentHealth > 0.0f);
-            if (wasAlive && _currentHealth <= 0.0f) EmitSignal(SignalName.Died);
+            if (wasAlive && _currentHealth <= 0.0f)
+            {
+                _spawnProtectionRemaining = 0.0f;
+                UpdateInvincibilityVisual();
+                EmitSignal(SignalName.Died);
+            }
+            else if (wasDead && _currentHealth > 0.0f)
+            {
+                _spawnProtectionRemaining = SpawnProtectionDuration;
+                UpdateInvincibilityVisual();
+                EmitSignal(SignalName.Respawned);
+            }
         }
     }
 
     public bool IsDead => _currentHealth <= 0.0f;
     public float RespawnTimeRemaining => _respawnTimer;
+
+    public const float SpawnProtectionDuration = 2.5f;
+    private float _spawnProtectionRemaining;
+    public bool IsInvincible => _spawnProtectionRemaining > 0.0f;
 
     private float _currentHealth;
     private bool _hasInitialized;
@@ -89,6 +105,7 @@ public partial class Health : Node
     private CollisionShape3D? _collision;
     private CharacterLoadout? _loadout;
     private KillFeed? _killFeed;
+    private PlayerHud? _hud;
 
     /// <summary>Damage each attacker has dealt since this player last spawned. Part 6 pays the assist
     /// to the non-killing damager, so this ledger has to outlive a single hit.</summary>
@@ -104,6 +121,7 @@ public partial class Health : Node
         _collision = _player.GetNodeOrNull<CollisionShape3D>("CollisionShape3D");
         _loadout = _player.GetNodeOrNull<CharacterLoadout>("CharacterLoadout");
         _killFeed = KillFeed.From(this);
+        _hud = _player.GetNodeOrNull<PlayerHud>("Hud");
         _botRng.Randomize();
 
         // Shiv's "On-foot max HP -10%" drawback and anything like it (CharacterEffectIds.
@@ -114,6 +132,12 @@ public partial class Health : Node
 
     public override void _PhysicsProcess(double delta)
     {
+        if (_spawnProtectionRemaining > 0.0f)
+        {
+            _spawnProtectionRemaining -= (float)delta;
+            UpdateInvincibilityVisual();
+        }
+
         if (!PlayerIdentity.HasAuthority(this)) return;
         if (!HubState.Active) TickDownedInteractions((float)delta);
         if (IsDead)
@@ -141,7 +165,7 @@ public partial class Health : Node
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     public void ReceiveDamage(float amount, long attackerId, int styleFlags, int basePoints)
     {
-        if (!PlayerIdentity.HasAuthority(this) || IsDead || amount <= 0.0f) return;
+        if (!PlayerIdentity.HasAuthority(this) || IsDead || amount <= 0.0f || IsInvincible) return;
         long sender = Multiplayer.GetRemoteSenderId();
         if (Multiplayer.HasMultiplayerPeer() && sender != 0 && sender != attackerId) return;
         if (!IsValidDamageClaim(amount, attackerId, styleFlags, basePoints)) return;
@@ -160,7 +184,7 @@ public partial class Health : Node
             return;
         }
 
-        CurrentHealth -= amount;
+        CurrentHealth = Mathf.Max(0.0f, CurrentHealth - amount);
         EmitSignal(SignalName.Damaged, amount, attackerId);
         if (!IsDead)
         {
@@ -210,6 +234,8 @@ public partial class Health : Node
     private void Die(long killerId, int styleFlags, int basePoints, bool struggles)
     {
         if (IsDead) return;
+        _spawnProtectionRemaining = 0.0f;
+        UpdateInvincibilityVisual();
         _deathPosition = _player.GlobalPosition;
         _respawnTimer = RespawnDelaySeconds;
         CurrentHealth = 0.0f;
@@ -326,7 +352,63 @@ public partial class Health : Node
         _damageContribution.Clear();
         _deathAnnounced = false;
         CurrentHealth = MaxHealth;
-        EmitSignal(SignalName.Respawned);
+    }
+
+    private void UpdateInvincibilityVisual()
+    {
+        bool isLocalHuman = PlayerIdentity.IsLocalHuman(_player);
+        bool inThirdPerson = _player is PlayerMovement pm && pm.IsThirdPersonVehicleView;
+
+        if (_spawnProtectionRemaining > 0.0f)
+        {
+            // Rapid blink visual indicator (10 Hz flicker during invincibility)
+            bool blink = ((int)(_spawnProtectionRemaining * 10.0f) % 2) == 0;
+            if (!isLocalHuman || inThirdPerson)
+            {
+                var armature = _player?.GetNodeOrNull<Node3D>("Armature");
+                if (armature != null && IsInstanceValid(armature)) armature.Visible = blink;
+            }
+            if (isLocalHuman)
+            {
+                ShowPrompt($"SPAWN PROTECTION ({_spawnProtectionRemaining:F1}s)");
+            }
+        }
+        else
+        {
+            if (!isLocalHuman || inThirdPerson)
+            {
+                var armature = _player?.GetNodeOrNull<Node3D>("Armature");
+                if (armature != null && IsInstanceValid(armature)) armature.Visible = true;
+            }
+            if (isLocalHuman && !IsDead && !IsDowned)
+            {
+                ShowPrompt(null);
+            }
+        }
+    }
+
+    private static string GetButtonPrompt(string action, string fallbackKey)
+    {
+        if (OS.HasFeature("mobile")) return "TAP";
+        if (Input.GetConnectedJoypads().Count > 0)
+        {
+            var events = InputMap.ActionGetEvents(action);
+            foreach (var ev in events)
+            {
+                if (ev is InputEventJoypadButton joy)
+                {
+                    return joy.ButtonIndex switch
+                    {
+                        JoyButton.Y => "(Y)",
+                        JoyButton.X => "(X)",
+                        JoyButton.A => "(A)",
+                        JoyButton.B => "(B)",
+                        _ => $"BTN {joy.ButtonIndex}",
+                    };
+                }
+            }
+        }
+        return fallbackKey;
     }
 
     /// <summary>
@@ -387,7 +469,7 @@ public partial class Health : Node
             else
             {
                 _giveUpProgress = 0.0f;
-                prompt = "HOLD Y TO GIVE UP";
+                prompt = $"HOLD {GetButtonPrompt(GameUiState.GiveUpAction, "Y")} TO GIVE UP";
             }
             _reviveProgress = 0.0f;
             ShowPrompt(prompt);
@@ -417,7 +499,7 @@ public partial class Health : Node
             else
             {
                 _reviveProgress = 0.0f;
-                prompt = "HOLD T TO REVIVE";
+                prompt = $"HOLD {GetButtonPrompt(GameUiState.ReviveAction, "T")} TO REVIVE";
             }
         }
         else
@@ -459,6 +541,7 @@ public partial class Health : Node
 
     private void ShowPrompt(string? text)
     {
-        _player.GetNodeOrNull<PlayerHud>("Hud")?.SetPrompt(text);
+        _hud ??= _player.GetNodeOrNull<PlayerHud>("Hud");
+        _hud?.SetPrompt(text);
     }
 }

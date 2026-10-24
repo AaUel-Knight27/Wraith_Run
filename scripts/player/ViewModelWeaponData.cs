@@ -21,6 +21,17 @@ public partial class ViewModelWeaponData : Resource
 	[Export] public Vector3 AimPositionOffset { get; set; } = Vector3.Zero;
 	[Export] public Vector3 AimRotationOffsetDegrees { get; set; } = Vector3.Zero;
 	[Export] public float AimTransitionSeconds { get; set; } = 0.12f;
+	/// <summary>Only weapons with a scope or dedicated scope animation allow aiming down sights.</summary>
+	[Export] public bool HasScope { get; set; }
+	/// <summary>When true, ViewModelBase automatically aligns its position and rotation so that the
+	/// rig's internal Camera3D matches the player's FirstPersonCamera.</summary>
+	[Export] public bool UseRigCameraTransform { get; set; }
+	/// <summary>Name of the camera bone in the rig if the rig has an animated camera bone (e.g. "camera", "Head_Cam").</summary>
+	[Export] public string CameraBoneName { get; set; } = string.Empty;
+	/// <summary>Authored camera position within the rig if no camera node is in the FBX scene.</summary>
+	[Export] public Vector3 RigCameraPosition { get; set; } = Vector3.Zero;
+	/// <summary>Authored camera rotation degrees within the rig.</summary>
+	[Export] public Vector3 RigCameraRotationDegrees { get; set; } = Vector3.Zero;
 	[Export] public Godot.Collections.Array<string> ArmMeshNames { get; set; } = new();
 	[Export] public Godot.Collections.Dictionary<string, Material> MeshMaterials { get; set; } = new();
 	[Export] public Godot.Collections.Array<string> OriginalWeaponMeshNames { get; set; } = new();

@@ -1,23 +1,24 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3 uid="uid://dvs7lch4r4hrs"]
 
-[ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
-[ext_resource type="PackedScene" path="res://art/animations/player/combat/benelli m4/source/HandWithGloves_AnimateRDY.fbx" id="2_rig"]
-[ext_resource type="PackedScene" path="res://art/animations/player/combat/AK/source/FpsAnims.fbx" id="4_reference"]
+[ext_resource type="Script" uid="uid://b0quhdwsg45qj" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://cvt2y5cp3m8oh" path="res://art/animations/player/combat/benelli m4/source/HandWithGloves_AnimateRDY.fbx" id="2_rig"]
 
 [resource]
 script = ExtResource("1_script")
 WeaponName = "Shotgun"
 RigScene = ExtResource("2_rig")
-AttachBoneName = "Main"
-AttachRotationDegrees = Vector3(-90, 0, 0)
-AttachScale = Vector3(0.2, 0.2, 0.2)
-ViewPosition = Vector3(0.014, -0.041, -0.01)
-ViewRotationDegrees = Vector3(0, 180, 0)
-AimPositionOffset = Vector3(-0.014, 0.14, -0.10)
-AimTransitionSeconds = 0.14
+UseRigCameraTransform = true
+CameraBoneName = "camera"
+ViewPosition = Vector3(0.11, -0.07, -0.04)
+ViewRotationDegrees = Vector3(0, 0, 0)
+ViewScale = Vector3(0.042, 0.042, 0.042)
+AimPositionOffset = Vector3(-0.165, 0.072, 0.04)
+AimTransitionSeconds = 0.12
+HasScope = false
 ArmMeshNames = Array[String](["sleeve", "hardknuckle"])
 OriginalWeaponMeshNames = Array[String](["12g_12gauge_0", "benelli_m4_TTI_Benelli_M4_0"])
 HideOriginalWeapon = false
+HideOriginalMagazine = false
 ClipMap = Dictionary[String, String]({
 "fire": "Rig|M4_Fire",
 "idle": "Rig|M4_Idle",
@@ -26,12 +27,12 @@ ClipMap = Dictionary[String, String]({
 "run": "Rig|M4_Run",
 "walk": "Rig|M4_Walk"
 })
-NormalizationReferenceRig = ExtResource("4_reference")
-NormalizationReferenceArmMeshNames = Array[String](["arms"])
+NormalizationReferenceRig = ExtResource("2_rig")
+NormalizationReferenceArmMeshNames = Array[String](["sleeve", "hardknuckle"])
 CullMargin = 1.0
-MuzzlePointOffset = Vector3(0, 0, -0.75)
+MuzzlePointOffset = Vector3(0, -0.065, -0.85)
 MuzzleFlashEnabled = true
-MuzzleFlashScale = 1.6
+MuzzleFlashScale = 1.2
 MuzzleFlashDuration = 0.065
 MuzzleLightEnergy = 3.6
 MuzzleSmokeEnabled = true

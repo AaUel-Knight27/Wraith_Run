@@ -70,7 +70,10 @@ public partial class WeaponSwitcher : Node
 	private Health? _health;
 	private CharacterLoadout? _loadout;
 	private AudioStreamPlayer? _hitMarker;
+	private readonly AudioStream?[] _cachedHitMarkerStreams = new AudioStream?[HitMarkerSounds.Length];
 	private readonly RandomNumberGenerator _rng = new();
+
+	[Export] public float WeaponSwapCooldown { get; set; } = 0.35f;
 
 	/// <summary>
 	/// true: every loadout weapon remembers its own magazine and reserve while you carry another one,
@@ -245,11 +248,13 @@ public partial class WeaponSwitcher : Node
 		{
 			if (CarriedIndexFor((WeaponSlot)slot) == current) { firstSlot = slot; break; }
 		}
+		if (firstSlot == -1) firstSlot = 0;
 		for (int step = 1; step <= WeaponRules.SlotCount; step++)
 		{
 			int next = CarriedIndexFor((WeaponSlot)((firstSlot + step + WeaponRules.SlotCount) % WeaponRules.SlotCount));
 			if (next >= 0 && next != current) { ReplicatedWeaponIndex = next; return; }
 		}
+		if (current >= 0 && current < Loadout.Length) ReplicatedWeaponIndex = current;
 	}
 
 	public override void _Ready()
@@ -264,6 +269,9 @@ public partial class WeaponSwitcher : Node
 		_health = GetNodeOrNull<Health>("../Health");
 		_loadout = GetNodeOrNull<CharacterLoadout>("../CharacterLoadout");
 		_registry = ResourceLoader.Load<WeaponRegistry>("res://scripts/data/WeaponRegistry.tres")!;
+
+		for (int i = 0; i < HitMarkerSounds.Length; i++)
+			_cachedHitMarkerStreams[i] = ResourceLoader.Load<AudioStream>(HitMarkerSounds[i]);
 
 		// The hit-marker tick is a non-positional UI sound: only the person at this machine gets one
 		// (a bot the host simulates is 'authority' here too and must stay silent).
@@ -310,6 +318,20 @@ public partial class WeaponSwitcher : Node
 		if (_health != null && IsInstanceValid(_health)) _health.Respawned -= OnRespawned;
 	}
 
+	public override void _PhysicsProcess(double delta)
+	{
+		if (!PlayerIdentity.HasAuthority(_player)) return;
+		if (_health != null && _health.IsDead) return;
+
+		float step = (float)delta;
+		_cooldownRemaining = Mathf.Max(0.0f, _cooldownRemaining - step);
+		if (_reloadRemaining > 0.0f)
+		{
+			_reloadRemaining -= step;
+			if (_reloadRemaining <= 0.0f) FinishReload();
+		}
+	}
+
 	public override void _Process(double delta)
 	{
 		if (!PlayerIdentity.HasAuthority(_player)) return;
@@ -336,15 +358,7 @@ public partial class WeaponSwitcher : Node
 
 		if (_health != null && _health.IsDead) return;
 
-		float step = (float)delta;
-		_cooldownRemaining = Mathf.Max(0.0f, _cooldownRemaining - step);
-		if (_reloadRemaining > 0.0f)
-		{
-			_reloadRemaining -= step;
-			if (_reloadRemaining <= 0.0f) FinishReload();
-		}
-
-		if (! _movement.IsVehicleDriver && (bot != null ? bot.ConsumeReload() : (!inputBlocked && Input.IsActionJustPressed("reload")))) StartReload();
+		if (!_movement.IsVehicleDriver && (bot != null ? bot.ConsumeReload() : (!inputBlocked && Input.IsActionJustPressed("reload")))) StartReload();
 
 		// Rate-limited by FireRateRPM below. Semi-auto weapons (Glock, Desert Eagle, shotgun)
 		// require a fresh press per shot - holding the trigger on them fires one round and then
@@ -384,7 +398,7 @@ public partial class WeaponSwitcher : Node
 				_currentAmmo = weapon.MagazineSize;
 				_currentReserve = weapon.MaxReserveAmmo;
 			}
-			_cooldownRemaining = 0.0f;
+			_cooldownRemaining = Mathf.Max(_cooldownRemaining, WeaponSwapCooldown);
 			_reloadRemaining = 0.0f;
 			_attachment.Equip(weapon);
 			_viewmodel?.EquipWeapon(weapon.WeaponName);
@@ -497,7 +511,11 @@ public partial class WeaponSwitcher : Node
 		TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void RpcCancelReloadEffects()
 	{
-		if (IsAuthorizedEffectSender()) _attachment.StopReload();
+		if (IsAuthorizedEffectSender())
+		{
+			_attachment.StopReload();
+			_viewmodel?.CancelReload();
+		}
 	}
 
 	private bool IsAuthorizedEffectSender()
@@ -816,26 +834,28 @@ public partial class WeaponSwitcher : Node
 
 	// -------------------------------------------------------------------------------------------
 
-	private static AudioStreamPlayer? BuildHitMarkerPlayer(Node parent, string path)
+	private AudioStreamPlayer? BuildHitMarker()
 	{
-		var stream = ResourceLoader.Load<AudioStream>(path);
+		AudioStream? stream = null;
+		for (int i = 0; i < _cachedHitMarkerStreams.Length; i++)
+		{
+			if (_cachedHitMarkerStreams[i] != null) { stream = _cachedHitMarkerStreams[i]; break; }
+		}
 		if (stream == null) return null;
 		var player = new AudioStreamPlayer { Name = "HitMarker", Stream = stream, VolumeDb = -14.0f };
-		parent.AddChild(player);
+		AddChild(player);
 		return player;
 	}
 
-	/// <summary>Non-positional, owner-only: a hit marker is feedback about your own shot, so it
-	/// should not be a 3D sound and no other peer should hear it.</summary>
-	private AudioStreamPlayer? BuildHitMarker() =>
-		BuildHitMarkerPlayer(this, HitMarkerSounds[0]);
-
 	private void PlayHitMarker()
 	{
-		if (_hitMarker == null) return;
-		var stream = ResourceLoader.Load<AudioStream>(HitMarkerSounds[_rng.RandiRange(0, HitMarkerSounds.Length - 1)]);
-		if (stream != null) _hitMarker.Stream = stream;
-		_hitMarker.Play();
+		if (_hitMarker == null || _cachedHitMarkerStreams.Length == 0) return;
+		var stream = _cachedHitMarkerStreams[_rng.RandiRange(0, _cachedHitMarkerStreams.Length - 1)];
+		if (stream != null)
+		{
+			_hitMarker.Stream = stream;
+			_hitMarker.Play();
+		}
 	}
 
 	/// <summary>Refills the current weapon (a bot's 'spawn loadout' on respawn).</summary>

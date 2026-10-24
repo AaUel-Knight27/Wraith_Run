@@ -19,10 +19,23 @@ public partial class ViewModelManager : Node3D
 	private readonly Dictionary<string, ViewModelWeaponData> _savedSnapshots = new();
 	private readonly Dictionary<string, ViewModelWeaponData> _baseSnapshots = new();
 	private readonly Dictionary<string, string> _sourcePaths = new();
+	private Vector2 _accumulatedLookDelta;
+	private Vector3 _playerVelocity;
+	private bool _isGrounded = true;
 
 	public ViewModelBase? ActiveViewModel => _activeViewModel;
 	public string ActiveWeaponName => _activeWeapon;
 	public IEnumerable<string> WeaponNames => _weaponData.Keys;
+	public bool HasActiveViewModel => _activeViewModel != null;
+
+	public bool CanAimCurrentWeapon()
+	{
+		if (_activeViewModel?.Data != null)
+			return _activeViewModel.Data.HasScope || _activeViewModel.Data.AimPositionOffset != Vector3.Zero;
+		if (_weaponData.TryGetValue(_activeWeapon, out ViewModelWeaponData? data))
+			return data.HasScope || data.AimPositionOffset != Vector3.Zero;
+		return _activeWeapon.Equals("Sniper", StringComparison.OrdinalIgnoreCase);
+	}
 
 	public override void _Ready()
 	{
@@ -50,6 +63,19 @@ public partial class ViewModelManager : Node3D
 		bool aiming = !tabletOpen && _movement?.IsAiming == true;
 		_activeViewModel.SetAiming(aiming);
 		PlayAdsSoundOnChange(aiming);
+
+		Vector3 localVelocity = Vector3.Zero;
+		if (_movement != null)
+		{
+			localVelocity = _movement.GlobalTransform.Basis.Inverse() * _playerVelocity;
+		}
+		_activeViewModel.UpdateProceduralMotion(
+			(float)delta,
+			_accumulatedLookDelta,
+			localVelocity,
+			aiming
+		);
+		_accumulatedLookDelta = Vector2.Zero;
 	}
 
 	/// <summary>
@@ -171,6 +197,30 @@ public partial class ViewModelManager : Node3D
 		PlayForDuration(fullReload && _activeViewModel.HasResolvedClip("reload_full") ? "reload_full" : "reload", duration);
 	}
 
+	public void CancelReload()
+	{
+		if (_localHuman) _activeViewModel?.CancelReload();
+	}
+
+	public void AddLookInput(float yawDelta, float pitchDelta)
+	{
+		if (_localHuman) _accumulatedLookDelta += new Vector2(yawDelta, pitchDelta);
+	}
+
+	public void UpdatePhysicsState(Vector3 velocity, bool grounded)
+	{
+		if (_localHuman)
+		{
+			_playerVelocity = velocity;
+			_isGrounded = grounded;
+		}
+	}
+
+	public void AddLandingImpulse(float strength)
+	{
+		if (_localHuman) _activeViewModel?.AddLandingImpulse(strength);
+	}
+
 	public void UpdateMovement(PlayerMovement.MovementState state)
 	{
 		if (!_localHuman || _activeViewModel == null) return;
@@ -180,7 +230,7 @@ public partial class ViewModelManager : Node3D
 			PlayerMovement.MovementState.Sprint => "run",
 			_ => "idle",
 		};
-		if (_activeViewModel.HasResolvedClip(clip) && clip != _lastMovementClip)
+		if (clip != _lastMovementClip)
 		{
 			_lastMovementClip = clip;
 			_activeViewModel.Play(clip);

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bm1lei0aq53c1"]
+
+[ext_resource type="Script" path="res://scripts/tests/RenderAllViewModels.cs" id="1_test"]
+
+[node name="RenderAllViewModels" type="Node"]
+script = ExtResource("1_test")

@@ -12,12 +12,38 @@ public partial class ViewModelCameraMotion : Node3D
 	private Skeleton3D? _skeleton;
 	private int _boneIndex = -1;
 	private Quaternion _restRotation = Quaternion.Identity;
+	private ViewModelBase? _viewModel;
 
 	public void SetViewModel(ViewModelBase? viewModel)
 	{
+		_viewModel = viewModel;
 		_skeleton = viewModel?.FindChild("Skeleton3D", true, false) as Skeleton3D;
-		_boneIndex = _skeleton?.FindBone(BoneName) ?? -1;
-		if (_skeleton == null || _boneIndex < 0) return;
+		if (_skeleton == null)
+		{
+			_boneIndex = -1;
+			Rotation = Vector3.Zero;
+			return;
+		}
+
+		string boneToFind = !string.IsNullOrEmpty(viewModel?.Data?.CameraBoneName)
+			? viewModel.Data.CameraBoneName
+			: BoneName;
+
+		_boneIndex = _skeleton.FindBone(boneToFind);
+		if (_boneIndex < 0)
+		{
+			foreach (string candidate in new[] { "camera", "Head_Cam", "Camera", "head_cam" })
+			{
+				_boneIndex = _skeleton.FindBone(candidate);
+				if (_boneIndex >= 0) break;
+			}
+		}
+
+		if (_boneIndex < 0)
+		{
+			Rotation = Vector3.Zero;
+			return;
+		}
 		_restRotation = _skeleton.GetBoneRest(_boneIndex).Basis.GetRotationQuaternion();
 	}
 
@@ -36,7 +62,11 @@ public partial class ViewModelCameraMotion : Node3D
 		if (FlipY) euler.Y = -euler.Y;
 		if (FlipZ) euler.Z = -euler.Z;
 		Quaternion adjustedOffset = Basis.FromEuler(euler).GetRotationQuaternion();
-		Quaternion blended = Quaternion.Identity.Slerp(adjustedOffset, Mathf.Clamp(Strength, 0.0f, 1.0f));
-		Rotation = blended.GetEuler();
+
+		// Damp camera bone sway during ADS so sights remain stable
+		float adsDamping = (_viewModel != null && _viewModel.IsAiming) ? 0.15f : 1.0f;
+		Quaternion blended = Quaternion.Identity.Slerp(adjustedOffset, Mathf.Clamp(Strength * adsDamping, 0.0f, 1.0f));
+		if (blended.IsFinite())
+			Rotation = blended.GetEuler();
 	}
 }

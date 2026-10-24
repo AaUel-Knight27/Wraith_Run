@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c8526yk4q4xle"]
+
+[ext_resource type="Script" path="res://scripts/tests/TestM4ViewModel.cs" id="1_test"]
+
+[node name="TestM4ViewModel" type="Node"]
+script = ExtResource("1_test")

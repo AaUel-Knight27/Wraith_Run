@@ -39,6 +39,80 @@ public partial class ViewModelBase : Node3D
 	private float _aimBlend;
 	private bool _aiming;
 
+	public enum ViewModelAction { None, Draw, Fire, Reload }
+	private ViewModelAction _currentAction = ViewModelAction.None;
+	private string _currentActionClip = string.Empty;
+	private string _queuedMovementGeneric = "idle";
+	private float _fireActionTimer;
+	private readonly RandomNumberGenerator _rng = new();
+
+	public struct SpringVector3
+	{
+		public Vector3 Current;
+		public Vector3 Target;
+		public Vector3 Velocity;
+
+		/// <summary>
+		/// Unconditionally stable analytical damped harmonic oscillator.
+		/// Guaranteed to never explode or produce NaN regardless of delta or frequency.
+		/// </summary>
+		public void Update(float delta, float frequency, float dampingRatio = 1.0f)
+		{
+			if (delta <= 0.0f) return;
+			if (!Current.IsFinite() || !Velocity.IsFinite() || !Target.IsFinite())
+			{
+				Reset();
+				return;
+			}
+
+			float omega = Mathf.Max(frequency * Mathf.Tau, 0.001f);
+			float dt = Mathf.Min(delta, 0.2f);
+			Vector3 x0 = Current - Target;
+			Vector3 v0 = Velocity;
+
+			if (dampingRatio >= 1.0f)
+			{
+				// Critically damped (exact analytical closed-form)
+				float decay = Mathf.Exp(-omega * dt);
+				Vector3 c2 = v0 + omega * x0;
+				Current = Target + (x0 + c2 * dt) * decay;
+				Velocity = (v0 - omega * c2 * dt) * decay;
+			}
+			else
+			{
+				// Underdamped (exact analytical closed-form with natural oscillation)
+				float dampedFreq = omega * Mathf.Sqrt(1.0f - dampingRatio * dampingRatio);
+				float decay = Mathf.Exp(-dampingRatio * omega * dt);
+				float sinVal = Mathf.Sin(dampedFreq * dt);
+				float cosVal = Mathf.Cos(dampedFreq * dt);
+
+				Vector3 c2 = (v0 + x0 * (dampingRatio * omega)) / dampedFreq;
+				Current = Target + (x0 * cosVal + c2 * sinVal) * decay;
+				Velocity = (v0 * (cosVal - dampingRatio * omega / dampedFreq * sinVal) - x0 * (omega * omega / dampedFreq * sinVal)) * decay;
+			}
+
+			if (!Current.IsFinite() || !Velocity.IsFinite())
+			{
+				Reset();
+			}
+		}
+
+		public void Reset()
+		{
+			Current = Vector3.Zero;
+			Target = Vector3.Zero;
+			Velocity = Vector3.Zero;
+		}
+	}
+
+	private SpringVector3 _swayRotSpring;
+	private SpringVector3 _swayPosSpring;
+	private SpringVector3 _recoilKickSpring;
+	private Vector2 _smoothLookDelta;
+
+	public bool IsAiming => _aiming;
+	public bool IsActionBusy => _currentAction is ViewModelAction.Reload or ViewModelAction.Draw;
+
 	public Skeleton3D? Skeleton => _skeleton;
 	public Node3D? MuzzlePoint => _muzzlePoint;
 	public IReadOnlyDictionary<string, string> ResolvedClips => _resolvedClips;
@@ -57,9 +131,19 @@ public partial class ViewModelBase : Node3D
 	public void ApplyData()
 	{
 		if (Data == null) return;
-		PositionOffset = Data.ViewPosition;
-		RotationOffsetDegrees = Data.ViewRotationDegrees;
-		ScaleOffset = Data.ViewScale;
+		if (Data.UseRigCameraTransform)
+		{
+			AlignRigToDefaultCamera();
+			PositionOffset = Data.ViewPosition;
+			RotationOffsetDegrees = Data.ViewRotationDegrees;
+			ScaleOffset = Data.ViewScale;
+		}
+		else
+		{
+			PositionOffset = Data.ViewPosition;
+			RotationOffsetDegrees = Data.ViewRotationDegrees;
+			ScaleOffset = Data.ViewScale;
+		}
 		ApplyAimPose();
 		Scale = Vector3.One;
 		ApplyViewScale();
@@ -68,6 +152,60 @@ public partial class ViewModelBase : Node3D
 		ConfigureMuzzleAnchor();
 		foreach (Node node in GetDescendants(_rig ?? this))
 			if (node is MeshInstance3D mesh) mesh.ExtraCullMargin = Mathf.Max(mesh.ExtraCullMargin, Data.CullMargin);
+	}
+
+	private void AlignRigToDefaultCamera()
+	{
+		if (_rig == null) return;
+		Camera3D? rigCamera = null;
+		foreach (Node child in GetDescendants(_rig))
+		{
+			if (child is Camera3D cam)
+			{
+				rigCamera = cam;
+				break;
+			}
+		}
+
+		if (rigCamera != null)
+		{
+			rigCamera.ForceUpdateTransform();
+			_rig.ForceUpdateTransform();
+			Transform3D camInRig = _rig.GlobalTransform.AffineInverse() * rigCamera.GlobalTransform;
+			Transform3D rigWanted = camInRig.AffineInverse();
+			_rig.Transform = rigWanted;
+			_rigBaseTransform = rigWanted;
+			_rigBaseScale = rigWanted.Basis.Scale;
+			GD.Print($"VIEWMODEL aligned to rig camera: wanted_origin={rigWanted.Origin} wanted_rot={rigWanted.Basis.GetEuler() * (180.0f / Mathf.Pi)}");
+		}
+		else
+		{
+			// Check if a CameraBoneName was provided and exists in the skeleton
+			if (!string.IsNullOrEmpty(Data?.CameraBoneName) && _skeleton != null)
+			{
+				int boneIdx = _skeleton.FindBone(Data.CameraBoneName);
+				if (boneIdx >= 0)
+				{
+					_skeleton.ForceUpdateTransform();
+					_rig.ForceUpdateTransform();
+					Transform3D bonePose = _skeleton.GetBoneGlobalPose(boneIdx);
+					Transform3D boneInRig = _rig.GlobalTransform.AffineInverse() * (_skeleton.GlobalTransform * bonePose);
+					Transform3D rigWanted = boneInRig.AffineInverse();
+					_rig.Transform = rigWanted;
+					_rigBaseTransform = rigWanted;
+					_rigBaseScale = rigWanted.Basis.Scale;
+					GD.Print($"VIEWMODEL aligned to camera bone '{Data.CameraBoneName}': wanted_origin={rigWanted.Origin} wanted_rot={rigWanted.Basis.GetEuler() * (180.0f / Mathf.Pi)}");
+					return;
+				}
+			}
+
+			// Standard authored first-person FPS armature fallback (e.g. Benelli M4 sharing the standard FPS rig setup):
+			Transform3D defaultRigWanted = new Transform3D(new Basis(Vector3.Up, Mathf.Pi), new Vector3(0.0f, -34.000217f, 0.0f));
+			_rig.Transform = defaultRigWanted;
+			_rigBaseTransform = defaultRigWanted;
+			_rigBaseScale = Vector3.One;
+			GD.Print($"VIEWMODEL aligned to standard FPS rig camera: wanted_origin={defaultRigWanted.Origin} wanted_rot={defaultRigWanted.Basis.GetEuler() * (180.0f / Mathf.Pi)}");
+		}
 	}
 
 	public void PlayMuzzleFire() => _muzzleFire?.Fire();
@@ -79,17 +217,95 @@ public partial class ViewModelBase : Node3D
 	public override void _Process(double delta)
 	{
 		if (Data == null) return;
+		float dt = (float)delta;
+		bool canAim = Data.HasScope || Data.AimPositionOffset != Vector3.Zero || Data.WeaponName.Equals("Sniper", StringComparison.OrdinalIgnoreCase);
+		bool effectiveAiming = _aiming && canAim;
+
 		float duration = Mathf.Max(Data.AimTransitionSeconds, 0.001f);
-		float weight = 1.0f - Mathf.Exp(-(float)delta / duration);
-		_aimBlend = Mathf.Lerp(_aimBlend, _aiming ? 1.0f : 0.0f, weight);
+		float weight = 1.0f - Mathf.Exp(-dt / duration);
+		_aimBlend = Mathf.Lerp(_aimBlend, effectiveAiming ? 1.0f : 0.0f, weight);
+
+		if (_fireActionTimer > 0.0f) _fireActionTimer -= dt;
+
 		ApplyAimPose();
 	}
 
 	private void ApplyAimPose()
 	{
 		if (Data == null) return;
-		Position = PositionOffset + Data.AimPositionOffset * _aimBlend;
-		RotationDegrees = RotationOffsetDegrees + Data.AimRotationOffsetDegrees * _aimBlend;
+		Vector3 basePos = PositionOffset + Data.AimPositionOffset * _aimBlend;
+		Vector3 baseRot = RotationOffsetDegrees + Data.AimRotationOffsetDegrees * _aimBlend;
+
+		Vector3 finalPos = basePos + _swayPosSpring.Current + _recoilKickSpring.Current;
+		Vector3 finalRot = baseRot + _swayRotSpring.Current;
+
+		if (finalPos.IsFinite()) Position = finalPos;
+		if (finalRot.IsFinite()) RotationDegrees = finalRot;
+	}
+
+	public void AddRecoilKick()
+	{
+		float adsFactor = Mathf.Lerp(1.0f, 0.25f, _aimBlend);
+
+		// Local +Z is toward the player camera (recoil kickback), +Y is upward barrel lift
+		_recoilKickSpring.Velocity += new Vector3(
+			_rng.RandfRange(-0.0008f, 0.0008f),
+			_rng.RandfRange(0.002f, 0.004f),
+			0.016f
+		) * adsFactor;
+
+		// Rotational recoil kick: pitch up, slight random roll and yaw
+		_swayRotSpring.Velocity += new Vector3(
+			_rng.RandfRange(0.9f, 1.3f),
+			_rng.RandfRange(-0.25f, 0.25f),
+			_rng.RandfRange(-0.15f, 0.15f)
+		) * adsFactor;
+	}
+
+	public void AddLandingImpulse(float strength)
+	{
+		float adsFactor = Mathf.Lerp(1.0f, 0.10f, _aimBlend);
+
+		// Gun compresses downward subtly on hard landing
+		_swayPosSpring.Velocity += new Vector3(0.0f, -strength * 0.05f, 0.0f) * adsFactor;
+		_swayRotSpring.Velocity += new Vector3(-strength * 2.0f, 0.0f, 0.0f) * adsFactor;
+	}
+
+	public void UpdateProceduralMotion(float delta, Vector2 lookDelta, Vector3 localVelocity, bool isAiming)
+	{
+		float adsFactor = Mathf.Lerp(1.0f, 0.04f, _aimBlend);
+
+		// Smooth mouse look delta to eliminate step spikes from discrete per-frame mouse events
+		_smoothLookDelta = _smoothLookDelta.Lerp(lookDelta, 1.0f - Mathf.Exp(-delta * 22.0f));
+
+		// Mouse look sway: subtle realistic lag behind camera turn and slight bank into roll
+		float targetPitch = Mathf.Clamp(-_smoothLookDelta.Y * 0.8f, -1.0f, 1.0f) * adsFactor;
+		float targetYaw = Mathf.Clamp(-_smoothLookDelta.X * 1.0f, -1.2f, 1.2f) * adsFactor;
+		float targetRoll = Mathf.Clamp(_smoothLookDelta.X * 1.2f, -1.4f, 1.4f) * adsFactor;
+
+		_swayRotSpring.Target = new Vector3(targetPitch, targetYaw, targetRoll);
+
+		// Movement inertia sway: strafing subtly shifts weapon
+		float targetPosX = Mathf.Clamp(-localVelocity.X * 0.0008f, -0.006f, 0.006f) * adsFactor;
+		float targetPosY = Mathf.Clamp(localVelocity.Y * 0.0006f, -0.005f, 0.005f) * adsFactor;
+		float targetPosZ = Mathf.Clamp(localVelocity.Z * 0.0008f, -0.005f, 0.005f) * adsFactor;
+
+		_swayPosSpring.Target = new Vector3(targetPosX, targetPosY, targetPosZ);
+
+		// Analytical spring update with clean, realistic frequencies:
+		_recoilKickSpring.Update(delta, 16.0f, 1.0f);
+		_swayRotSpring.Update(delta, 12.0f, 1.0f);
+		_swayPosSpring.Update(delta, 10.0f, 1.0f);
+	}
+
+	public void CancelReload()
+	{
+		if (_currentAction == ViewModelAction.Reload)
+		{
+			_currentAction = ViewModelAction.None;
+			_currentActionClip = string.Empty;
+			Play(_queuedMovementGeneric);
+		}
 	}
 
 	public void SetMuzzleGizmoVisible(bool visible)
@@ -100,6 +316,7 @@ public partial class ViewModelBase : Node3D
 
 	public override void _Ready()
 	{
+		_rng.Randomize();
 		ApplyAimPose();
 		Scale = Vector3.One;
 		_viewCamera = GetParent() as Camera3D;
@@ -141,13 +358,17 @@ public partial class ViewModelBase : Node3D
 				bool keepRigWeapon = !Data.HideOriginalWeapon && ContainsName(Data.OriginalWeaponMeshNames, mesh.Name);
 				bool keepRigMagazine = !Data.HideOriginalMagazine && ContainsName(Data.OriginalMagazineMeshNames, mesh.Name);
 				if (Data.ArmMeshNames.Count > 0 && !isArm && !keepRigWeapon && !keepRigMagazine) mesh.Visible = false;
-				// Several of these imported rigs (the Benelli arms, now also the P90's gun parts) carry a
-				// skinned mesh whose bind-pose AABB, baked in at import, sits far from the animated pose -
-				// large, and offset by metres. Godot culls a skinned mesh by that stale box, not by where the
-				// skin deformation actually puts it, so the gun can vanish from view even though it is being
-				// drawn in the right place. A generous local box on every mesh we keep visible avoids that.
+				// Several of these imported rigs carry a skinned mesh whose bind-pose AABB sits offset
+				// from the animated pose. Instead of an unbounded box (-1000..1000) which breaks frustum
+				// culling and shadow maps, we set a tight bounded box covering the first-person viewmodel volume
+				// (approx 1.5m wide/high, 2.5m deep around the camera space) to maintain proper frustum culling.
 				if (isArm || keepRigWeapon || keepRigMagazine)
-					mesh.CustomAabb = new Aabb(new Vector3(-1000, -1000, -1000), new Vector3(2000, 2000, 2000));
+				{
+					if (Data.UseRigCameraTransform)
+						mesh.CustomAabb = new Aabb(new Vector3(-50.0f, -50.0f, -80.0f), new Vector3(100.0f, 100.0f, 160.0f));
+					else
+						mesh.CustomAabb = new Aabb(new Vector3(-0.75f, -0.75f, -1.25f), new Vector3(1.5f, 1.5f, 2.5f));
+				}
 				if (isArm)
 				{
 					mesh.Visible = true;
@@ -184,10 +405,11 @@ public partial class ViewModelBase : Node3D
 			}
 		}
 
-		if (NormalizeArms) NormalizeRig();
+		if (NormalizeArms && (Data == null || !Data.UseRigCameraTransform)) NormalizeRig();
 		ResolveAndConfigureClips();
 		_animationPlayer.AnimationFinished += OnAnimationFinished;
 		AttachWeaponModel();
+		if (_muzzlePoint == null) CreateMuzzleAnchor();
 		CaptureViewScalePivot();
 		ApplyData();
 		ProcessPriority = 100;
@@ -199,7 +421,7 @@ public partial class ViewModelBase : Node3D
 
 	private void NormalizeRig()
 	{
-		if (Data == null || _rig == null) return;
+		if (Data == null || _rig == null || Data.UseRigCameraTransform) return;
 		float current = MeasureMeshExtent(_rig, Data.ArmMeshNames);
 		float reference = current;
 		if (Data.NormalizationReferenceRig != null)
@@ -243,6 +465,15 @@ public partial class ViewModelBase : Node3D
 	private void ApplyViewScale()
 	{
 		if (_rig == null) return;
+		if (Data?.UseRigCameraTransform == true)
+		{
+			// When rig is aligned to camera, scaling about camera keeps sight alignment perfectly intact:
+			// In camera space, the camera is at Vector3.Zero. Scaling about the camera preserves the sight line.
+			_rig.Transform = _rigBaseTransform;
+			_rig.Scale = _rigBaseScale * ScaleOffset;
+			_rig.Position = _rigBaseTransform.Origin * ScaleOffset;
+			return;
+		}
 		_rig.Transform = _rigBaseTransform;
 		Vector3 basePivot = _rigBaseTransform.Basis * _viewScalePivot;
 		_rig.Scale = _rigBaseScale * ScaleOffset;
@@ -263,9 +494,27 @@ public partial class ViewModelBase : Node3D
 			}
 			_resolvedClips[mapping.Key] = resolved;
 		}
-		if (!string.IsNullOrEmpty(Data.AttachBoneName) && _skeleton?.FindBone(Data.AttachBoneName) < 0)
-			GD.PushWarning($"{Data.WeaponName}: attach bone '{Data.AttachBoneName}' is missing in rig '{Data.RigScene?.ResourcePath}'.");
-		if (!_resolvedClips.ContainsKey("idle")) GD.PushWarning($"{Data.WeaponName}: no idle clip configured.");
+		if (_resolvedClips.TryGetValue("idle", out string? idle))
+		{
+			_idleClip = idle;
+		}
+		else
+		{
+			GD.PushWarning($"{Data.WeaponName}: no idle clip configured.");
+		}
+
+		string[] loopClipKeys = { "idle", "walk", "run" };
+		foreach (string key in loopClipKeys)
+		{
+			if (_resolvedClips.TryGetValue(key, out string? clipName) && _animationPlayer.HasAnimation(clipName))
+			{
+				Animation? anim = _animationPlayer.GetAnimation(clipName);
+				if (anim != null && anim.LoopMode == Animation.LoopModeEnum.None)
+				{
+					anim.LoopMode = Animation.LoopModeEnum.Linear;
+				}
+			}
+		}
 	}
 
 	private void AttachWeaponModel()
@@ -322,8 +571,13 @@ public partial class ViewModelBase : Node3D
 
 	private void CreateMuzzleAnchor()
 	{
-		if (Data == null || _weaponModel == null) return;
-		Node3D parent = _weaponModel.FindChild(Data.MuzzleNodeName, true, false) as Node3D ?? _weaponModel;
+		if (Data == null) return;
+		Node3D parent = _weaponModel ?? (Node3D)this;
+		if (!string.IsNullOrEmpty(Data.MuzzleNodeName))
+		{
+			Node3D? socket = parent.FindChild(Data.MuzzleNodeName, true, false) as Node3D;
+			if (socket != null) parent = socket;
+		}
 		_muzzlePoint = new Node3D { Name = "MuzzleAnchor" };
 		parent.AddChild(_muzzlePoint);
 		_muzzleFire = new MuzzleFireEffect { Name = "MuzzleFireEffect" };
@@ -343,8 +597,8 @@ public partial class ViewModelBase : Node3D
 	private void ConfigureMuzzleAnchor()
 	{
 		if (Data == null || _muzzlePoint == null) return;
-		// A named socket is already at the authored muzzle; offsets preserve the old model-root path.
-		_muzzlePoint.Position = _muzzlePoint.GetParent() == _weaponModel ? Data.MuzzlePointOffset : Vector3.Zero;
+		bool isCustomSocket = !string.IsNullOrEmpty(Data.MuzzleNodeName) && _muzzlePoint.GetParent()?.Name == Data.MuzzleNodeName;
+		_muzzlePoint.Position = isCustomSocket ? Vector3.Zero : Data.MuzzlePointOffset;
 		_muzzlePoint.RotationDegrees = Data.MuzzleDirectionOffsetDegrees;
 		_muzzleFire?.Configure(Data, 1);
 		if (_muzzleGizmo != null) _muzzleGizmo.Visible = _showMuzzleGizmo;
@@ -485,21 +739,85 @@ public partial class ViewModelBase : Node3D
 	{
 		if (_animationPlayer == null) return false;
 		if (!_resolvedClips.TryGetValue(name, out string? clip)) { PlayIdleFallback(speed); return false; }
-		if (name is "idle" or "walk" or "run") { _activeMovementClip = clip; _activeMovementGeneric = name; }
 		float multiplier = Data?.SpeedMultiplier(name) ?? 1.0f;
-		_animationPlayer.Play(clip, 0.08, Mathf.Max(0.01f, speed * multiplier));
-		if (name == "idle" && Data != null && Data.IdlePoseTime >= 0 && clip.EndsWith("FN_Walk", StringComparison.Ordinal))
+
+		if (name is "idle" or "walk" or "run")
 		{
-			_animationPlayer.Seek(Data.IdlePoseTime, true);
-			_animationPlayer.Pause();
+			_queuedMovementGeneric = name;
+			// Never let walking/idling cancel an in-progress reload or draw
+			if (_currentAction is ViewModelAction.Reload or ViewModelAction.Draw) return true;
+			// If recently fired, let the recoil peak finish before switching locomotion
+			if (_currentAction == ViewModelAction.Fire && _fireActionTimer > 0.0f) return true;
+
+			_activeMovementClip = clip;
+			_activeMovementGeneric = name;
+			_currentAction = ViewModelAction.None;
+			_currentActionClip = string.Empty;
+
+			_animationPlayer.Play(clip, 0.12, Mathf.Max(0.01f, speed * multiplier));
+			if (name == "idle" && Data != null && Data.IdlePoseTime >= 0 && clip.EndsWith("FN_Walk", StringComparison.Ordinal))
+			{
+				_animationPlayer.Seek(Data.IdlePoseTime, true);
+				_animationPlayer.Pause();
+			}
+			return true;
 		}
+
+		if (name is "reload" or "reload_full")
+		{
+			_currentAction = ViewModelAction.Reload;
+			_currentActionClip = clip;
+			_animationPlayer.Play(clip, 0.08, Mathf.Max(0.01f, speed * multiplier));
+			return true;
+		}
+
+		if (name == "draw")
+		{
+			_currentAction = ViewModelAction.Draw;
+			_currentActionClip = clip;
+			_animationPlayer.Play(clip, 0.05, Mathf.Max(0.01f, speed * multiplier));
+			return true;
+		}
+
+		if (name == "fire")
+		{
+			string fireClip = clip;
+			if (_aimBlend > 0.5f && _resolvedClips.TryGetValue("fire_aim", out string? scopedClip))
+			{
+				fireClip = scopedClip;
+			}
+			_currentAction = ViewModelAction.Fire;
+			_currentActionClip = fireClip;
+			_fireActionTimer = 0.12f;
+			if (_animationPlayer.IsPlaying() && _animationPlayer.CurrentAnimation == fireClip)
+			{
+				_animationPlayer.Seek(0.0, true);
+			}
+			else
+			{
+				_animationPlayer.Play(fireClip, 0.02, Mathf.Max(0.01f, speed * multiplier));
+			}
+			AddRecoilKick();
+			return true;
+		}
+
+		_animationPlayer.Play(clip, 0.08, Mathf.Max(0.01f, speed * multiplier));
 		return true;
 	}
 
 	private void OnAnimationFinished(StringName animationName)
 	{
-		if (_animationPlayer == null || string.IsNullOrEmpty(_activeMovementClip) || animationName.ToString() == _activeMovementClip) return;
-		Play(_activeMovementGeneric);
+		string animStr = animationName.ToString();
+		if (_currentAction != ViewModelAction.None && animStr == _currentActionClip)
+		{
+			_currentAction = ViewModelAction.None;
+			_currentActionClip = string.Empty;
+			Play(_queuedMovementGeneric);
+			return;
+		}
+
+		if (_animationPlayer == null || string.IsNullOrEmpty(_activeMovementClip) || animStr == _activeMovementClip) return;
+		Play(_queuedMovementGeneric);
 	}
 
 	public float GetClipLength(string name) => _animationPlayer != null && _resolvedClips.TryGetValue(name, out string? clip) ? (float)_animationPlayer.GetAnimation(clip).Length : 0;
@@ -629,5 +947,17 @@ public partial class ViewModelBase : Node3D
 	{ foreach (string value in values) if (string.Equals(value, name.ToString(), StringComparison.OrdinalIgnoreCase)) return true; return false; }
 	private string FormatResolvedClips() { var items = new List<string>(); foreach (var pair in _resolvedClips) items.Add($"{pair.Key}={pair.Value}"); return string.Join(",", items); }
 	private static IEnumerable<Node> GetDescendants(Node root)
-	{ foreach (Node child in root.GetChildren()) { yield return child; foreach (Node descendant in GetDescendants(child)) yield return descendant; } }
+	{
+		var stack = new Stack<Node>();
+		foreach (Node child in root.GetChildren())
+			stack.Push(child);
+
+		while (stack.Count > 0)
+		{
+			Node current = stack.Pop();
+			yield return current;
+			foreach (Node child in current.GetChildren())
+				stack.Push(child);
+		}
+	}
 }

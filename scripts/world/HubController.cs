@@ -58,6 +58,7 @@ public partial class HubController : Node
 		Multiplayer.ConnectedToServer += OnConnectedToServer;
 		Multiplayer.ConnectionFailed += OnConnectionFailed;
 		Multiplayer.ServerDisconnected += OnServerDisconnected;
+		if (LanSessionNode != null) LanSessionNode.ConnectionFailed += OnLanSessionFailed;
 
 		// The very first time the hub opens in this run of the game the lobby starts on Team Deathmatch
 		// (the mode the two warehouses are for). Later visits keep whatever the host last picked.
@@ -93,6 +94,7 @@ public partial class HubController : Node
 		Multiplayer.ConnectedToServer -= OnConnectedToServer;
 		Multiplayer.ConnectionFailed -= OnConnectionFailed;
 		Multiplayer.ServerDisconnected -= OnServerDisconnected;
+		if (LanSessionNode != null) LanSessionNode.ConnectionFailed -= OnLanSessionFailed;
 		HubState.Active = false;
 	}
 
@@ -148,17 +150,17 @@ public partial class HubController : Node
 	}
 
 	/// <summary>Leave this room and join somebody else's hub.</summary>
-	public bool JoinSession(string address)
+	public bool JoinSession(string address, int port = LanSession.GamePort)
 	{
 		LanSession? session = LanSessionNode;
 		MatchManager? match = MatchManager.Instance;
 		if (session == null || match == null) return false;
 		_world.RemoveSoloHubPlayer();
 		match.PrepareClientMatch();
-		Error error = session.Join(address.Trim());
+		Error error = session.Join(address.Trim(), port);
 		if (error != Error.Ok)
 		{
-			StatusLine = $"Could not connect to {address} ({error}).";
+			StatusLine = $"Could not connect to {address}:{port} ({error}).";
 			CallDeferred(nameof(RestartHub));
 			return false;
 		}
@@ -217,6 +219,13 @@ public partial class HubController : Node
 	private void OnConnectionFailed()
 	{
 		StatusLine = "Could not reach that game.";
+		LanSessionNode?.Stop();
+		RestartHub();
+	}
+
+	private void OnLanSessionFailed(string reason)
+	{
+		StatusLine = reason;
 		LanSessionNode?.Stop();
 		RestartHub();
 	}

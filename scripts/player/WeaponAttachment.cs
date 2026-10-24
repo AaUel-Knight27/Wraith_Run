@@ -82,6 +82,9 @@ public partial class WeaponAttachment : Node3D
 	private Vector3 _gripUnitFix = Vector3.One;
 	private WeaponData? _weapon;
 	private Node3D? _grip;
+	private Node? _armature;
+	private Skeleton3D? _skeleton;
+	private BoneAttachment3D? _currentAttachment;
 	private readonly RandomNumberGenerator _rng = new();
 
 	/// <summary>World-space muzzle point, or null for melee / a weapon with no configured muzzle.
@@ -114,6 +117,8 @@ public partial class WeaponAttachment : Node3D
 	{
 		_rng.Randomize();
 		SetProcess(false);
+		_armature = GetParent();
+		_skeleton = (_armature as Skeleton3D) ?? FindSkeleton3D(_armature);
 		// The initial equip is WeaponSwitcher's job now - it knows the loadout and the replicated
 		// weapon index. Equipping the registry's "active" weapon here as well just built the model
 		// twice on every spawn.
@@ -122,14 +127,20 @@ public partial class WeaponAttachment : Node3D
 	/// <summary>Single attachment path used for the initial equip and for hot switching.</summary>
 	public void Equip(WeaponData? weapon)
 	{
-		var oldAttachment = GetParent().FindChild("WeaponBoneAttachment", true, false);
-		if (oldAttachment != null)
+		if (_currentAttachment != null && IsInstanceValid(_currentAttachment))
 		{
-			// Remove immediately before creating the replacement. QueueFree alone leaves a
-			// same-named BoneAttachment in the tree until frame end and can make a rapid switch
-			// resolve the outgoing attachment instead of the new hand attachment.
-			oldAttachment.GetParent()?.RemoveChild(oldAttachment);
-			oldAttachment.QueueFree();
+			_currentAttachment.GetParent()?.RemoveChild(_currentAttachment);
+			_currentAttachment.QueueFree();
+			_currentAttachment = null;
+		}
+		else
+		{
+			var oldAttachment = (_armature ?? GetParent()).FindChild("WeaponBoneAttachment", true, false);
+			if (oldAttachment != null)
+			{
+				oldAttachment.GetParent()?.RemoveChild(oldAttachment);
+				oldAttachment.QueueFree();
+			}
 		}
 		_fireAudio = null;
 		_reloadAudio = null;
@@ -147,7 +158,7 @@ public partial class WeaponAttachment : Node3D
 		// There is one shared character body mesh (no separate remote/local view-model split),
 		// skinned to the imported character skeleton. Search by type rather than by a hardcoded
 		// node name - a hardcoded name is exactly what broke weapon attachment twice already.
-		var skeleton = (GetParent() as Skeleton3D) ?? FindSkeleton3D(GetParent());
+		var skeleton = _skeleton ?? ((GetParent() as Skeleton3D) ?? FindSkeleton3D(GetParent()));
 		int handBoneIndex = skeleton == null ? -1 : FindBoneContaining(skeleton, HandBoneFragment.ToLowerInvariant());
 		if (skeleton == null || handBoneIndex < 0)
 		{
@@ -162,6 +173,7 @@ public partial class WeaponAttachment : Node3D
 			BoneName = skeleton.GetBoneName(handBoneIndex),
 		};
 		skeleton.AddChild(attachment);
+		_currentAttachment = attachment;
 
 		// Convert weapon offsets and scale into the skeleton's authored unit space. Derive it from the live skeleton rather than hardcoding a
 		// model scale, so this survives a re-export at a different unit scale.
@@ -305,22 +317,8 @@ public partial class WeaponAttachment : Node3D
 		float maxDistance, float volumeDb)
 	{
 		if (stream == null) return;
-		var player = new AudioStreamPlayer3D
-		{
-			Stream = stream,
-			UnitSize = unitSize,
-			MaxDistance = maxDistance,
-			VolumeDb = volumeDb,
-			PitchScale = _rng.RandfRange(0.9f, 1.1f),
-			Bus = "Weapons",
-		};
-		// One-shots are added to the current scene root: a node parented under the player would be
-		// dragged along by movement, and one parented under the weapon dies on the next switch.
-		Node host = GetTree().CurrentScene ?? (Node)this;
-		host.AddChild(player);
-		player.GlobalPosition = worldPosition;
-		player.Finished += player.QueueFree;
-		player.Play();
+		float pitch = _rng.RandfRange(0.9f, 1.1f);
+		AudioPool.PlayAt(stream, worldPosition, unitSize, maxDistance, volumeDb, "Weapons", pitch, this);
 	}
 
 	// -------------------------------------------------------------------------------------------

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://df8aa2341abcd"]
+
+[ext_resource type="Script" path="res://scripts/tests/TestCompareBonePositions.cs" id="1_cmp"]
+
+[node name="TestCompareBonePositions" type="Node"]
+script = ExtResource("1_cmp")

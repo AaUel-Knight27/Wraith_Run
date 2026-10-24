@@ -1,22 +1,28 @@
-[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3]
+[gd_resource type="Resource" script_class="ViewModelWeaponData" format=3 uid="uid://bpmoj66nxytkr"]
 
-[ext_resource type="Script" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
-[ext_resource type="PackedScene" path="res://art/animations/player/combat/Sniper/source/BoltActionRifle.fbx" id="2_rig"]
+[ext_resource type="Script" uid="uid://b0quhdwsg45qj" path="res://scripts/player/ViewModelWeaponData.cs" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://dq3hfb1f3b1" path="res://art/animations/player/combat/Sniper/source/BoltActionRifle.fbx" id="2_rig"]
 
 [resource]
 script = ExtResource("1_script")
 WeaponName = "Sniper"
 RigScene = ExtResource("2_rig")
-ViewPosition = Vector3(0.074, -0.392, -0.087)
-ViewRotationDegrees = Vector3(0, 180, 0)
-ViewScale = Vector3(1.581, 1.581, 1.581)
-ArmMeshNames = ["arms"]
-OriginalWeaponMeshNames = ["Rifle"]
+UseRigCameraTransform = true
+CameraBoneName = "Camera"
+ViewPosition = Vector3(0.065, -0.055, -0.02)
+ViewRotationDegrees = Vector3(0, 0, 0)
+ViewScale = Vector3(1, 1, 1)
+AimPositionOffset = Vector3(-0.082, 0.095, 0.02)
+AimTransitionSeconds = 0.14
+HasScope = true
+ArmMeshNames = Array[String](["arms"])
+OriginalWeaponMeshNames = Array[String](["Rifle"])
 HideOriginalWeapon = false
 HideOriginalMagazine = false
 ClipMap = Dictionary[String, String]({
 "draw": "Rig|SRifle_Idle",
 "fire": "Rig|SRifle_Shot_nosight",
+"fire_aim": "Rig|SRifle_Shot_sight",
 "idle": "Rig|SRifle_Idle",
 "reload": "Rig|SRifle_Reload",
 "reload_full": "Rig|SRifle_Reload_Full",
@@ -24,9 +30,9 @@ ClipMap = Dictionary[String, String]({
 "walk": "Rig|SRifle_Walk"
 })
 NormalizationReferenceRig = ExtResource("2_rig")
-NormalizationReferenceArmMeshNames = ["arms"]
+NormalizationReferenceArmMeshNames = Array[String](["arms"])
 CullMargin = 1.0
-MuzzlePointOffset = Vector3(0, 0, -0.65)
+MuzzlePointOffset = Vector3(0, 0.02, -1.2)
 MuzzleFlashEnabled = true
 MuzzleFlashScale = 1.2
 MuzzleFlashDuration = 0.06

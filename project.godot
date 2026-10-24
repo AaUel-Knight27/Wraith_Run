@@ -18,7 +18,6 @@ config/name="Wraith Run"
 run/main_scene="res://scenes/Splash.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
-run/max_fps=60
 config/icon="res://icon.png"
 
 [audio]
@@ -37,6 +36,8 @@ SoundManager="*res://scripts/autoloads/SoundManager.cs"
 Audio="*res://scripts/autoloads/Audio.cs"
 LoadingScreen="*res://scripts/autoloads/LoadingScreen.cs"
 UiSounds="*res://scripts/ui/UiSounds.cs"
+AudioPool="*res://scripts/player/AudioPool.cs"
+VFXPool="*res://scripts/player/VFXPool.cs"
 
 [display]
 
@@ -151,13 +152,10 @@ look_stick_down={
 "events": []
 }
 
-[input_devices]
-
-pointing/emulate_mouse_from_touch=false
-
 [physics]
 
 3d/physics_engine="Jolt Physics"
+common/physics_interpolation=true
 
 [rendering]
 

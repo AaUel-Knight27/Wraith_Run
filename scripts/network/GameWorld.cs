@@ -367,8 +367,13 @@ public partial class GameWorld : Node3D
     {
         _pendingPeerSpawns.Remove(peerId);
         _spawnedPeers.Remove((int)peerId);
-        var player = GetNodeOrNull<Node>($"Players/Player_{peerId}");
-        player?.QueueFree();
+        var player = GetNodeOrNull<Node>($"../Players/Player_{peerId}") ?? GetNodeOrNull<Node>($"Players/Player_{peerId}");
+        if (player != null && IsInstanceValid(player))
+        {
+            player.Name = $"Player_{peerId}_leaving";
+            player.GetParent()?.RemoveChild(player);
+            player.QueueFree();
+        }
     }
 
     /// <summary>
@@ -490,6 +495,14 @@ public partial class GameWorld : Node3D
         if (d.ContainsKey("id")) return SpawnBot(d);
 
         int peerId = (int)d["peer"].AsInt64();
+        var existing = GetNodeOrNull<Node>($"../Players/Player_{peerId}") ?? GetNodeOrNull<Node>($"Players/Player_{peerId}");
+        if (existing != null && IsInstanceValid(existing))
+        {
+            existing.Name = $"Player_{peerId}_stale";
+            existing.GetParent()?.RemoveChild(existing);
+            existing.QueueFree();
+        }
+
         var player = PlayerScene.Instantiate<CharacterBody3D>();
         player.Name = $"Player_{peerId}";
         player.SetMultiplayerAuthority(peerId);

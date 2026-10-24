@@ -21,7 +21,7 @@ public partial class LanMenu : Control
 
 	private const string DefaultGameName = "Wraith Run LAN";
 
-	private readonly Dictionary<string, (string Name, string Host, int Players, string Map, string Mode, ulong Seen)> _games = new();
+	private readonly Dictionary<string, (string Name, string Host, int Port, int Players, string Map, string Mode, ulong Seen)> _games = new();
 	private PacketPeerUdp? _listener;
 	private Timer _refreshTimer = null!;
 	private Control _contentRoot = null!;
@@ -65,6 +65,8 @@ public partial class LanMenu : Control
 		AddChild(_contentRoot);
 		StartMenuMusic();
 		MatchManager.Instance.MatchStarting += OnMatchStarting;
+		var session = GetNodeOrNull<LanSession>("/root/LanSession");
+		if (session != null) session.ConnectionFailed += OnLanConnectionFailed;
 		// A brand-new install starts by choosing a name and avatar; every launch after that goes
 		// straight to the main menu.
 		if (PlayerAccount.SetupDone) ShowMain();
@@ -904,13 +906,14 @@ public partial class LanMenu : Control
 			string host = string.IsNullOrWhiteSpace(sourceHost) ? advertisedHost : sourceHost;
 			string sessionId = packet.GetValueOrDefault("session", host).AsString();
 			string name = packet.GetValueOrDefault("name", DefaultGameName).AsString();
+			int port = (int)packet.GetValueOrDefault("port", LanSession.GamePort).AsInt64();
 			int players = (int)packet.GetValueOrDefault("players", 1).AsInt64();
 			string mapName = packet.GetValueOrDefault("map", "Map not reported").AsString();
 			string modeName = packet.GetValueOrDefault("mode", "Mode not reported").AsString();
 			if (!string.IsNullOrEmpty(host))
 			{
-				var advertised = (name, host, players, mapName, modeName, Time.GetTicksMsec());
-				if (!_games.TryGetValue(sessionId, out var prior) || prior.Name != name || prior.Host != host || prior.Players != players ||
+				var advertised = (name, host, port, players, mapName, modeName, Time.GetTicksMsec());
+				if (!_games.TryGetValue(sessionId, out var prior) || prior.Name != name || prior.Host != host || prior.Port != port || prior.Players != players ||
 					prior.Map != mapName || prior.Mode != modeName)
 					changed = true;
 				_games[sessionId] = advertised;
@@ -928,22 +931,24 @@ public partial class LanMenu : Control
 		foreach (var game in _games.Values)
 		{
 			string host = game.Host;
-			string detail = $"{game.Map}  ·  {game.Mode}  ·  {host}  ·  {game.Players} player{(game.Players == 1 ? "" : "s")}";
-			_gamesList!.AddChild(MenuStyle.Row(game.Name, detail, () => JoinGame(host), UiSounds.Sound.Start));
+			int port = game.Port;
+			string portSuffix = port != LanSession.GamePort ? $":{port}" : "";
+			string detail = $"{game.Map}  ·  {game.Mode}  ·  {host}{portSuffix}  ·  {game.Players} player{(game.Players == 1 ? "" : "s")}";
+			_gamesList!.AddChild(MenuStyle.Row(game.Name, detail, () => JoinGame(host, port), UiSounds.Sound.Start));
 		}
 		if (IsUsable(_status))
 			_status!.Text = _games.Count == 0 ? "Listening for games…" : "Select a game to join.";
 	}
 
-	private void JoinGame(string host)
+	private void JoinGame(string host, int port = LanSession.GamePort)
 	{
 		if (_leavingMenu) return;
 		MatchManager.Instance.PrepareClientMatch();
-		Error result = GetNode<LanSession>("/root/LanSession").Join(host);
+		Error result = GetNode<LanSession>("/root/LanSession").Join(host, port);
 		if (result != Error.Ok)
 		{
 			UiSounds.Play(UiSounds.Sound.Error);
-			if (IsUsable(_status)) _status!.Text = $"Could not connect to {host}: {result}";
+			if (IsUsable(_status)) _status!.Text = $"Could not connect to {host}:{port}: {result}";
 			return;
 		}
 		ShowReadyLobby(isHost: false);
@@ -1132,5 +1137,17 @@ public partial class LanMenu : Control
 		// external scene change without ever attempting a second cleanup.
 		RunTerminalCleanup();
 		if (MatchManager.Instance != null) MatchManager.Instance.MatchStarting -= OnMatchStarting;
+		var session = GetNodeOrNull<LanSession>("/root/LanSession");
+		if (session != null) session.ConnectionFailed -= OnLanConnectionFailed;
+	}
+
+	private void OnLanConnectionFailed(string reason)
+	{
+		UiSounds.Play(UiSounds.Sound.Error);
+		if (!_lobbyIsHost && IsUsable(_lobbyAction))
+		{
+			CancelReadyLobby();
+		}
+		if (IsUsable(_status)) _status!.Text = reason;
 	}
 }

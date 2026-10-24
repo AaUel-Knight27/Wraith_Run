@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://render_sniper_compare_uid"]
+
+[ext_resource type="Script" path="res://scripts/tests/RenderSniperComparison.cs" id="1_test"]
+
+[node name="RenderSniperComparison" type="Node"]
+script = ExtResource("1_test")

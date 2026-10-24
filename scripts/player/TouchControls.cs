@@ -42,22 +42,40 @@ public partial class TouchControls : CanvasLayer
         if (!PlayerIdentity.IsLocalHuman(_player))
         {
             SetProcess(false);
+            Visible = false;
             return;
         }
 
         _movement = (PlayerMovement)_player;
-        if (!SettingsManager.Instance.ShouldShowTouchControls())
-        {
-            SetProcess(false);
-            return;
-        }
-
-        Build();
+        UpdateTouchVisibility();
         _lastVehicleMode = _movement.IsInVehicle;
+    }
+
+    public void UpdateTouchVisibility()
+    {
+        bool show = SettingsManager.Instance?.ShouldShowTouchControls() ?? false;
+        Visible = show;
+        SetProcess(show);
+        if (show)
+        {
+            Build();
+        }
+        else
+        {
+            ReleaseAllHeld();
+            if (_root != null && IsInstanceValid(_root))
+            {
+                _root.QueueFree();
+                _root = null!;
+            }
+        }
     }
 
     public override void _Process(double delta)
     {
+        SettingsManager? settings = SettingsManager.Instance;
+        if (settings == null) return;
+
         if (_movement.IsInVehicle != _lastVehicleMode)
         {
             _lastVehicleMode = _movement.IsInVehicle;
@@ -65,7 +83,6 @@ public partial class TouchControls : CanvasLayer
             Build();
         }
         UpdateCarButton();
-        SettingsManager settings = SettingsManager.Instance;
         if (settings.Gyroscope == SettingsManager.GyroMode.Off) return;
         if (settings.Gyroscope == SettingsManager.GyroMode.AdsOnly && !_movement.IsAiming) return;
 
@@ -80,7 +97,8 @@ public partial class TouchControls : CanvasLayer
     private void Build()
     {
         if (_root != null && IsInstanceValid(_root)) _root.QueueFree();
-        SettingsManager settings = SettingsManager.Instance;
+        SettingsManager? settings = SettingsManager.Instance;
+        if (settings == null) return;
         float scale = settings.ButtonScale;
         if (_movement.IsInVehicle)
         {
@@ -106,9 +124,11 @@ public partial class TouchControls : CanvasLayer
 
     private void BuildVehicleControls(float scale)
     {
+        SettingsManager? settings = SettingsManager.Instance;
+        if (settings == null) return;
         _root = new Control { MouseFilter = Control.MouseFilterEnum.Ignore };
         MenuStyle.Fill(_root);
-        _root.Modulate = new Color(1f, 1f, 1f, Mathf.Clamp(SettingsManager.Instance.ButtonOpacity, 0.1f, 1.0f));
+        _root.Modulate = new Color(1f, 1f, 1f, Mathf.Clamp(settings.ButtonOpacity, 0.1f, 1.0f));
         AddChild(_root);
         float size = 82f * scale;
         bool driver = _movement.IsVehicleDriver;
@@ -126,12 +146,12 @@ public partial class TouchControls : CanvasLayer
         else
         {
             var fire = VehicleButton("FIRE", size * 1.15f);
-            PlaceCorner(fire, !SettingsManager.Instance.LeftHandedLayout, true, size * 1.15f, size * 1.15f, EdgeMargin, EdgeMargin);
-            WireHoldOrTap(fire, "fire", () => SettingsManager.Instance.HoldToFire);
+            PlaceCorner(fire, !settings.LeftHandedLayout, true, size * 1.15f, size * 1.15f, EdgeMargin, EdgeMargin);
+            WireHoldOrTap(fire, "fire", () => settings.HoldToFire);
             var aim = VehicleButton("AIM", size);
-            PlaceCorner(aim, !SettingsManager.Instance.LeftHandedLayout, true, size, size, EdgeMargin + size * 1.3f, EdgeMargin);
-            aim.ButtonDown += () => OnAdsDown(SettingsManager.Instance);
-            aim.ButtonUp += () => { if (SettingsManager.Instance.HoldToAds) Input.ActionRelease("aim"); };
+            PlaceCorner(aim, !settings.LeftHandedLayout, true, size, size, EdgeMargin + size * 1.3f, EdgeMargin);
+            aim.ButtonDown += () => OnAdsDown(settings);
+            aim.ButtonUp += () => { if (settings.HoldToAds) Input.ActionRelease("aim"); };
         }
         var exit = VehicleButton("EXIT", size * 0.72f);
         MenuStyle.Place(exit, 0f, 0f, 0f, 0f, 22f, 100f + size, 22f + size * 0.72f, 100f + size * 1.72f);
@@ -141,7 +161,8 @@ public partial class TouchControls : CanvasLayer
     private void VehicleHold(string label, string action, float anchorX, float anchorY,
         float left, float top, float right, float bottom)
     {
-        var button = VehicleButton(label, 82f * SettingsManager.Instance.ButtonScale);
+        float btnScale = SettingsManager.Instance?.ButtonScale ?? 1.0f;
+        var button = VehicleButton(label, 82f * btnScale);
         MenuStyle.Place(button, anchorX, anchorY, anchorX, anchorY, left, top, right, bottom);
         button.ButtonDown += () => Input.ActionPress(action);
         button.ButtonUp += () => Input.ActionRelease(action);
@@ -238,20 +259,20 @@ public partial class TouchControls : CanvasLayer
     /// <summary>Fire, ADS, Jump, Crouch and Reload - the buttons the firing thumb owns.</summary>
     private void BuildFireCluster(bool right, float scale)
     {
-        SettingsManager settings = SettingsManager.Instance;
+        SettingsManager? settings = SettingsManager.Instance;
         float fireSize = 108f * scale;
         float adsSize = 86f * scale;
         float smallSize = 72f * scale;
 
         var fire = NewButton("FIRE", "crosshair", fireSize);
         PlaceCorner(fire, right, bottom: true, fireSize, fireSize, EdgeMargin, EdgeMargin);
-        WireHoldOrTap(fire, "fire", () => settings.HoldToFire);
+        WireHoldOrTap(fire, "fire", () => settings?.HoldToFire ?? true);
 
         var ads = NewButton("ADS", null, adsSize);
         PlaceCorner(ads, right, bottom: true, adsSize, adsSize,
             EdgeMargin + fireSize + ClusterGap, EdgeMargin + (fireSize - adsSize) * 0.5f);
         ads.ButtonDown += () => OnAdsDown(settings);
-        ads.ButtonUp += () => { if (settings.HoldToAds) Input.ActionRelease("aim"); };
+        ads.ButtonUp += () => { if (settings?.HoldToAds ?? true) Input.ActionRelease("aim"); };
 
         float row2Y = EdgeMargin + fireSize + ClusterGap;
         var jump = NewButton("JUMP", null, smallSize);
@@ -302,9 +323,9 @@ public partial class TouchControls : CanvasLayer
 
     // ---- action wiring -------------------------------------------------------------------------
 
-    private void OnAdsDown(SettingsManager settings)
+    private void OnAdsDown(SettingsManager? settings)
     {
-        if (settings.HoldToAds) { Input.ActionPress("aim"); return; }
+        if (settings?.HoldToAds ?? true) { Input.ActionPress("aim"); return; }
         _adsOn = !_adsOn;
         if (_adsOn) Input.ActionPress("aim"); else Input.ActionRelease("aim");
     }
@@ -370,15 +391,26 @@ public partial class TouchControls : CanvasLayer
         return button;
     }
 
-    /// <summary>Anchors a control to one screen corner and sizes it, in one call. `right`/`bottom`
-    /// pick the corner; margins are measured inward from that corner's two edges.</summary>
+    /// <summary>Anchors a control to one screen corner and sizes it, taking safe-area into account.</summary>
     private static void PlaceCorner(Control c, bool right, bool bottom, float w, float h,
         float marginX, float marginY)
     {
+        Rect2I safe = DisplayServer.GetDisplaySafeArea();
+        Vector2I winSize = DisplayServer.WindowGetSize();
+        float insetX = 0f;
+        float insetY = 0f;
+        if (winSize.X > 0 && winSize.Y > 0)
+        {
+            insetX = right ? (winSize.X - safe.End.X) : safe.Position.X;
+            insetY = bottom ? (winSize.Y - safe.End.Y) : safe.Position.Y;
+            insetX = Mathf.Max(0f, insetX);
+            insetY = Mathf.Max(0f, insetY);
+        }
+
         float anchorX = right ? 1f : 0f;
         float anchorY = bottom ? 1f : 0f;
-        float left = right ? -(marginX + w) : marginX;
-        float top = bottom ? -(marginY + h) : marginY;
+        float left = right ? -(marginX + insetX + w) : (marginX + insetX);
+        float top = bottom ? -(marginY + insetY + h) : (marginY + insetY);
         MenuStyle.Place(c, anchorX, anchorY, anchorX, anchorY, left, top, left + w, top + h);
     }
 }

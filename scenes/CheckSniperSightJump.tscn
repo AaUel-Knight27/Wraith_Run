@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://df8aa2341abce"]
+
+[ext_resource type="Script" path="res://scripts/tests/CheckSniperSightJump.cs" id="1_chk"]
+
+[node name="CheckSniperSightJump" type="Node"]
+script = ExtResource("1_chk")

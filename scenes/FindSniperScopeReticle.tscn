@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://df8aa2341abcf"]
+
+[ext_resource type="Script" path="res://scripts/tests/FindSniperScopeReticle.cs" id="1_ret"]
+
+[node name="FindSniperScopeReticle" type="Node"]
+script = ExtResource("1_ret")

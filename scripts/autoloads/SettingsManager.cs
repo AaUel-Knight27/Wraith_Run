@@ -450,35 +450,6 @@ public partial class SettingsManager : Node
     /// already there so a second call (should one ever happen) can't double up bindings.</summary>
     private static void EnsureControllerBindings()
     {
-        BindAxis("move_left", JoyAxis.LeftX, -1.0f);
-        BindAxis("move_right", JoyAxis.LeftX, 1.0f);
-        BindAxis("move_forward", JoyAxis.LeftY, -1.0f);
-        BindAxis("move_back", JoyAxis.LeftY, 1.0f);
-        BindAxis("look_stick_left", JoyAxis.RightX, -1.0f);
-        BindAxis("look_stick_right", JoyAxis.RightX, 1.0f);
-        BindAxis("look_stick_up", JoyAxis.RightY, -1.0f);
-        BindAxis("look_stick_down", JoyAxis.RightY, 1.0f);
-        BindAxis("fire", JoyAxis.TriggerRight, 1.0f);
-        BindAxis("aim", JoyAxis.TriggerLeft, 1.0f);
-        BindButton("jump", JoyButton.A);
-        BindButton("crouch", JoyButton.B);
-        BindButton("reload", JoyButton.X);
-        BindButton("sprint", JoyButton.LeftStick);
-        BindButton("weapon_cycle_next", JoyButton.RightShoulder);
-        BindButton("weapon_cycle_prev", JoyButton.LeftShoulder);
-    }
-
-    private static void BindButton(string action, JoyButton button)
-    {
-        if (!InputMap.HasAction(action)) return;
-        var evt = new InputEventJoypadButton { ButtonIndex = button };
-        if (!InputMap.ActionHasEvent(action, evt)) InputMap.ActionAddEvent(action, evt);
-    }
-
-    private static void BindAxis(string action, JoyAxis axis, float axisValue)
-    {
-        if (!InputMap.HasAction(action)) return;
-        var evt = new InputEventJoypadMotion { Axis = axis, AxisValue = axisValue };
-        if (!InputMap.ActionHasEvent(action, evt)) InputMap.ActionAddEvent(action, evt);
+        GamepadBindings.ApplyDefaultGamepadBindings();
     }
 }

@@ -211,6 +211,8 @@ public partial class MatchManager : Node
     public float TimeRemainingSeconds =>
         HasTimeLimit ? Mathf.Max(0.0f, TimeLimitMinutes * 60.0f - _elapsedSeconds) : -1.0f;
 
+    private Timer? _matchClockTimer;
+
     public override void _Ready()
     {
         Instance = this;
@@ -219,6 +221,16 @@ public partial class MatchManager : Node
         Multiplayer.ConnectedToServer += OnConnectedToServer;
         KillFeed? killFeed = GetNodeOrNull<KillFeed>("/root/KillFeed");
         if (killFeed != null) killFeed.KillAnnounced += OnKillAnnounced;
+
+        _matchClockTimer = new Timer
+        {
+            Name = "MatchClockTimer",
+            WaitTime = 1.0f,
+            Autostart = true,
+            OneShot = false,
+        };
+        _matchClockTimer.Timeout += OnMatchClockTick;
+        AddChild(_matchClockTimer);
     }
 
     public override void _ExitTree()
@@ -226,12 +238,16 @@ public partial class MatchManager : Node
         Multiplayer.PeerConnected -= OnPeerConnected;
         Multiplayer.PeerDisconnected -= OnPeerDisconnected;
         Multiplayer.ConnectedToServer -= OnConnectedToServer;
+        if (_matchClockTimer != null)
+        {
+            _matchClockTimer.Timeout -= OnMatchClockTick;
+        }
     }
 
-    public override void _Process(double delta)
+    private void OnMatchClockTick()
     {
         if (!_sessionActive || _matchEnded) return;
-        _elapsedSeconds += (float)delta;
+        _elapsedSeconds += 1.0f;
         // The time limit is the only thing that ends a match: whoever is ahead when the clock runs out wins.
         if (!HasTimeLimit) return;
         if (_elapsedSeconds < TimeLimitMinutes * 60.0f) return;
@@ -240,6 +256,11 @@ public partial class MatchManager : Node
             ? (_teamScores[0] == _teamScores[1] ? -1 : (_teamScores[0] > _teamScores[1] ? 0 : 1))
             : FindFfaWinner();
         EndMatch(winner, "time");
+    }
+
+    public override void _Process(double delta)
+    {
+        // Clock tick handled via MatchClockTimer node to prevent frame-rate drift
     }
 
     // -------------------------------------------------------------------------------------------
@@ -606,6 +627,7 @@ public partial class MatchManager : Node
     {
         if (_matchEnded) return;
         _matchEnded = true;
+        _sessionActive = false;
         WinningTeam = winningTeam;
         EmitSignal(SignalName.MatchEnded, winningTeam, reason);
     }

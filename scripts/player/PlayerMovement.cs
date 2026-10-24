@@ -36,7 +36,7 @@ public partial class PlayerMovement : CharacterBody3D
     private const float HeadBobTransitionSeconds = 0.15f;
     private const float HeadBobFrequencyWalk = 2.1f;
     private const float HeadBobFrequencySprint = 2.8f;
-    private const float HeadBobAmplitudeWalk = 0.045f;
+    private const float HeadBobAmplitudeWalk = 0.020f;
     private const float HeadBobAmplitudeSprint = 0.028f;
     private const float CameraShakeDecayPerSecond = 6.0f;
     private const float LandingShakeStrength = 0.08f;
@@ -85,6 +85,7 @@ public partial class PlayerMovement : CharacterBody3D
     private Node3D _head = null!;
     private Camera3D _camera = null!;
     private ViewModelManager? _viewModelManager;
+    private WeaponSwitcher? _weaponSwitcher;
     private Health? _health;
     private CapsuleShape3D _capsule = null!;
     private Vector3 _slideVelocity;
@@ -131,6 +132,7 @@ public partial class PlayerMovement : CharacterBody3D
         _head = GetNode<Node3D>("Head");
         _camera = GetNode<Camera3D>("Head/CameraShake/FirstPersonCamera");
         _viewModelManager = GetNodeOrNull<ViewModelManager>("Head/CameraShake/ViewModelManager");
+        _weaponSwitcher = GetNodeOrNull<WeaponSwitcher>("WeaponSwitcher");
         _health = GetNodeOrNull<Health>("Health");
         _capsule = (CapsuleShape3D)_collisionShape.Shape;
         _headBaseHeight = _head.Position.Y;
@@ -185,6 +187,14 @@ public partial class PlayerMovement : CharacterBody3D
         RotateY(yawLeftRadians);
         _pitch = Mathf.Clamp(_pitch + pitchUpRadians,
             Mathf.DegToRad(-CameraPitchLimitDegrees), Mathf.DegToRad(CameraPitchLimitDegrees));
+    }
+
+    public bool CanCurrentWeaponAim()
+    {
+        if (_viewModelManager != null)
+            return _viewModelManager.CanAimCurrentWeapon();
+        return _weaponSwitcher?.CurrentWeaponData?.WeaponName == "Sniper"
+            || _weaponSwitcher?.CurrentWeaponData?.WeaponClass == "Sniper Rifle";
     }
 
     private bool CrouchJustPressed() => Bot == null && ActionTapped("crouch");
@@ -245,6 +255,9 @@ public partial class PlayerMovement : CharacterBody3D
             RotateY(-yawDelta);
         _pitch = Mathf.Clamp(_pitch - pitchDelta,
             Mathf.DegToRad(-CameraPitchLimitDegrees), Mathf.DegToRad(CameraPitchLimitDegrees));
+
+        CommitHeadAim();
+        _viewModelManager?.AddLookInput(yawDelta, pitchDelta);
     }
 
     /// <summary>Called once per frame by TouchControls while gyroscope look is enabled. Public and
@@ -279,7 +292,7 @@ public partial class PlayerMovement : CharacterBody3D
             GlobalRotation = new Vector3(0, CurrentVehicle.GlobalRotation.Y, 0);
             Velocity = Vector3.Zero;
             State = MovementState.Crouch;
-            IsAiming = AimHeld();
+            IsAiming = AimHeld() && CanCurrentWeaponAim();
             UpdateHeadAim((float)deltaValue);
             ReplicatedMovementState = State.ToString();
             ReplicatedAimState = IsAiming;
@@ -305,6 +318,7 @@ public partial class PlayerMovement : CharacterBody3D
             {
                 _landingCooldown = LandingCooldownSeconds;
                 _shakeOffset = new Vector3(0.0f, LandingShakeStrength, 0.0f);
+                _viewModelManager?.AddLandingImpulse(LandingShakeStrength);
             }
 
         UpdateVerticalVelocity(delta, grounded);
@@ -320,7 +334,7 @@ public partial class PlayerMovement : CharacterBody3D
         UpdateHeadBob(delta);
         // Sprinting and sliding cancel ADS; every other state - including crouch and airborne -
         // allows it, which is the whole point of pulling this out of the state machine.
-        IsAiming = AimHeld()
+        IsAiming = AimHeld() && CanCurrentWeaponAim()
             && State is not MovementState.Sprint and not MovementState.Slide;
         UpdateFov(delta);
         if (Bot == null) ApplyControllerLook(delta);
@@ -329,6 +343,7 @@ public partial class PlayerMovement : CharacterBody3D
             + _shakeOffset;
         MoveAndSlide();
         _wasGrounded = _jumpGroundIgnore <= 0.0f && (IsOnFloor() || _groundProbe.IsColliding());
+        _viewModelManager?.UpdatePhysicsState(Velocity, _wasGrounded);
         ReplicatedMovementState = State.ToString();
         ReplicatedAimState = IsAiming;
         _viewModelManager?.UpdateMovement(State);
@@ -410,8 +425,11 @@ public partial class PlayerMovement : CharacterBody3D
         if (Mathf.Abs(_recoilPitchDegrees) < 0.001f) _recoilPitchDegrees = 0.0f;
         if (Mathf.Abs(_recoilYawDegrees) < 0.001f) _recoilYawDegrees = 0.0f;
 
-        // Clamped again after the kick is added: without this a long burst could throw the camera
-        // past vertical and flip the view.
+        CommitHeadAim();
+    }
+
+    private void CommitHeadAim()
+    {
         float limit = Mathf.DegToRad(CameraPitchLimitDegrees);
         float pitch = Mathf.Clamp(_pitch + Mathf.DegToRad(_recoilPitchDegrees), -limit, limit);
         _head.Rotation = new Vector3(pitch, _vehicleAimYaw + Mathf.DegToRad(_recoilYawDegrees), 0.0f);
@@ -432,7 +450,7 @@ public partial class PlayerMovement : CharacterBody3D
 
     private void UpdateHeadBob(float delta)
     {
-        bool moving = State is MovementState.Walk or MovementState.Sprint;
+        bool moving = (State is MovementState.Walk or MovementState.Sprint) && !IsAiming;
         float targetAmplitude = moving
             ? (State == MovementState.Sprint ? HeadBobAmplitudeSprint : HeadBobAmplitudeWalk)
             : 0.0f;
@@ -517,7 +535,7 @@ public partial class PlayerMovement : CharacterBody3D
             ? (hasMovement ? MovementState.CrouchWalk : MovementState.Crouch)
             : sprinting && hasMovement ? MovementState.Sprint
             : hasMovement ? MovementState.Walk
-            : AimHeld() ? MovementState.Aim
+            : (AimHeld() && CanCurrentWeaponAim()) ? MovementState.Aim
             : MovementState.Idle);
     }
 
