@@ -33,45 +33,32 @@ public partial class MatchManager : Node
 
     public enum ArenaMap { Prison = 0, Ashfields = 1, Depot = 2, Lab = 3, Warehouse = 4, DefaultMap = 5 }
 
-    // The warehouse is the player's own home (the hub), not a place to play a match, so it is not on this list.
-    // The enum value stays: the hub's collision and spawn code and saved lobby configs still use it.
     public static readonly ArenaMap[] SelectableMaps =
     {
-        ArenaMap.Prison, ArenaMap.Ashfields, ArenaMap.Depot, ArenaMap.Lab
+        ArenaMap.Ashfields, ArenaMap.Warehouse
     };
 
-    public ArenaMap SelectedMap = ArenaMap.Prison;
+    public ArenaMap SelectedMap = ArenaMap.Ashfields;
     public string MapScenePath => SelectedMap switch
     {
-        ArenaMap.Prison => "res://scenes/maps/Prison.tscn",
         ArenaMap.Ashfields => "res://scenes/maps/Ashfields.tscn",
-        ArenaMap.Depot => "res://scenes/maps/Depot.tscn",
-        ArenaMap.Lab => "res://scenes/maps/Lab.tscn",
         ArenaMap.Warehouse => "res://scenes/maps/DefaultWarehouse.tscn",
-        // The old Outer Perimeter scene referenced a missing GLB. Keep the enum value readable
-        // for saved lobby configs, but route it to the supported warehouse until that asset exists.
         ArenaMap.DefaultMap => "res://scenes/maps/DefaultWarehouse.tscn",
-        _ => "res://scenes/maps/Prison.tscn",
+        _ => "res://scenes/maps/Ashfields.tscn",
     };
     public string MapDisplayName => SelectedMap switch
     {
-        ArenaMap.Prison => "Prison",
         ArenaMap.Ashfields => "Ashfields",
-        ArenaMap.Depot => "Depot",
-        ArenaMap.Lab => "Lab",
         ArenaMap.Warehouse => "Warehouse",
         ArenaMap.DefaultMap => "Warehouse",
-        _ => "Prison",
+        _ => "Ashfields",
     };
     public static string MapName(ArenaMap map) => map switch
     {
-        ArenaMap.Prison => "Prison",
         ArenaMap.Ashfields => "Ashfields",
-        ArenaMap.Depot => "Depot",
-        ArenaMap.Lab => "Lab",
         ArenaMap.Warehouse => "Warehouse",
         ArenaMap.DefaultMap => "Warehouse",
-        _ => "Prison",
+        _ => "Ashfields",
     };
 
     public static readonly Mode[] SelectableModes =
@@ -533,7 +520,8 @@ public partial class MatchManager : Node
         FriendlyFire = friendlyFire;
         TeamIndicators = teamIndicators;
         TimeLimitMinutes = Math.Clamp(timeLimitMinutes, 1, 240);
-        SelectedMap = System.Enum.IsDefined(typeof(ArenaMap), arenaMap) ? (ArenaMap)arenaMap : ArenaMap.Prison;
+        SelectedMap = System.Enum.IsDefined(typeof(ArenaMap), arenaMap) ? (ArenaMap)arenaMap : ArenaMap.Ashfields;
+        if (SelectedMap is ArenaMap.Prison or ArenaMap.Depot or ArenaMap.Lab) SelectedMap = ArenaMap.Ashfields;
         LobbyPlayerCount = Math.Clamp(lobbyPlayerCount, ModeRules.MinimumPlayers, ModeRules.MaximumPlayers);
         _elapsedSeconds = Mathf.Clamp(hostElapsedSeconds, 0.0f, 86400.0f);
         HostConfigReceived = true;

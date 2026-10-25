@@ -223,7 +223,23 @@ public partial class ViewModelBase : Node3D
 
 		float duration = Mathf.Max(Data.AimTransitionSeconds, 0.001f);
 		float weight = 1.0f - Mathf.Exp(-dt / duration);
+		float prevAimBlend = _aimBlend;
 		_aimBlend = Mathf.Lerp(_aimBlend, effectiveAiming ? 1.0f : 0.0f, weight);
+
+		// Transition to/from dedicated aim_idle when aim blend crosses threshold and no priority action is running
+		if (_resolvedClips.TryGetValue("aim_idle", out string? aimIdleClip))
+		{
+			if (_aimBlend >= 0.5f && _currentAction == ViewModelAction.None && _activeMovementClip != aimIdleClip)
+			{
+				_activeMovementClip = aimIdleClip;
+				_animationPlayer?.Play(aimIdleClip, 0.0, 0.0f);
+				_animationPlayer?.Seek(0.0, true);
+			}
+			else if (_aimBlend < 0.5f && _currentAction == ViewModelAction.None && _activeMovementClip == aimIdleClip)
+			{
+				Play(_queuedMovementGeneric);
+			}
+		}
 
 		if (_fireActionTimer > 0.0f) _fireActionTimer -= dt;
 
@@ -273,29 +289,30 @@ public partial class ViewModelBase : Node3D
 
 	public void UpdateProceduralMotion(float delta, Vector2 lookDelta, Vector3 localVelocity, bool isAiming)
 	{
-		float adsFactor = Mathf.Lerp(1.0f, 0.04f, _aimBlend);
+		// Cut sway completely during ADS so the sight picture remains rock-steady on target
+		float adsFactor = Mathf.Clamp(1.0f - _aimBlend * 1.5f, 0.0f, 1.0f);
 
-		// Smooth mouse look delta to eliminate step spikes from discrete per-frame mouse events
-		_smoothLookDelta = _smoothLookDelta.Lerp(lookDelta, 1.0f - Mathf.Exp(-delta * 22.0f));
+		// Smooth mouse look delta with faster tracking to eliminate floaty input lag
+		_smoothLookDelta = _smoothLookDelta.Lerp(lookDelta, 1.0f - Mathf.Exp(-delta * 30.0f));
 
-		// Mouse look sway: subtle realistic lag behind camera turn and slight bank into roll
-		float targetPitch = Mathf.Clamp(-_smoothLookDelta.Y * 0.8f, -1.0f, 1.0f) * adsFactor;
-		float targetYaw = Mathf.Clamp(-_smoothLookDelta.X * 1.0f, -1.2f, 1.2f) * adsFactor;
-		float targetRoll = Mathf.Clamp(_smoothLookDelta.X * 1.2f, -1.4f, 1.4f) * adsFactor;
+		// Subtle, realistic mouse sway (tight clamps, minimal roll tilt, no wild banking)
+		float targetPitch = Mathf.Clamp(-_smoothLookDelta.Y * 0.35f, -0.4f, 0.4f) * adsFactor;
+		float targetYaw = Mathf.Clamp(-_smoothLookDelta.X * 0.40f, -0.5f, 0.5f) * adsFactor;
+		float targetRoll = Mathf.Clamp(_smoothLookDelta.X * 0.15f, -0.2f, 0.2f) * adsFactor;
 
 		_swayRotSpring.Target = new Vector3(targetPitch, targetYaw, targetRoll);
 
-		// Movement inertia sway: strafing subtly shifts weapon
-		float targetPosX = Mathf.Clamp(-localVelocity.X * 0.0008f, -0.006f, 0.006f) * adsFactor;
-		float targetPosY = Mathf.Clamp(localVelocity.Y * 0.0006f, -0.005f, 0.005f) * adsFactor;
-		float targetPosZ = Mathf.Clamp(localVelocity.Z * 0.0008f, -0.005f, 0.005f) * adsFactor;
+		// Movement inertia sway: subtle tactile weight during movement without excessive wobble
+		float targetPosX = Mathf.Clamp(-localVelocity.X * 0.0003f, -0.003f, 0.003f) * adsFactor;
+		float targetPosY = Mathf.Clamp(localVelocity.Y * 0.0002f, -0.002f, 0.002f) * adsFactor;
+		float targetPosZ = Mathf.Clamp(localVelocity.Z * 0.0003f, -0.003f, 0.003f) * adsFactor;
 
 		_swayPosSpring.Target = new Vector3(targetPosX, targetPosY, targetPosZ);
 
-		// Analytical spring update with clean, realistic frequencies:
-		_recoilKickSpring.Update(delta, 16.0f, 1.0f);
-		_swayRotSpring.Update(delta, 12.0f, 1.0f);
-		_swayPosSpring.Update(delta, 10.0f, 1.0f);
+		// Snappy, critically damped springs for immediate, crisp response
+		_recoilKickSpring.Update(delta, 18.0f, 1.0f);
+		_swayRotSpring.Update(delta, 16.0f, 1.0f);
+		_swayPosSpring.Update(delta, 14.0f, 1.0f);
 	}
 
 	public void CancelReload()
@@ -749,6 +766,17 @@ public partial class ViewModelBase : Node3D
 			// If recently fired, let the recoil peak finish before switching locomotion
 			if (_currentAction == ViewModelAction.Fire && _fireActionTimer > 0.0f) return true;
 
+			if (_aimBlend >= 0.5f && _resolvedClips.TryGetValue("aim_idle", out string? aimIdleClip))
+			{
+				_activeMovementClip = aimIdleClip;
+				_activeMovementGeneric = name;
+				_currentAction = ViewModelAction.None;
+				_currentActionClip = string.Empty;
+				_animationPlayer.Play(aimIdleClip, 0.0, 0.0f);
+				_animationPlayer.Seek(0.0, true);
+				return true;
+			}
+
 			_activeMovementClip = clip;
 			_activeMovementGeneric = name;
 			_currentAction = ViewModelAction.None;
@@ -789,13 +817,14 @@ public partial class ViewModelBase : Node3D
 			_currentAction = ViewModelAction.Fire;
 			_currentActionClip = fireClip;
 			_fireActionTimer = 0.12f;
-			if (_animationPlayer.IsPlaying() && _animationPlayer.CurrentAnimation == fireClip)
+			if (_animationPlayer.IsPlaying() && _animationPlayer.CurrentAnimation == fireClip && _animationPlayer.SpeedScale > 0.0f)
 			{
 				_animationPlayer.Seek(0.0, true);
 			}
 			else
 			{
 				_animationPlayer.Play(fireClip, 0.02, Mathf.Max(0.01f, speed * multiplier));
+				_animationPlayer.Seek(0.0, true);
 			}
 			AddRecoilKick();
 			return true;
@@ -812,7 +841,16 @@ public partial class ViewModelBase : Node3D
 		{
 			_currentAction = ViewModelAction.None;
 			_currentActionClip = string.Empty;
-			Play(_queuedMovementGeneric);
+			if (_aimBlend >= 0.5f && _resolvedClips.TryGetValue("aim_idle", out string? aimIdleClip))
+			{
+				_activeMovementClip = aimIdleClip;
+				_animationPlayer?.Play(aimIdleClip, 0.0, 0.0f);
+				_animationPlayer?.Seek(0.0, true);
+			}
+			else
+			{
+				Play(_queuedMovementGeneric);
+			}
 			return;
 		}
 

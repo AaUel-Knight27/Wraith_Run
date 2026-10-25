@@ -12,7 +12,7 @@ CameraBoneName = "Camera"
 ViewPosition = Vector3(0.065, -0.055, -0.02)
 ViewRotationDegrees = Vector3(0, 0, 0)
 ViewScale = Vector3(1, 1, 1)
-AimPositionOffset = Vector3(-0.065, 0.055, 0.02)
+AimPositionOffset = Vector3(-0.0615, 0.0595, 0.02)
 AimTransitionSeconds = 0.14
 HasScope = true
 ArmMeshNames = Array[String](["arms"])
@@ -20,6 +20,7 @@ OriginalWeaponMeshNames = Array[String](["Rifle"])
 HideOriginalWeapon = false
 HideOriginalMagazine = false
 ClipMap = Dictionary[String, String]({
+"aim_idle": "Rig|SRifle_Shot_sight",
 "draw": "Rig|SRifle_Idle",
 "fire": "Rig|SRifle_Shot_nosight",
 "fire_aim": "Rig|SRifle_Shot_sight",

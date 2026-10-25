@@ -72,7 +72,7 @@ public partial class RenderAllViewModels : Node
 			if (data.HasScope || data.AimPositionOffset != Vector3.Zero || weapon == "Sniper")
 			{
 				vm.SetAiming(true);
-				for (int i = 0; i < 15; i++)
+				for (int i = 0; i < 25; i++)
 				{
 					vm._Process(0.016);
 					await ToSignal(GetTree(), "process_frame");

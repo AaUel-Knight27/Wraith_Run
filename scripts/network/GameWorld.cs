@@ -124,8 +124,7 @@ public partial class GameWorld : Node3D
         const float roomX0 = -16.25f, roomX1 = 16.25f, roomZ0 = -14.05f, roomZ1 = 14.05f;
         const float wallT = 0.4f, wallH = 8.8f;
         Vector3 deckCentre = warehouse ? new Vector3((roomX0 + roomX1) * 0.5f, -0.3f, (roomZ0 + roomZ1) * 0.5f) : new Vector3(0.0f, -0.3f, 0.0f);
-        float arenaExtent = mapKind == MatchManager.ArenaMap.Depot ? 160.0f : 80.0f;
-        // Depot now fills a broad village block; its walkable floor must match the exterior terrain.
+        float arenaExtent = 80.0f;
         Vector3 deckSize = warehouse ? new Vector3(roomX1 - roomX0, 0.5f, roomZ1 - roomZ0) : new Vector3(arenaExtent, 0.5f, arenaExtent);
         var floor = new StaticBody3D { Name = "WalkableDeck" };
         var floorShape = new CollisionShape3D
