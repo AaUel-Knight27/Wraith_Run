@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SurfaceLayer" format=3 uid="uid://cy1huu026jecr"]
+
+[ext_resource type="Script" uid="uid://cdjjc7783icx1" path="res://mapkit/Core/SurfaceLayer.cs" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://be6xs067tj37s" path="res://art/materials/tex/Ground062S_Color.jpg" id="2_albedo"]
+[ext_resource type="Texture2D" uid="uid://o30t20mfq2lu" path="res://art/materials/tex/Ground062S_Normal.jpg" id="3_normal"]
+
+[resource]
+script = ExtResource("1_script")
+Albedo = ExtResource("2_albedo")
+Normal = ExtResource("3_normal")
+Tint = Color(0.62, 0.57, 0.5, 1)
+TileMeters = 3.0
+Roughness = 0.95
+Triplanar = true
+EmissionEnergy = 8.0

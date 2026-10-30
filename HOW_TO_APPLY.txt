@@ -1,0 +1,8 @@
+Ashfields ruined-look pass 1
+1. Copy the folders in this zip over your Godot project (same paths, overwrite when asked).
+   If your local project has diverged from GitHub, diff scenes/maps/Ashfields.tscn and
+   mapkit/Outdoor/OutdoorMapBuilder.cs by hand instead of overwriting.
+2. Open the project in Godot, let it build the C# and import the new files.
+3. Open scenes/maps/Ashfields.tscn, select the Builder node, press "Build Map" in the inspector.
+   (The map's terrain and props are baked, so nothing changes until you rebuild.)
+4. In the Output panel look for: "OutdoorMapBuilder: placed N/16 craters."
