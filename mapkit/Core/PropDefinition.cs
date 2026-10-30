@@ -9,6 +9,16 @@ public enum PrimitiveShape
     Cylinder,
     /// <summary>Flat-topped, tapered — sandbag/barrier silhouette.</summary>
     Barrier,
+    // The four below are the "ruined" shapes (see ProceduralShapes.cs). They are appended after the
+    // original three so every existing map keeps its saved enum numbers (0 Box, 1 Cylinder, 2 Barrier).
+    /// <summary>Leafless, leaning trunk with bent branches. Size = (base thickness, height, unused).</summary>
+    DeadTree,
+    /// <summary>Dented, ribbed drum; may lean or lie down. Size = (diameter, height, unused).</summary>
+    Barrel,
+    /// <summary>Wall with a ragged top, holes, rebar and rubble. Size = (length, height, thickness).</summary>
+    BrokenWall,
+    /// <summary>Battered shipping container, optionally with a door ajar. Size = (x, height, z).</summary>
+    Container,
 }
 
 /// <summary>
@@ -54,6 +64,18 @@ public partial class PropDefinition : Resource
                 break;
             case PrimitiveShape.Barrier:
                 AddBarrier(batch, mat, t, s);
+                break;
+            case PrimitiveShape.DeadTree:
+                ProceduralShapes.DeadTree(batch, mat, t, s, Collide);
+                break;
+            case PrimitiveShape.Barrel:
+                ProceduralShapes.Barrel(batch, mat, t, s, Collide);
+                break;
+            case PrimitiveShape.BrokenWall:
+                ProceduralShapes.BrokenWall(batch, mat, t, s, Collide);
+                break;
+            case PrimitiveShape.Container:
+                ProceduralShapes.Container(batch, mat, t, s, Collide);
                 break;
             default:
                 batch.AddBox(mat, t * new Transform3D(Basis.Identity, new Vector3(0.0f, s.Y * 0.5f, 0.0f)), s, collide: Collide);

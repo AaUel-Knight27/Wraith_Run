@@ -57,6 +57,65 @@ public partial class SurfaceLayer : Resource
     [Export(PropertyHint.Range, "0,8,0.05")]
     public float EmissionEnergy { get; set; } = 1.0f;
 
+    // ------------------------------------------------------------ terrain blend (optional)
+
+    /// <summary>
+    /// Second ground look, painted in where the mesh's vertex colour RED is high (e.g. burnt black soil).
+    /// Leave both blend layers empty and this layer behaves exactly as before.
+    /// </summary>
+    [ExportGroup("Terrain blend")]
+    [Export] public SurfaceLayer? BlendLayerB { get; set; }
+
+    /// <summary>Third ground look, painted in where vertex colour GREEN is high (e.g. moss). This layer itself is what shows where both are zero.</summary>
+    [Export] public SurfaceLayer? BlendLayerC { get; set; }
+
+    /// <summary>How strongly a slow, big-scale brightness wobble breaks up texture repetition. 0 = off.</summary>
+    [Export(PropertyHint.Range, "0,1,0.01")] public float MacroVariation { get; set; } = 0.3f;
+
+    /// <summary>Size in metres of that brightness wobble.</summary>
+    [Export(PropertyHint.Range, "4,120,0.5,or_greater")] public float MacroScaleMeters { get; set; } = 28.0f;
+
+    /// <summary>Higher = sharper, more broken edges between the blended looks.</summary>
+    [Export(PropertyHint.Range, "0.05,0.8,0.01")] public float BlendEdgeSoftness { get; set; } = 0.22f;
+
+    public bool HasBlend => BlendLayerB != null || BlendLayerC != null;
+
+    private const string BlendShaderPath = "res://art/shaders/terrain_blend.gdshader";
+
+    /// <summary>
+    /// Builds a 3-look terrain material. The mesh must carry the weights in its vertex colours
+    /// (R = look B, G = look C). Falls back to the plain material if the shader cannot be loaded.
+    /// </summary>
+    public Material CreateBlendMaterial()
+    {
+        var shader = GD.Load<Shader>(BlendShaderPath);
+        if (shader == null)
+        {
+            GD.PushWarning($"SurfaceLayer: {BlendShaderPath} is missing; using the plain ground material instead.");
+            return CreateMaterial();
+        }
+
+        var m = new ShaderMaterial { Shader = shader };
+        SetBlendSlot(m, "a", this);
+        SetBlendSlot(m, "b", BlendLayerB ?? this);
+        SetBlendSlot(m, "c", BlendLayerC ?? this);
+        m.SetShaderParameter("macro_variation", MacroVariation);
+        m.SetShaderParameter("macro_tile", 1.0f / Mathf.Max(MacroScaleMeters, 0.01f));
+        m.SetShaderParameter("edge_softness", BlendEdgeSoftness);
+        return m;
+    }
+
+    private static void SetBlendSlot(ShaderMaterial m, string slot, SurfaceLayer layer)
+    {
+        m.SetShaderParameter(slot + "_albedo", layer.Albedo);
+        m.SetShaderParameter(slot + "_normal", layer.Normal);
+        m.SetShaderParameter(slot + "_has_normal", layer.Normal != null);
+        m.SetShaderParameter(slot + "_tint", layer.Tint);
+        m.SetShaderParameter(slot + "_tile", 1.0f / Mathf.Max(layer.TileMeters, 0.01f));
+        m.SetShaderParameter(slot + "_normal_strength", layer.NormalStrength);
+        m.SetShaderParameter(slot + "_rough", layer.Roughness);
+    }
+
     public static SurfaceLayer Solid(Color colour, float roughness = 0.9f, float metallic = 0.0f, float tileMeters = 2.0f)
     {
         return new SurfaceLayer { Tint = colour, Roughness = roughness, Metallic = metallic, TileMeters = tileMeters };

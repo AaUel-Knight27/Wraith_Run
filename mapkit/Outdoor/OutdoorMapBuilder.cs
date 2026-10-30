@@ -37,6 +37,21 @@ public partial class OutdoorMapBuilder : Node3D
     [Export(PropertyHint.Range, "0,15,0.05")] public float NoiseAmplitude { get; set; } = 1.5f;
     [Export(PropertyHint.Range, "1,6,1")] public int NoiseOctaves { get; set; } = 3;
 
+    [ExportGroup("Ground blend")]
+    // Only used when the Ground SurfaceLayer has BlendLayerB / BlendLayerC set. Otherwise the terrain keeps plain white vertex colours.
+    [Export(PropertyHint.Range, "0,1,0.01")] public float BurntCoverage { get; set; } = 0.45f;
+    [Export(PropertyHint.Range, "0,1,0.01")] public float MossCoverage { get; set; } = 0.3f;
+    [Export(PropertyHint.Range, "0.005,0.3,0.001")] public float BlendNoiseFrequency { get; set; } = 0.05f;
+
+    [ExportGroup("Craters")]
+    // 0 = none, so maps that do not opt in are unchanged. Sizes are WORLD metres: the builder's own scale is compensated for.
+    [Export(PropertyHint.Range, "0,80,1")] public int CraterCount { get; set; }
+    [Export(PropertyHint.Range, "1,20,0.1")] public float CraterMinRadius { get; set; } = 3.5f;
+    [Export(PropertyHint.Range, "1,30,0.1")] public float CraterMaxRadius { get; set; } = 8.0f;
+    /// <summary>Depth as a fraction of the radius (0.2 = a 5 m crater is 1 m deep). Keep under ~0.35 so the walls stay walkable.</summary>
+    [Export(PropertyHint.Range, "0.05,0.5,0.01")] public float CraterDepthRatio { get; set; } = 0.22f;
+    [Export] public int CraterSeed { get; set; } = 7;
+
     [ExportGroup("Road")]
     [Export] public NodePath RoadPath { get; set; } = new();
     [Export(PropertyHint.Range, "1,12,0.1")] public float RoadWidth { get; set; } = 6.0f;
@@ -82,6 +97,18 @@ public partial class OutdoorMapBuilder : Node3D
     private Polyline2D? _road;
     private readonly List<Polyline2D> _trenches = new();
 
+    private readonly struct Crater
+    {
+        public readonly Vector2 Center; // builder-local metres
+        public readonly float Radius;   // world metres
+        public readonly float Depth;    // local Y metres
+        public Crater(Vector2 c, float r, float d) { Center = c; Radius = r; Depth = d; }
+    }
+
+    private readonly List<Crater> _craters = new();
+    // The builder node can be scaled (Ashfields is 1.25 x 0.83), which would stretch a round crater into an oval.
+    private Vector2 _worldScaleXZ = Vector2.One;
+
     [ExportToolButton("Build Map")]
     public Callable BuildMapButton => Callable.From(BuildMap);
 
@@ -111,6 +138,7 @@ public partial class OutdoorMapBuilder : Node3D
         var spawns = MapKitUtil.AddOwned(root, new Node3D(), "Spawns", owner);
 
         LoadPaths();
+        BuildCraters();
 
         var noise = new FastNoiseLite
         {
@@ -127,7 +155,7 @@ public partial class OutdoorMapBuilder : Node3D
         BuildPerimeter(batch);
         BuildSpawns(spawns, owner);
 
-        Func<object, Material?> resolve = mat => mat is SurfaceLayer sl ? sl.CreateMaterial() : null;
+        Func<object, Material?> resolve = mat => mat is SurfaceLayer sl ? (sl.HasBlend ? sl.CreateBlendMaterial() : sl.CreateMaterial()) : null;
         MapKitUtil.EmitBatch(batch, resolve, visual, collision, owner, genFolder, "Terrain", castShadows: true, visibleRange: 0.0f);
 
         (owner.GetNodeOrNull<RuinPass>("RuinPass") ?? GetNodeOrNull<RuinPass>("RuinPass"))?.ApplyTo(root);
@@ -163,20 +191,138 @@ public partial class OutdoorMapBuilder : Node3D
 
     // ---------------------------------------------------------------- height field
 
-    private enum Zone { Ground, TrenchWall, TrenchFloor }
+    // Order matters: Worst() keeps the highest, so trench zones outrank a crater that happens to touch them.
+    private enum Zone { Ground, Crater, TrenchWall, TrenchFloor }
 
     private readonly struct Sample
     {
         public readonly Vector3 Position;
         public readonly Vector3 Normal;
         public readonly Zone Zone;
-        public Sample(Vector3 p, Vector3 n, Zone z) { Position = p; Normal = n; Zone = z; }
+        public readonly Color Splat; // R = look B (burnt), G = look C (moss)
+        public Sample(Vector3 p, Vector3 n, Zone z, Color splat) { Position = p; Normal = n; Zone = z; Splat = splat; }
+    }
+
+    /// <summary>0 well outside every crater, 1 inside the bowl; used to scorch the ground around impacts.</summary>
+    private float CraterInfluence(Vector2 p)
+    {
+        float best = 0.0f;
+        foreach (Crater c in _craters)
+        {
+            float d = WorldDistance(p, c.Center);
+            best = Mathf.Max(best, 1.0f - MapKitUtil.SmoothStep(c.Radius * 0.7f, c.Radius * 1.9f, d));
+        }
+        return best;
+    }
+
+    private float WorldDistance(Vector2 a, Vector2 b)
+    {
+        Vector2 d = (a - b) * _worldScaleXZ;
+        return d.Length();
+    }
+
+    private void BuildCraters()
+    {
+        _craters.Clear();
+        Vector3 s = GlobalTransform.Basis.Scale;
+        _worldScaleXZ = new Vector2(Mathf.Max(Mathf.Abs(s.X), 0.01f), Mathf.Max(Mathf.Abs(s.Z), 0.01f));
+        if (CraterCount <= 0) return;
+
+        float minR = Mathf.Min(CraterMinRadius, CraterMaxRadius);
+        float maxR = Mathf.Max(CraterMinRadius, CraterMaxRadius);
+        // Local half-extents of the playable area (the heightfield is built in local space).
+        float hx = Mathf.Max(1, Mathf.RoundToInt(SizeMeters.X / CellSize)) * CellSize * 0.5f;
+        float hz = Mathf.Max(1, Mathf.RoundToInt(SizeMeters.Y / CellSize)) * CellSize * 0.5f;
+        List<Vector2> spawns = SpawnPositions();
+
+        // Team spawn rectangles (world space) are placed by hand in the map scene; keep craters off them so
+        // nobody respawns on a crater rim or in a pit. Same group + "half_extent" metadata TeamSpawnArea reads.
+        var teamAreas = new List<(Vector2 Centre, Vector2 Half)>();
+        if (IsInsideTree())
+        {
+            for (int team = 0; team < 2; team++)
+            {
+                foreach (Node n in GetTree().GetNodesInGroup("team_spawn_area_" + team))
+                {
+                    if (n is not Node3D marker) continue;
+                    Vector2 half = marker.HasMeta("half_extent") ? marker.GetMeta("half_extent").AsVector2() : new Vector2(6.0f, 6.0f);
+                    teamAreas.Add((new Vector2(marker.GlobalPosition.X, marker.GlobalPosition.Z), half));
+                }
+            }
+        }
+
+        var rng = new RandomNumberGenerator { Seed = (ulong)Math.Max(1, CraterSeed) };
+        int attempts = CraterCount * 40;
+        for (int i = 0; i < attempts && _craters.Count < CraterCount; i++)
+        {
+            float r = rng.RandfRange(minR, maxR);
+            // Keep the whole crater (plus its raised rim) inside the map.
+            float marginX = r * 1.7f / _worldScaleXZ.X;
+            float marginZ = r * 1.7f / _worldScaleXZ.Y;
+            if (hx - marginX <= 0.0f || hz - marginZ <= 0.0f) continue;
+            var c = new Vector2(rng.RandfRange(-hx + marginX, hx - marginX), rng.RandfRange(-hz + marginZ, hz - marginZ));
+
+            bool ok = true;
+            foreach (Vector2 sp in spawns)
+            {
+                if (WorldDistance(c, sp) < r * 1.7f + ScatterSpawnClearance) { ok = false; break; }
+            }
+            if (ok && teamAreas.Count > 0)
+            {
+                Vector3 wp = GlobalTransform * new Vector3(c.X, 0.0f, c.Y);
+                float reach = r * 1.7f + 2.0f;
+                foreach ((Vector2 centre, Vector2 half) in teamAreas)
+                {
+                    float dx = Mathf.Max(Mathf.Abs(wp.X - centre.X) - half.X, 0.0f);
+                    float dz = Mathf.Max(Mathf.Abs(wp.Z - centre.Y) - half.Y, 0.0f);
+                    if (dx * dx + dz * dz < reach * reach) { ok = false; break; }
+                }
+            }
+            if (ok && _road != null)
+            {
+                _road.Nearest(c, out float dist, out _, out _);
+                // dist is in local metres; the road width is too, so compare in the same unit with a small safety factor.
+                if (dist * Mathf.Max(_worldScaleXZ.X, _worldScaleXZ.Y) < RoadWidth * 0.5f + BorderWidth + r * 1.7f + ScatterRoadClearance) ok = false;
+            }
+            if (ok)
+            {
+                foreach (Polyline2D trench in _trenches)
+                {
+                    trench.Nearest(c, out float dist, out _, out _);
+                    if (dist * Mathf.Max(_worldScaleXZ.X, _worldScaleXZ.Y) < TrenchWidth * 0.5f + TrenchWallSpan + r * 1.7f) { ok = false; break; }
+                }
+            }
+            if (ok)
+            {
+                foreach (Crater other in _craters)
+                {
+                    if (WorldDistance(c, other.Center) < (r + other.Radius) * 1.1f) { ok = false; break; }
+                }
+            }
+            if (!ok) continue;
+
+            _craters.Add(new Crater(c, r, r * CraterDepthRatio));
+        }
+
+        MapKitUtil.Log($"OutdoorMapBuilder: placed {_craters.Count}/{CraterCount} craters.");
     }
 
     private float HeightAt(Vector2 p, FastNoiseLite noise, out Zone zone)
     {
         zone = Zone.Ground;
         float h = noise.GetNoise2D(p.X, p.Y) * NoiseAmplitude;
+
+        // Craters sit on the noise ground but are placed clear of the road and trenches, so the later
+        // road/trench passes never fight them. Bowl is a parabola; the rim is a soft raised lip of thrown earth.
+        foreach (Crater c in _craters)
+        {
+            float u = WorldDistance(p, c.Center) / c.Radius;
+            if (u >= 1.7f) continue;
+            float bowl = u < 1.0f ? -c.Depth * (1.0f - u * u) : 0.0f;
+            float rimU = (u - 1.08f) / 0.25f;
+            h += bowl + c.Depth * 0.28f * Mathf.Exp(-rimU * rimU);
+            if (u < 1.15f) zone = Zone.Crater;
+        }
 
         if (_road != null)
         {
@@ -216,18 +362,51 @@ public partial class OutdoorMapBuilder : Node3D
         var grid = new Sample[w * d];
         const float eps = 0.35f;
 
+        bool blend = Ground != null && Ground.HasBlend;
+        var burnNoise = new FastNoiseLite
+        {
+            NoiseType = FastNoiseLite.NoiseTypeEnum.SimplexSmooth,
+            Seed = NoiseSeed + 101,
+            Frequency = BlendNoiseFrequency,
+            FractalOctaves = 3,
+        };
+        var mossNoise = new FastNoiseLite
+        {
+            NoiseType = FastNoiseLite.NoiseTypeEnum.SimplexSmooth,
+            Seed = NoiseSeed + 202,
+            Frequency = BlendNoiseFrequency * 1.3f,
+            FractalOctaves = 3,
+        };
+        // Noise is roughly -1..1. Coverage slides the cut-off: 0 = almost none, 1 = almost everywhere.
+        float burnLo = Mathf.Lerp(0.55f, -0.45f, Mathf.Clamp(BurntCoverage, 0.0f, 1.0f));
+        float mossLo = Mathf.Lerp(0.55f, -0.45f, Mathf.Clamp(MossCoverage, 0.0f, 1.0f));
+
         for (int iz = 0; iz < d; iz++)
         {
             for (int ix = 0; ix < w; ix++)
             {
                 Vector2 p = origin + new Vector2(ix * CellSize, iz * CellSize);
                 float h = HeightAt(p, noise, out Zone zone);
+
+                Color splat = Colors.White;
+                if (blend)
+                {
+                    // Burnt earth: big noise patches, plus a guaranteed scorched halo around every crater.
+                    float burn = MapKitUtil.SmoothStep(burnLo, burnLo + 0.4f, burnNoise.GetNoise2D(p.X, p.Y));
+                    burn = Mathf.Clamp(burn + CraterInfluence(p) * 0.9f, 0.0f, 1.0f);
+                    // Moss: only where it has not burnt, and never on trench walls/floors.
+                    float moss = MapKitUtil.SmoothStep(mossLo, mossLo + 0.4f, mossNoise.GetNoise2D(p.X, p.Y));
+                    moss *= 1.0f - burn * 0.85f;
+                    if (zone == Zone.TrenchFloor || zone == Zone.TrenchWall) moss = 0.0f;
+                    splat = new Color(burn, Mathf.Min(moss, 1.0f - burn), 0.0f, 1.0f);
+                }
+
                 float hL = HeightAt(p + new Vector2(-eps, 0.0f), noise, out _);
                 float hR = HeightAt(p + new Vector2(eps, 0.0f), noise, out _);
                 float hD = HeightAt(p + new Vector2(0.0f, -eps), noise, out _);
                 float hU = HeightAt(p + new Vector2(0.0f, eps), noise, out _);
                 Vector3 normal = new Vector3(hL - hR, 2.0f * eps, hD - hU).Normalized();
-                grid[iz * w + ix] = new Sample(new Vector3(p.X, h, p.Y), normal, zone);
+                grid[iz * w + ix] = new Sample(new Vector3(p.X, h, p.Y), normal, zone, splat);
             }
         }
 
@@ -251,10 +430,10 @@ public partial class OutdoorMapBuilder : Node3D
                 };
 
                 batch.AddQuad(material,
-                    new BatchVertex(a.Position, a.Normal, MeshBatcher.ProjectUV(a.Position, a.Normal), Colors.White),
-                    new BatchVertex(b.Position, b.Normal, MeshBatcher.ProjectUV(b.Position, b.Normal), Colors.White),
-                    new BatchVertex(c.Position, c.Normal, MeshBatcher.ProjectUV(c.Position, c.Normal), Colors.White),
-                    new BatchVertex(e.Position, e.Normal, MeshBatcher.ProjectUV(e.Position, e.Normal), Colors.White),
+                    new BatchVertex(a.Position, a.Normal, MeshBatcher.ProjectUV(a.Position, a.Normal), a.Splat),
+                    new BatchVertex(b.Position, b.Normal, MeshBatcher.ProjectUV(b.Position, b.Normal), b.Splat),
+                    new BatchVertex(c.Position, c.Normal, MeshBatcher.ProjectUV(c.Position, c.Normal), c.Splat),
+                    new BatchVertex(e.Position, e.Normal, MeshBatcher.ProjectUV(e.Position, e.Normal), e.Splat),
                     collide: true);
             }
         }
@@ -374,6 +553,11 @@ public partial class OutdoorMapBuilder : Node3D
             {
                 trench.Nearest(p, out float dist, out _, out _);
                 if (dist < TrenchWidth * 0.5f + TrenchWallSpan) return false;
+            }
+            // Nothing is planted in a crater bowl: a tree growing out of a blast pit reads wrong.
+            foreach (Crater c in _craters)
+            {
+                if (WorldDistance(p, c.Center) < c.Radius * 1.0f) return false;
             }
             return true;
         }
