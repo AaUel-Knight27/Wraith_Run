@@ -6,3 +6,4 @@
 !scenes/maps/*.gen/
 !scenes/maps/*.gen/*.res
 *.import    
+*.pdf
